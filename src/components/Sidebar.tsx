@@ -1,5 +1,4 @@
 import { FileText, FolderOpen, Home, Plus, Share2, Star, Table2, Trash2 } from 'lucide-react';
-import { Logo } from './Logo';
 
 const nav = [
   [Home, 'Home'], [FolderOpen, 'My workspace'], [Share2, 'Shared with me'], [Star, 'Starred'], [Trash2, 'Trash'],
@@ -7,7 +6,6 @@ const nav = [
 
 export function Sidebar({ menuOpen, onToggleMenu, onCreate }: { menuOpen: boolean; onToggleMenu: () => void; onCreate: (type: 'paper' | 'spreadsheet' | 'folder') => void }) {
   return <aside className="sidebar">
-    <Logo />
     <div className="new-wrap">
       <button className="new-button" onClick={onToggleMenu} aria-expanded={menuOpen}><Plus size={20} /> New</button>
       {menuOpen && <div className="create-menu" role="menu" aria-label="Create">

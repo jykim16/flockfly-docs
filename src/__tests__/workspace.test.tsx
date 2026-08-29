@@ -3,6 +3,14 @@ import { describe, expect, it } from 'vitest';
 import App from '../App';
 
 describe('Flockdoc workspace', () => {
+  it('uses the shared Flockfly platform shell and coastal branding', () => {
+    render(<App />);
+    const header = screen.getByRole('banner', { name: 'Flockfly platform navigation' });
+    expect(within(header).getByLabelText('Flockfly Flockdoc')).toBeInTheDocument();
+    expect(within(header).getByRole('link', { name: 'Flockdoc' })).toHaveAttribute('aria-current', 'page');
+    expect(within(header).getByText('jkim@flockfly.ai')).toBeInTheDocument();
+  });
+
   it('uses the agreed Paper, Spreadsheet, and Flockdoc terminology', () => {
     render(<App />);
     expect(screen.getByRole('heading', { name: 'My workspace' })).toBeInTheDocument();

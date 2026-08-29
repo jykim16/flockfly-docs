@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { HelpCircle, Link, MoreHorizontal, Search, Share2 } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
+import { PlatformHeader } from './components/PlatformHeader';
 import { initialFlockdocs } from './data';
 import { PaperEditor } from './features/editor/PaperEditor';
 import { SpreadsheetEditor } from './features/editor/SpreadsheetEditor';
@@ -37,7 +38,10 @@ export default function App() {
   const routeMatch = route.match(/^#\/flockdoc\/(paper|spreadsheet)\/([^/]+)/);
   if (routeMatch) {
     const item = items.find(entry => entry.id === routeMatch[2]);
-    if (item) return item.type === 'paper' ? <PaperEditor item={item} onBack={() => { location.hash = ''; }} /> : <SpreadsheetEditor item={item} onBack={() => { location.hash = ''; }} />;
+    if (item) return <div className="editor-app">
+      <PlatformHeader />
+      {item.type === 'paper' ? <PaperEditor item={item} onBack={() => { location.hash = ''; }} /> : <SpreadsheetEditor item={item} onBack={() => { location.hash = ''; }} />}
+    </div>;
   }
 
   const create = (type: 'paper' | 'spreadsheet' | 'folder') => {
@@ -48,6 +52,7 @@ export default function App() {
   };
 
   return <div className={`app-shell ${selected ? 'with-details' : ''}`}>
+    <PlatformHeader />
     <Sidebar menuOpen={menuOpen} onToggleMenu={() => setMenuOpen(value => !value)} onCreate={create} />
     <main className="workspace">
       <header className="topbar"><label><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search papers and spreadsheets" /></label><button aria-label="Help"><HelpCircle /></button><span className="avatar">JK</span></header>
