@@ -15,6 +15,6 @@ export function Sidebar({ menuOpen, onToggleMenu, onCreate }: { menuOpen: boolea
       </div>}
     </div>
     <nav aria-label="Workspace navigation">{nav.map(([Icon, label]) => <button key={label} className={label === 'My workspace' ? 'active' : ''}><Icon />{label}</button>)}</nav>
-    <div className="storage"><span>Storage</span><small>6.4 GB of 15 GB used</small><div><i /></div><button>Manage storage</button></div>
+    <div className="storage"><span>Storage</span><small>Storage data unavailable</small><button disabled>Manage storage</button></div>
   </aside>;
 }

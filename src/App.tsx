@@ -17,7 +17,7 @@ export default function App() {
   const [items, setItems] = useState(initialFlockdocs);
   const [filter, setFilter] = useState<WorkspaceFilter>('all');
   const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState<Flockdoc | undefined>(items[1]);
+  const [selected, setSelected] = useState<Flockdoc | undefined>();
   const [menuOpen, setMenuOpen] = useState(false);
   const [route, setRoute] = useState(location.hash);
   const itemsRef = useRef(items);
@@ -55,7 +55,7 @@ export default function App() {
     <PlatformHeader />
     <Sidebar menuOpen={menuOpen} onToggleMenu={() => setMenuOpen(value => !value)} onCreate={create} />
     <main className="workspace">
-      <header className="topbar"><label><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search papers and spreadsheets" /></label><button aria-label="Help"><HelpCircle /></button><span className="avatar">JK</span></header>
+      <header className="topbar"><label><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search papers and spreadsheets" /></label><button aria-label="Help"><HelpCircle /></button></header>
       <section className="workspace-content">
         <div className="title-row"><h1>My workspace</h1><div><button className="share"><Share2 />Share</button><button aria-label="Copy link"><Link /></button><button aria-label="More actions"><MoreHorizontal /></button></div></div>
         <div className="filters">{([['all', 'All'], ['paper', 'Papers'], ['spreadsheet', 'Spreadsheets']] as const).map(([value, label]) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div>

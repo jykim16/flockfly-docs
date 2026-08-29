@@ -5,6 +5,7 @@ import { Avatar } from '../../components/Avatar';
 export function FlockdocTable({ items, selectedId, onSelect }: { items: Flockdoc[]; selectedId?: string; onSelect: (item: Flockdoc) => void }) {
   return <div className="file-table" role="table" aria-label="Flockdocs">
     <div className="file-row table-head" role="row"><span /><span>Name ↑</span><span>Type</span><span>People & agents</span><span>Modified ↓</span><span /></div>
+    {items.length === 0 && <div className="empty-state"><FileText /><strong>No flockdocs yet</strong><span>Create a Paper or Spreadsheet to start working.</span></div>}
     {items.map(item => {
       const Icon = item.type === 'paper' ? FileText : Table2;
       return <button type="button" role="row" key={item.id} className={`file-row ${selectedId === item.id ? 'selected' : ''}`} onClick={() => onSelect(item)} onDoubleClick={() => { location.hash = `#/flockdoc/${item.type}/${item.id}`; }}>

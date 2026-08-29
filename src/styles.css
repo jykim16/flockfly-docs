@@ -108,6 +108,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .platform-header nav a.active::after { content: ''; position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: var(--seafoam); }
 .user-chip { display: flex; align-items: center; gap: 9px; margin-left: auto; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.9); color: var(--slate); font-size: .78rem; }
 .user-chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--seafoam); box-shadow: 0 0 0 3px rgba(67,198,164,.14); }
+.user-chip.local i { background: var(--slate); box-shadow: 0 0 0 3px rgba(95,114,132,.12); }
 
 .sidebar { grid-row: 2; height: auto; min-height: 0; padding: 22px 16px 20px; background: rgba(217,236,239,.25); border-color: var(--line); }
 .new-wrap { margin: 0 8px 26px; }
@@ -123,6 +124,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .storage i { background: linear-gradient(90deg, var(--ocean), var(--seafoam)); }
 .storage button { color: var(--navy); border-color: var(--line); background: rgba(255,255,255,.55); }
 .storage button:hover { border-color: var(--ocean-light); background: #fff; }
+.storage button:disabled { cursor: not-allowed; opacity: .58; }
 
 .workspace { grid-row: 2; height: auto; min-height: 0; background: #f7fbfa; }
 .topbar { height: 78px; border-color: var(--line); background: rgba(247,251,250,.82); }
@@ -147,6 +149,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .file-row:not(.table-head):hover { background: rgba(217,236,239,.22); }
 .file-row.selected { background: rgba(157,231,213,.16); box-shadow: inset 0 0 0 1px rgba(67,198,164,.25); }
 .file-row.selected::before { background: var(--seafoam); }
+.empty-state { min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; color: var(--slate); text-align: center; }
+.empty-state svg { width: 30px; height: 30px; margin-bottom: 5px; color: var(--ocean-light); stroke-width: 1.5; }
+.empty-state strong { color: var(--navy); font-size: 1rem; font-weight: 600; }
+.empty-state span { font-size: .82rem; }
 .selected .checkbox { border-color: var(--ocean); background: var(--ocean); }
 .file-name > svg.starred { color: var(--sand-dark); fill: var(--sand); }
 .type-icon.paper { color: var(--ocean); }
@@ -165,6 +171,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .agent-entry button:hover { border-color: var(--ocean-light); background: rgba(217,236,239,.2); }
 .comment-box { border-color: var(--line); border-radius: 11px; }
 .comment-box:focus-within { border-color: var(--ocean-light); box-shadow: 0 0 0 3px rgba(67,198,164,.13); }
+.empty-thread { min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; color: var(--slate); text-align: center; }
+.empty-thread svg { width: 28px; height: 28px; margin-bottom: 5px; color: var(--ocean-light); stroke-width: 1.5; }
+.empty-thread strong { color: var(--navy); }
+.empty-thread span { max-width: 220px; font-size: .78rem; }
 
 .editor-app { height: 100vh; display: grid; grid-template-rows: 64px minmax(0,1fr); overflow: hidden; background: #f7fbfa; }
 .editor-app > .platform-header { grid-row: 1; }
@@ -174,10 +184,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .editor-header div span { color: var(--ocean); }
 .paper-toolbar button:hover, .sheet-toolbar button:hover { color: var(--reef); background: rgba(217,236,239,.4); }
 .paper-canvas article { border: 1px solid var(--line); border-radius: 3px; box-shadow: 0 18px 48px rgba(16,32,51,.09); }
+.paper-canvas article:empty::before { content: attr(data-placeholder); color: #9aa8b3; }
 .paper-canvas h1, .paper-canvas h2 { font-family: "Geist Sans", Inter, ui-sans-serif, system-ui, sans-serif; color: var(--navy); }
 .spreadsheet-canvas { background: rgba(217,236,239,.28); }
 .calendar-title { background: linear-gradient(110deg, var(--reef), var(--ocean)); }
 .calendar-grid b { color: var(--reef); background: rgba(217,236,239,.65); }
+.calendar-grid.blank-sheet { margin-top: 0; }
 .sheet-tabs button.active { color: var(--ocean); box-shadow: inset 0 2px var(--seafoam); }
 
 @media (max-width: 1120px) {

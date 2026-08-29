@@ -8,7 +8,7 @@ describe('Flockdoc workspace', () => {
     const header = screen.getByRole('banner', { name: 'Flockfly platform navigation' });
     expect(within(header).getByLabelText('Flockfly Flockdoc')).toBeInTheDocument();
     expect(within(header).getByRole('link', { name: 'Flockdoc' })).toHaveAttribute('aria-current', 'page');
-    expect(within(header).getByText('jkim@flockfly.ai')).toBeInTheDocument();
+    expect(within(header).getByText('Local workspace')).toBeInTheDocument();
   });
 
   it('uses the agreed Paper, Spreadsheet, and Flockdoc terminology', () => {
@@ -21,13 +21,12 @@ describe('Flockdoc workspace', () => {
     expect(within(menu).getByRole('menuitem', { name: 'Folder' })).toBeInTheDocument();
   });
 
-  it('filters the workspace and opens the selected item activity drawer', () => {
+  it('starts without seeded documents or mock collaboration data', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Papers' }));
     const table = screen.getByRole('table', { name: 'Flockdocs' });
-    expect(within(table).getByText('Product launch brief')).toBeInTheDocument();
-    expect(within(table).queryByText('2026 Planning Calendar')).not.toBeInTheDocument();
-    fireEvent.click(within(table).getByText('Product launch brief'));
-    expect(screen.getByRole('complementary', { name: 'Document details' })).toHaveTextContent('Comments');
+    expect(within(table).getAllByRole('row')).toHaveLength(1);
+    expect(screen.getByText('No flockdocs yet')).toBeInTheDocument();
+    expect(screen.queryByRole('complementary', { name: 'Document details' })).not.toBeInTheDocument();
+    expect(screen.getByText('Storage data unavailable')).toBeInTheDocument();
   });
 });
