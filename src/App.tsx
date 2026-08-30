@@ -9,17 +9,18 @@ import { DetailsDrawer } from './features/workspace/DetailsDrawer';
 import { FlockdocTable } from './features/workspace/FlockdocTable';
 import { consumeAuthTokenFromHash, FlockdocApi, getToken, googleSignInUrl, supportsPlatformSession } from './lib/api';
 import { registerFlockdocWebMCP } from './lib/webmcp';
+import { currentFlockdocPath, migrateLegacyFlockdocPath, navigateFlockdoc } from './lib/navigation';
 import { loadWorkspace, saveWorkspace } from './lib/workspace-storage';
 import type { Flockdoc, FlockdocType, WorkspaceFilter } from './types';
 import './styles.css';
 
-function routeFor(item: Flockdoc) { return `#/flockdoc/${item.type}/${item.id}`; }
+function routeFor(item: Flockdoc) { return `/flockdoc/${item.type}/${item.id}`; }
 
 export default function App() {
   const [token] = useState(() => {
-    const isAuthCallback = location.hash.startsWith('#/auth');
+    const isAuthCallback = location.hash.startsWith('#/auth') || location.pathname === '/flockdoc/auth';
     const consumed = consumeAuthTokenFromHash(location.hash);
-    if (isAuthCallback) history.replaceState(null, '', `${location.pathname}${location.search}`);
+    if (isAuthCallback) history.replaceState(null, '', '/flockdoc/');
     return consumed ?? getToken();
   });
   const [items, setItems] = useState<Flockdoc[]>(() => loadWorkspace(localStorage));
@@ -27,7 +28,7 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Flockdoc | undefined>();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [route, setRoute] = useState(location.hash);
+  const [route, setRoute] = useState(currentFlockdocPath);
   const [syncStatus, setSyncStatus] = useState<'browser' | 'loading' | 'synced' | 'error'>('loading');
   const [authenticated, setAuthenticated] = useState(false);
   const [account, setAccount] = useState<{ email: string; entitled: boolean } | null>(null);
@@ -36,7 +37,13 @@ export default function App() {
   const itemsRef = useRef(items);
   const apiRef = useRef(cloudApi);
 
-  useEffect(() => { const handler = () => setRoute(location.hash); addEventListener('hashchange', handler); return () => removeEventListener('hashchange', handler); }, []);
+  useEffect(() => {
+    const handler = () => { const next = currentFlockdocPath(); migrateLegacyFlockdocPath(); setRoute(next); };
+    migrateLegacyFlockdocPath();
+    addEventListener('popstate', handler);
+    addEventListener('hashchange', handler);
+    return () => { removeEventListener('popstate', handler); removeEventListener('hashchange', handler); };
+  }, []);
   useEffect(() => { itemsRef.current = items; }, [items]);
   useEffect(() => { apiRef.current = cloudApi; }, [cloudApi]);
   useEffect(() => { saveWorkspace(items, localStorage); }, [items]);
@@ -89,17 +96,17 @@ export default function App() {
   }}), [cloudApi]);
 
   const visibleItems = useMemo(() => items.filter(item => (filter === 'all' || item.type === filter) && item.name.toLowerCase().includes(query.toLowerCase())), [filter, items, query]);
-  const routeMatch = route.match(/^#\/flockdoc\/(paper|spreadsheet)\/([^/]+)/);
+  const routeMatch = route.match(/^\/flockdoc\/(paper|spreadsheet)\/([^/]+)/);
   if (routeMatch) {
     const item = items.find(entry => entry.id === routeMatch[2]);
     const updateItem = (updates: Partial<Flockdoc>) => setItems(current => current.map(entry => entry.id === item?.id ? { ...entry, ...updates } : entry));
     if (item) return <div className="editor-app">
       <PlatformHeader account={account} />
       {cloudApi
-        ? <RemoteEditor api={cloudApi} item={item} onBack={() => { location.hash = ''; }} onUpdate={updateItem} />
+        ? <RemoteEditor api={cloudApi} item={item} onBack={() => navigateFlockdoc('/flockdoc/')} onUpdate={updateItem} />
         : item.type === 'paper'
-          ? <PaperEditor key={item.id} item={item} onBack={() => { location.hash = ''; }} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
-          : <SpreadsheetEditor key={item.id} item={item} onBack={() => { location.hash = ''; }} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />}
+          ? <PaperEditor key={item.id} item={item} onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
+          : <SpreadsheetEditor key={item.id} item={item} onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />}
     </div>;
   }
 
@@ -110,7 +117,7 @@ export default function App() {
     const item: Flockdoc = cloudApi
       ? (await cloudApi.create(name, type)).flockdoc
       : { id: crypto.randomUUID(), name, type, modifiedAt: 'Just now', collaborators: [] };
-    setItems(current => [item, ...current]); location.hash = routeFor(item);
+    setItems(current => [item, ...current]); navigateFlockdoc(routeFor(item));
   };
 
   return <div className={`app-shell ${selected ? 'with-details' : ''}`}>

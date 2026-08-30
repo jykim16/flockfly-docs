@@ -8,18 +8,31 @@ describe('Flockdoc workspace', () => {
   it('uses the shared Flockfly platform shell and coastal branding', () => {
     render(<App />);
     const header = screen.getByRole('banner', { name: 'Flockfly platform navigation' });
-    expect(within(header).getByRole('link', { name: 'Flockfly Platform' })).toHaveAttribute('href', 'https://platform.flockfly.ai/#/');
+    expect(within(header).getByRole('link', { name: 'Flockfly Platform' })).toHaveAttribute('href', 'https://platform.flockfly.ai/');
     const navigation = within(header).getByRole('navigation', { name: 'Platform' });
     expect(within(navigation).getAllByRole('link').map(link => link.textContent)).toEqual([
       'Skills', 'Routers', 'Sessions', 'Flockdoc', 'Getting started',
     ]);
-    expect(within(navigation).getByRole('link', { name: 'Skills' })).toHaveAttribute('href', 'https://platform.flockfly.ai/#/skills');
-    expect(within(navigation).getByRole('link', { name: 'Routers' })).toHaveAttribute('href', 'https://platform.flockfly.ai/#/routers');
-    expect(within(navigation).getByRole('link', { name: 'Sessions' })).toHaveAttribute('href', 'https://platform.flockfly.ai/#/sessions');
+    expect(within(navigation).getByRole('link', { name: 'Skills' })).toHaveAttribute('href', 'https://platform.flockfly.ai/skills');
+    expect(within(navigation).getByRole('link', { name: 'Routers' })).toHaveAttribute('href', 'https://platform.flockfly.ai/routers');
+    expect(within(navigation).getByRole('link', { name: 'Sessions' })).toHaveAttribute('href', 'https://platform.flockfly.ai/sessions');
     expect(within(navigation).getByRole('link', { name: 'Flockdoc' })).toHaveAttribute('href', '/flockdoc/');
     expect(within(navigation).getByRole('link', { name: 'Flockdoc' })).toHaveAttribute('aria-current', 'page');
-    expect(within(navigation).getByRole('link', { name: 'Getting started' })).toHaveAttribute('href', 'https://platform.flockfly.ai/#/getting-started');
+    expect(within(navigation).getByRole('link', { name: 'Getting started' })).toHaveAttribute('href', 'https://platform.flockfly.ai/getting-started');
     expect(within(header).getByText('Preview workspace')).toBeInTheDocument();
+  });
+
+  it('opens flockdocs with a clean path instead of a hash route', () => {
+    localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, flockdocs: [{
+      id: 'paper-1', name: 'Planning Paper', type: 'paper', modifiedAt: 'Just now', collaborators: [],
+    }] }));
+    render(<App />);
+
+    fireEvent.doubleClick(screen.getByRole('row', { name: /Planning Paper/ }));
+
+    expect(window.location.pathname).toBe('/flockdoc/paper/paper-1');
+    expect(window.location.hash).toBe('');
+    expect(screen.getByLabelText('Paper editor')).toBeInTheDocument();
   });
 
   it('uses the agreed Paper, Spreadsheet, and Flockdoc terminology', () => {
@@ -60,7 +73,7 @@ describe('Flockdoc workspace', () => {
     expect(await screen.findByText('Cloud plan')).toBeInTheDocument();
     expect(screen.queryByText('Browser only')).not.toBeInTheDocument();
     const account = screen.getByRole('link', { name: /planner@flockfly.ai/i });
-    expect(account).toHaveAttribute('href', 'https://platform.flockfly.ai/#/account');
+    expect(account).toHaveAttribute('href', 'https://platform.flockfly.ai/account');
     expect(within(account).getByText('Pro')).toBeInTheDocument();
     expect(fetchMock.mock.calls[0][0]).toBe('/v1/me');
   });

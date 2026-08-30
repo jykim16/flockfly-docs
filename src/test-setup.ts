@@ -18,5 +18,5 @@ if (!globalThis.localStorage) {
 afterEach(() => {
   cleanup();
   localStorage.clear();
-  window.location.hash = '';
+  window.history.replaceState(null, '', '/');
 });

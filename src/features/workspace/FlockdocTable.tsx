@@ -1,5 +1,6 @@
 import { Bot, FileText, MoreHorizontal, Star, Table2 } from 'lucide-react';
 import type { Flockdoc } from '../../types';
+import { navigateFlockdoc } from '../../lib/navigation';
 import { Avatar } from '../../components/Avatar';
 
 export function FlockdocTable({ items, selectedId, onSelect }: { items: Flockdoc[]; selectedId?: string; onSelect: (item: Flockdoc) => void }) {
@@ -8,7 +9,7 @@ export function FlockdocTable({ items, selectedId, onSelect }: { items: Flockdoc
     {items.length === 0 && <div className="empty-state"><FileText /><strong>No flockdocs yet</strong><span>Create a Paper or Spreadsheet to start working.</span></div>}
     {items.map(item => {
       const Icon = item.type === 'paper' ? FileText : Table2;
-      return <button type="button" role="row" key={item.id} className={`file-row ${selectedId === item.id ? 'selected' : ''}`} onClick={() => onSelect(item)} onDoubleClick={() => { location.hash = `#/flockdoc/${item.type}/${item.id}`; }}>
+      return <button type="button" role="row" key={item.id} className={`file-row ${selectedId === item.id ? 'selected' : ''}`} onClick={() => onSelect(item)} onDoubleClick={() => navigateFlockdoc(`/flockdoc/${item.type}/${item.id}`)}>
         <span className="checkbox" aria-hidden>{selectedId === item.id ? '✓' : ''}</span>
         <span className="file-name"><Icon className={`type-icon ${item.type}`} /><span>{item.name}</span><Star className={item.starred ? 'starred' : ''} /></span>
         <span className="type-label">{item.type === 'paper' ? 'Paper' : 'Spreadsheet'}</span>
