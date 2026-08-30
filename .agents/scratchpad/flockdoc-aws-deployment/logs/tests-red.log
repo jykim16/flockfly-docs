@@ -1,0 +1,36 @@
+
+> @flockfly/flockdoc-infra@0.1.0 test
+> vitest run
+
+
+ RUN  v2.1.9 /Users/jkim/Documents/vibe/webmcp/flockfly-docs/infra
+
+ ❯ test/flockdoc-web-stack.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/flockdoc-web-stack.test.ts [ test/flockdoc-web-stack.test.ts ]
+Error: Failed to resolve import "../lib/flockdoc-web-stack" from "test/flockdoc-web-stack.test.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/jkim/Documents/vibe/webmcp/flockfly-docs/infra/test/flockdoc-web-stack.test.ts:5:33
+  3  |  import { Match, Template } from "aws-cdk-lib/assertions";
+  4  |  import { describe, expect, it } from "vitest";
+  5  |  import { FlockdocWebStack } from "../lib/flockdoc-web-stack";
+     |                                    ^
+  6  |  const assetPath = path.join(__dirname, "fixtures", "site");
+  7  |  function templateFor(props = {}) {
+ ❯ TransformPluginContext._formatError node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23
+ ❯ node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7
+ ❯ PluginContainer.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  18:09:14
+   Duration  468ms (transform 13ms, setup 98ms, collect 0ms, tests 0ms, environment 220ms, prepare 31ms)
+

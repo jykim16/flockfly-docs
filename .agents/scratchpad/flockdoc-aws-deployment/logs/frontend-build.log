@@ -1,0 +1,13 @@
+
+> flockfly-docs@0.1.0 build
+> tsc -b && vite build
+
+vite v6.4.3 building for production...
+transforming...
+✓ 1589 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.44 kB │ gzip:  0.28 kB
+dist/assets/index-B2Jdkqfb.css   22.70 kB │ gzip:  5.28 kB
+dist/assets/index-NYGyw6Ub.js   217.14 kB │ gzip: 66.59 kB
+✓ built in 620ms

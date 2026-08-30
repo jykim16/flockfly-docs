@@ -1,6 +1,6 @@
 import type { Comment, Flockdoc, FlockdocType } from '../types';
 
-const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? 'http://localhost:8800';
+const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? (import.meta.env.PROD ? '' : 'http://localhost:8800');
 
 export class FlockdocApi {
   constructor(private readonly token?: string) {}
