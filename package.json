@@ -13,9 +13,14 @@
     "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
+    "@univerjs/core": "1.0.0-beta.2",
+    "@univerjs/preset-docs-core": "1.0.0-beta.2",
+    "@univerjs/preset-sheets-core": "1.0.0-beta.2",
+    "@univerjs/presets": "1.0.0-beta.2",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
@@ -26,6 +31,6 @@
     "jsdom": "^25.0.1",
     "typescript": "~5.7.2",
     "vite": "^6.0.7",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.11"
   }
 }

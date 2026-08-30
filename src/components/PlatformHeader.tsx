@@ -9,6 +9,6 @@ export function PlatformHeader() {
       {platformSections.map(section => <a key={section} href={`https://platform.flockfly.ai/${section.toLowerCase()}`}>{section}</a>)}
       <a className="active" href="#" aria-current="page">Flockdoc</a>
     </nav>
-    <div className="user-chip local"><i aria-hidden="true" /><span>Local workspace</span></div>
+    <div className="user-chip"><i aria-hidden="true" /><span>Preview workspace</span></div>
   </header>;
 }

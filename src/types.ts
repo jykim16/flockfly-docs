@@ -16,6 +16,7 @@ export interface Flockdoc {
   modifiedAt: string;
   starred?: boolean;
   collaborators: Collaborator[];
+  snapshot?: unknown;
 }
 
 export interface Comment {

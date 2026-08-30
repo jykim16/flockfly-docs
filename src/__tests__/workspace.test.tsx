@@ -8,7 +8,7 @@ describe('Flockdoc workspace', () => {
     const header = screen.getByRole('banner', { name: 'Flockfly platform navigation' });
     expect(within(header).getByLabelText('Flockfly Flockdoc')).toBeInTheDocument();
     expect(within(header).getByRole('link', { name: 'Flockdoc' })).toHaveAttribute('aria-current', 'page');
-    expect(within(header).getByText('Local workspace')).toBeInTheDocument();
+    expect(within(header).getByText('Preview workspace')).toBeInTheDocument();
   });
 
   it('uses the agreed Paper, Spreadsheet, and Flockdoc terminology', () => {

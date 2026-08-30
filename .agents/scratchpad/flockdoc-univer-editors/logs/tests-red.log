@@ -1,0 +1,65 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run
+
+
+ RUN  v2.1.9 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:89010) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:89009) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:89008) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:89007) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/workspace-storage.test.ts (0 test)
+ ❯ src/__tests__/univer-webmcp.test.ts (0 test)
+ ✓ src/__tests__/webmcp.test.ts (1 test) 3ms
+ ✓ src/__tests__/workspace.test.tsx (3 tests) 89ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/univer-webmcp.test.ts [ src/__tests__/univer-webmcp.test.ts ]
+Error: Failed to resolve import "../lib/univer-webmcp" from "src/__tests__/univer-webmcp.test.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/jkim/Documents/vibe/webmcp/flockfly-docs/src/__tests__/univer-webmcp.test.ts:4:37
+  1  |  import { describe, expect, it, vi } from "vitest";
+  2  |  import { registerUniverWebMCP } from "../lib/univer-webmcp";
+     |                                        ^
+  3  |  class FakeModelContext {
+  4  |    tools = /* @__PURE__ */ new Map();
+ ❯ TransformPluginContext._formatError node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41
+ ❯ TransformPluginContext.error node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16
+ ❯ normalizeUrl node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23
+ ❯ node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+ ❯ TransformPluginContext.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7
+ ❯ PluginContainer.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18
+ ❯ loadAndTransform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/__tests__/workspace-storage.test.ts [ src/__tests__/workspace-storage.test.ts ]
+Error: Failed to resolve import "../lib/workspace-storage" from "src/__tests__/workspace-storage.test.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/jkim/Documents/vibe/webmcp/flockfly-docs/src/__tests__/workspace-storage.test.ts:3:68
+  1  |  import { describe, expect, it } from "vitest";
+  2  |  import { loadWorkspace, saveWorkspace, WORKSPACE_STORAGE_KEY } from "../lib/workspace-storage";
+     |                                                                       ^
+  3  |  const paper = {
+  4  |    id: "paper-1",
+ ❯ TransformPluginContext._formatError node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41
+ ❯ TransformPluginContext.error node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16
+ ❯ normalizeUrl node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23
+ ❯ node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+ ❯ TransformPluginContext.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7
+ ❯ PluginContainer.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18
+ ❯ loadAndTransform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  2 failed | 2 passed (4)
+      Tests  4 passed (4)
+   Start at  21:01:00
+   Duration  545ms (transform 72ms, setup 209ms, collect 128ms, tests 92ms, environment 607ms, prepare 113ms)
+

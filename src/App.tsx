@@ -2,19 +2,19 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { HelpCircle, Link, MoreHorizontal, Search, Share2 } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { PlatformHeader } from './components/PlatformHeader';
-import { initialFlockdocs } from './data';
 import { PaperEditor } from './features/editor/PaperEditor';
 import { SpreadsheetEditor } from './features/editor/SpreadsheetEditor';
 import { DetailsDrawer } from './features/workspace/DetailsDrawer';
 import { FlockdocTable } from './features/workspace/FlockdocTable';
 import { registerFlockdocWebMCP } from './lib/webmcp';
+import { loadWorkspace, saveWorkspace } from './lib/workspace-storage';
 import type { Flockdoc, FlockdocType, WorkspaceFilter } from './types';
 import './styles.css';
 
 function routeFor(item: Flockdoc) { return `#/flockdoc/${item.type}/${item.id}`; }
 
 export default function App() {
-  const [items, setItems] = useState(initialFlockdocs);
+  const [items, setItems] = useState<Flockdoc[]>(() => loadWorkspace(localStorage));
   const [filter, setFilter] = useState<WorkspaceFilter>('all');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Flockdoc | undefined>();
@@ -24,23 +24,23 @@ export default function App() {
 
   useEffect(() => { const handler = () => setRoute(location.hash); addEventListener('hashchange', handler); return () => removeEventListener('hashchange', handler); }, []);
   useEffect(() => { itemsRef.current = items; }, [items]);
+  useEffect(() => { saveWorkspace(items, localStorage); }, [items]);
   useEffect(() => registerFlockdocWebMCP({ modelContext: document.modelContext, actions: {
     listFlockdocs: () => ({ flockdocs: itemsRef.current }),
     createFlockdoc: ({ name, type }) => { const next = { id: crypto.randomUUID(), name: String(name), type: type as FlockdocType, modifiedAt: 'Just now', collaborators: [] }; setItems(current => [next, ...current]); return { flockdoc: next }; },
     renameFlockdoc: ({ id, name }) => { setItems(current => current.map(item => item.id === id ? { ...item, name: String(name) } : item)); return { ok: true }; },
-    shareFlockdoc: input => ({ ok: true, grant: input }),
-    addComment: input => ({ ok: true, comment: input }),
-    updatePaper: input => ({ ok: true, update: input }),
-    updateSpreadsheet: input => ({ ok: true, update: input }),
   }}), []);
 
   const visibleItems = useMemo(() => items.filter(item => (filter === 'all' || item.type === filter) && item.name.toLowerCase().includes(query.toLowerCase())), [filter, items, query]);
   const routeMatch = route.match(/^#\/flockdoc\/(paper|spreadsheet)\/([^/]+)/);
   if (routeMatch) {
     const item = items.find(entry => entry.id === routeMatch[2]);
+    const updateItem = (updates: Partial<Flockdoc>) => setItems(current => current.map(entry => entry.id === item?.id ? { ...entry, ...updates } : entry));
     if (item) return <div className="editor-app">
       <PlatformHeader />
-      {item.type === 'paper' ? <PaperEditor item={item} onBack={() => { location.hash = ''; }} onRename={name => setItems(current => current.map(entry => entry.id === item.id ? { ...entry, name } : entry))} /> : <SpreadsheetEditor item={item} onBack={() => { location.hash = ''; }} onRename={name => setItems(current => current.map(entry => entry.id === item.id ? { ...entry, name } : entry))} />}
+      {item.type === 'paper'
+        ? <PaperEditor key={item.id} item={item} onBack={() => { location.hash = ''; }} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
+        : <SpreadsheetEditor key={item.id} item={item} onBack={() => { location.hash = ''; }} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />}
     </div>;
   }
 

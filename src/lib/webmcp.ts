@@ -13,10 +13,6 @@ export interface FlockdocActions {
   listFlockdocs: () => unknown;
   createFlockdoc: (input: Record<string, unknown>) => unknown;
   renameFlockdoc: (input: Record<string, unknown>) => unknown;
-  shareFlockdoc: (input: Record<string, unknown>) => unknown;
-  addComment: (input: Record<string, unknown>) => unknown;
-  updatePaper: (input: Record<string, unknown>) => unknown;
-  updateSpreadsheet: (input: Record<string, unknown>) => unknown;
 }
 
 const objectSchema = (properties: Record<string, unknown>, required: string[] = []) => ({
@@ -31,10 +27,6 @@ export function registerFlockdocWebMCP({ modelContext, actions }: { modelContext
     { name: 'flockdoc.list', description: 'List the flockdocs visible in the current workspace.', inputSchema: objectSchema({}), execute: actions.listFlockdocs },
     { name: 'flockdoc.create', description: 'Create a Paper or Spreadsheet.', inputSchema: objectSchema({ type: { enum: ['paper', 'spreadsheet'] }, name: { type: 'string' } }, ['type', 'name']), execute: actions.createFlockdoc },
     { name: 'flockdoc.rename', description: 'Rename a flockdoc.', inputSchema: objectSchema({ id: { type: 'string' }, name: { type: 'string' } }, ['id', 'name']), execute: actions.renameFlockdoc },
-    { name: 'flockdoc.share', description: 'Share a flockdoc with a user, team, agent, or link principal.', inputSchema: objectSchema({ id: { type: 'string' }, principalType: { enum: ['user', 'team', 'agent', 'link'] }, principalId: { type: 'string' }, role: { enum: ['viewer', 'commenter', 'editor', 'manager'] } }, ['id', 'principalType', 'principalId', 'role']), execute: actions.shareFlockdoc },
-    { name: 'flockdoc.comment', description: 'Add an anchored or document-level comment.', inputSchema: objectSchema({ id: { type: 'string' }, body: { type: 'string' }, anchor: { type: 'object' } }, ['id', 'body']), execute: actions.addComment },
-    { name: 'paper.update', description: 'Update the current Paper contents.', inputSchema: objectSchema({ id: { type: 'string' }, content: { type: 'string' } }, ['id', 'content']), execute: actions.updatePaper },
-    { name: 'spreadsheet.update', description: 'Write a matrix of values to a Spreadsheet range.', inputSchema: objectSchema({ id: { type: 'string' }, range: { type: 'string' }, values: { type: 'array' } }, ['id', 'range', 'values']), execute: actions.updateSpreadsheet },
   ];
 
   for (const tool of tools) void modelContext.registerTool(tool, { signal: controller.signal });
