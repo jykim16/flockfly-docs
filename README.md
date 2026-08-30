@@ -5,7 +5,7 @@ Flockdoc is the collaborative document workspace for Flockfly. A saved object is
 - **Paper** — a rich-text document.
 - **Spreadsheet** — a workbook.
 
-The frontend is intentionally a separate repository. Authentication, storage, permissions, comments, revision history, sharing, and agent identity live in the existing Flockfly backend.
+The frontend is intentionally a separate repository. Authentication, storage, permissions, content-anchored comments, revision history, sharing, and agent identity live in the existing Flockfly backend.
 
 ## Run locally
 
@@ -66,8 +66,6 @@ When the host browser exposes `document.modelContext`, the app registers:
 - `flockdoc.list`
 - `flockdoc.create`
 - `flockdoc.rename`
-- `flockdoc.share`
-- `flockdoc.comment`
 - `paper.update`
 - `spreadsheet.update`
 

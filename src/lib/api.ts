@@ -1,4 +1,4 @@
-import type { Comment, Flockdoc, FlockdocPermissions, FlockdocRole, FlockdocType } from '../types';
+import type { Flockdoc, FlockdocPermissions, FlockdocRole, FlockdocType } from '../types';
 
 const TOKEN_KEY = 'flockfly.token';
 const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? '';
@@ -140,10 +140,6 @@ export class FlockdocApi {
     return this.request<{ revision: number; snapshotKey: string; duplicate: boolean }>(`/v1/flockdocs/${id}/state`, {
       method: 'PUT', body: JSON.stringify({ baseRevision, idempotencyKey, snapshot }),
     });
-  }
-
-  addComment(id: string, body: string, anchor?: unknown) {
-    return this.request<{ comment: Comment }>(`/v1/flockdocs/${id}/comments`, { method: 'POST', body: JSON.stringify({ body, anchor: anchor ?? { kind: 'document' } }) });
   }
 
   grantRole(id: string, principalType: string, principalId: string, role: string) {

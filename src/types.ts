@@ -14,7 +14,6 @@ export interface Flockdoc {
   name: string;
   type: FlockdocType;
   modifiedAt: string;
-  starred?: boolean;
   collaborators: Collaborator[];
   snapshot?: unknown;
   headRevision?: number;
@@ -30,12 +29,4 @@ export interface FlockdocPermissions {
   canEdit: boolean;
   canShare: boolean;
   canDelete: boolean;
-}
-
-export interface Comment {
-  id: string;
-  author: Collaborator;
-  body: string;
-  createdAt: string;
-  replies?: Comment[];
 }

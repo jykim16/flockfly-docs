@@ -1,0 +1,89 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/workspace.test.tsx src/__tests__/webmcp.test.ts
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:54654) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:54653) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/webmcp.test.ts (2 tests | 1 failed) 9ms
+     × keeps server-backed sharing but does not expose document-level comments 3ms
+ ❯ src/__tests__/workspace.test.tsx (6 tests | 2 failed) 138ms
+     × shows only implemented workspace navigation and actions 13ms
+     × starts without seeded documents or mock collaboration data 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/webmcp.test.ts > Flockdoc WebMCP bridge > keeps server-backed sharing but does not expose document-level comments
+AssertionError: expected [ 'flockdoc.list', …(4) ] to deeply equal [ 'flockdoc.list', …(3) ]
+
+- Expected
++ Received
+
+  [
+    "flockdoc.list",
+    "flockdoc.create",
+    "flockdoc.rename",
+    "flockdoc.share",
++   "flockdoc.comment",
+  ]
+
+ ❯ src/__tests__/webmcp.test.ts:37:64
+     35|     });
+     36|
+     37|     expect(registerTool.mock.calls.map(([tool]) => tool.name)).toEqual…
+       |                                                                ^
+     38|       'flockdoc.list',
+     39|       'flockdoc.create',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/__tests__/workspace.test.tsx > Flockdoc workspace > shows only implemented workspace navigation and actions
+AssertionError: expected [ 'Home', 'My workspace', …(3) ] to deeply equal [ 'My workspace' ]
+
+- Expected
++ Received
+
+  [
++   "Home",
+    "My workspace",
++   "Shared with me",
++   "Starred",
++   "Trash",
+  ]
+
+ ❯ src/__tests__/workspace.test.tsx:32:89
+     30|
+     31|     const navigation = screen.getByRole('navigation', { name: 'Workspa…
+     32|     expect(within(navigation).getAllByRole('button').map(button => but…
+       |                                                                                         ^
+     33|     expect(screen.queryByText('Storage')).not.toBeInTheDocument();
+     34|     expect(screen.queryByRole('button', { name: 'Share' })).not.toBeIn…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/__tests__/workspace.test.tsx > Flockdoc workspace > starts without seeded documents or mock collaboration data
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <small>
+  Storage data unavailable
+</small> instead
+ ❯ src/__tests__/workspace.test.tsx:74:64
+     72|     expect(screen.getByText('No flockdocs yet')).toBeInTheDocument();
+     73|     expect(screen.queryByRole('complementary', { name: 'Document detai…
+     74|     expect(screen.queryByText('Storage data unavailable')).not.toBeInT…
+       |                                                                ^
+     75|   });
+     76|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  3 failed | 5 passed (8)
+   Start at  15:50:48
+   Duration  599ms (transform 198ms, setup 105ms, import 122ms, tests 147ms, environment 268ms)
+

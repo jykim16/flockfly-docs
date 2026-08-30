@@ -1,8 +1,4 @@
-import { FileText, FolderOpen, Home, Plus, Share2, Star, Table2, Trash2 } from 'lucide-react';
-
-const nav = [
-  [Home, 'Home'], [FolderOpen, 'My workspace'], [Share2, 'Shared with me'], [Star, 'Starred'], [Trash2, 'Trash'],
-] as const;
+import { FileText, FolderOpen, Plus, Table2 } from 'lucide-react';
 
 export function Sidebar({ menuOpen, onToggleMenu, onCreate }: { menuOpen: boolean; onToggleMenu: () => void; onCreate: (type: 'paper' | 'spreadsheet' | 'folder') => void }) {
   return <aside className="sidebar">
@@ -14,7 +10,6 @@ export function Sidebar({ menuOpen, onToggleMenu, onCreate }: { menuOpen: boolea
         <button role="menuitem" onClick={() => onCreate('folder')}><FolderOpen /> Folder</button>
       </div>}
     </div>
-    <nav aria-label="Workspace navigation">{nav.map(([Icon, label]) => <button key={label} className={label === 'My workspace' ? 'active' : ''}><Icon />{label}</button>)}</nav>
-    <div className="storage"><span>Storage</span><small>Storage data unavailable</small><button disabled>Manage storage</button></div>
+    <nav aria-label="Workspace navigation"><a className="active" href="/flockdoc/" aria-current="page"><FolderOpen />My workspace</a></nav>
   </aside>;
 }

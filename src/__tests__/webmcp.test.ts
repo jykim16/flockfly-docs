@@ -21,7 +21,7 @@ describe('Flockdoc WebMCP bridge', () => {
     dispose();
   });
 
-  it('adds server-backed permissions and comments without exposing mock actions', () => {
+  it('does not expose sharing or comments before a specific document is open', () => {
     const registerTool = vi.fn();
     registerFlockdocWebMCP({
       modelContext: { registerTool },
@@ -31,15 +31,13 @@ describe('Flockdoc WebMCP bridge', () => {
         renameFlockdoc: vi.fn(),
         shareFlockdoc: vi.fn(),
         commentOnFlockdoc: vi.fn(),
-      },
+      } as never,
     });
 
     expect(registerTool.mock.calls.map(([tool]) => tool.name)).toEqual([
       'flockdoc.list',
       'flockdoc.create',
       'flockdoc.rename',
-      'flockdoc.share',
-      'flockdoc.comment',
     ]);
   });
 });

@@ -22,13 +22,35 @@ describe('Flockdoc workspace', () => {
     expect(within(header).getByText('Preview workspace')).toBeInTheDocument();
   });
 
-  it('opens flockdocs with a clean path instead of a hash route', () => {
+  it('shows only implemented workspace navigation and actions', () => {
+    localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, flockdocs: [{
+      id: 'paper-1', name: 'Planning Paper', type: 'paper', modifiedAt: 'Just now', collaborators: [], starred: true,
+    }] }));
+    render(<App />);
+
+    const navigation = screen.getByRole('navigation', { name: 'Workspace navigation' });
+    const workspaceLink = within(navigation).getByRole('link', { name: 'My workspace' });
+    expect(workspaceLink).toHaveAttribute('href', '/flockdoc/');
+    expect(workspaceLink).toHaveAttribute('aria-current', 'page');
+    expect(screen.queryByText('Storage')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Share' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Copy link' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'More actions' })).not.toBeInTheDocument();
+
+    const row = screen.getByRole('row', { name: /Planning Paper/ });
+    expect(row.querySelectorAll('.file-name svg')).toHaveLength(1);
+    fireEvent.click(row);
+    expect(screen.queryByRole('complementary', { name: 'Document details' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Add a comment')).not.toBeInTheDocument();
+  });
+
+  it('opens flockdocs from a single accessible click with a clean path', () => {
     localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, flockdocs: [{
       id: 'paper-1', name: 'Planning Paper', type: 'paper', modifiedAt: 'Just now', collaborators: [],
     }] }));
     render(<App />);
 
-    fireEvent.doubleClick(screen.getByRole('row', { name: /Planning Paper/ }));
+    fireEvent.click(screen.getByRole('row', { name: /Planning Paper/ }));
 
     expect(window.location.pathname).toBe('/flockdoc/paper/paper-1');
     expect(window.location.hash).toBe('');
@@ -51,7 +73,7 @@ describe('Flockdoc workspace', () => {
     expect(within(table).getAllByRole('row')).toHaveLength(1);
     expect(screen.getByText('No flockdocs yet')).toBeInTheDocument();
     expect(screen.queryByRole('complementary', { name: 'Document details' })).not.toBeInTheDocument();
-    expect(screen.getByText('Storage data unavailable')).toBeInTheDocument();
+    expect(screen.queryByText('Storage data unavailable')).not.toBeInTheDocument();
   });
 
   it('replaces browser state with the authenticated cloud workspace', async () => {

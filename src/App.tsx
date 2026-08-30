@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { HelpCircle, Link, MoreHorizontal, Search, Share2 } from 'lucide-react';
+import { HelpCircle, Search } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { PlatformHeader } from './components/PlatformHeader';
 import { PaperEditor } from './features/editor/PaperEditor';
 import { RemoteEditor } from './features/editor/RemoteEditor';
 import { SpreadsheetEditor } from './features/editor/SpreadsheetEditor';
-import { DetailsDrawer } from './features/workspace/DetailsDrawer';
 import { FlockdocTable } from './features/workspace/FlockdocTable';
 import { consumeAuthTokenFromHash, FlockdocApi, getToken, googleSignInUrl, supportsPlatformSession } from './lib/api';
 import { registerFlockdocWebMCP } from './lib/webmcp';
@@ -26,7 +25,6 @@ export default function App() {
   const [items, setItems] = useState<Flockdoc[]>(() => loadWorkspace(localStorage));
   const [filter, setFilter] = useState<WorkspaceFilter>('all');
   const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState<Flockdoc | undefined>();
   const [menuOpen, setMenuOpen] = useState(false);
   const [route, setRoute] = useState(currentFlockdocPath);
   const [syncStatus, setSyncStatus] = useState<'browser' | 'loading' | 'synced' | 'error'>('loading');
@@ -86,14 +84,7 @@ export default function App() {
       setItems(current => current.map(item => item.id === id ? { ...item, name: String(name) } : item));
       return { ok: true };
     },
-    ...(cloudApi ? {
-      shareFlockdoc: async ({ id, principalType, principalId, role }) => {
-        await cloudApi.grantRole(String(id), String(principalType), String(principalId), String(role));
-        return { ok: true };
-      },
-      commentOnFlockdoc: async ({ id, body, anchor }) => cloudApi.addComment(String(id), String(body), anchor),
-    } : {}),
-  }}), [cloudApi]);
+  }}), []);
 
   const visibleItems = useMemo(() => items.filter(item => (filter === 'all' || item.type === filter) && item.name.toLowerCase().includes(query.toLowerCase())), [filter, items, query]);
   const routeMatch = route.match(/^\/flockdoc\/(paper|spreadsheet)\/([^/]+)/);
@@ -120,7 +111,7 @@ export default function App() {
     setItems(current => [item, ...current]); navigateFlockdoc(routeFor(item));
   };
 
-  return <div className={`app-shell ${selected ? 'with-details' : ''}`}>
+  return <div className="app-shell">
     <PlatformHeader account={account} />
     <Sidebar menuOpen={menuOpen} onToggleMenu={() => setMenuOpen(value => !value)} onCreate={create} />
     <main className="workspace">
@@ -129,12 +120,10 @@ export default function App() {
         {syncStatus === 'browser' ? <aside className="sync-banner"><div><strong>Keep your flockdocs on every device</strong><span>Sign in once on Flockfly to store Paper and Spreadsheet revisions securely.</span></div><a href={googleSignInUrl()}>Sign in to sync</a></aside> : null}
         {syncStatus === 'loading' ? <p className="sync-note">Loading your cloud workspace…</p> : null}
         {syncStatus === 'error' ? <p className="sync-note error">Cloud sync is unavailable. Your browser copy has not been removed.</p> : null}
-        <div className="title-row"><h1>My workspace</h1><div><button className="share"><Share2 />Share</button><button aria-label="Copy link"><Link /></button><button aria-label="More actions"><MoreHorizontal /></button></div></div>
+        <div className="title-row"><h1>My workspace</h1></div>
         <div className="filters">{([['all', 'All'], ['paper', 'Papers'], ['spreadsheet', 'Spreadsheets']] as const).map(([value, label]) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div>
-        <FlockdocTable items={visibleItems} selectedId={selected?.id} onSelect={item => setSelected(item)} />
-        <p className="open-hint">Double-click a Paper or Spreadsheet name to open it.</p>
+        <FlockdocTable items={visibleItems} />
       </section>
     </main>
-    {selected && <DetailsDrawer item={selected} onClose={() => setSelected(undefined)} />}
   </div>;
 }

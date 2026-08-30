@@ -1,0 +1,118 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/workspace.test.tsx src/__tests__/webmcp.test.ts
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:55817) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:55818) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/webmcp.test.ts (2 tests | 1 failed) 9ms
+     × does not expose sharing or comments before a specific document is open 3ms
+ ❯ src/__tests__/workspace.test.tsx (6 tests | 2 failed) 110ms
+     × shows only implemented workspace navigation and actions 12ms
+     × opens flockdocs from a single accessible click with a clean path 11ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/webmcp.test.ts > Flockdoc WebMCP bridge > does not expose sharing or comments before a specific document is open
+AssertionError: expected [ 'flockdoc.list', …(3) ] to deeply equal [ 'flockdoc.list', …(2) ]
+
+- Expected
++ Received
+
+  [
+    "flockdoc.list",
+    "flockdoc.create",
+    "flockdoc.rename",
++   "flockdoc.share",
+  ]
+
+ ❯ src/__tests__/webmcp.test.ts:37:64
+     35|     });
+     36|
+     37|     expect(registerTool.mock.calls.map(([tool]) => tool.name)).toEqual…
+       |                                                                ^
+     38|       'flockdoc.list',
+     39|       'flockdoc.create',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/__tests__/workspace.test.tsx > Flockdoc workspace > shows only implemented workspace navigation and actions
+TestingLibraryElementError: Unable to find an accessible element with the role "link" and name "My workspace"
+
+Here are the accessible roles:
+
+  button:
+
+  Name "My workspace":
+  [36m<button[39m
+    [33mclass[39m=[32m"active"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<nav[39m
+  [33maria-label[39m=[32m"Workspace navigation"[39m
+[36m>[39m
+  [36m<button[39m
+    [33mclass[39m=[32m"active"[39m
+  [36m>[39m
+    [36m<svg[39m
+      [33mclass[39m=[32m"lucide lucide-folder-open"[39m
+      [33mfill[39m=[32m"none"[39m
+      [33mheight[39m=[32m"24"[39m
+      [33mstroke[39m=[32m"currentColor"[39m
+      [33mstroke-linecap[39m=[32m"round"[39m
+      [33mstroke-linejoin[39m=[32m"round"[39m
+      [33mstroke-width[39m=[32m"2"[39m
+      [33mviewBox[39m=[32m"0 0 24 24"[39m
+      [33mwidth[39m=[32m"24"[39m
+      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+    [36m>[39m
+      [36m<path[39m
+        [33md[39m=[32m"m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"[39m
+      [36m/>[39m
+    [36m</svg>[39m
+    [0mMy workspace[0m
+  [36m</button>[39m
+[36m</nav>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/__tests__/workspace.test.tsx:32:46
+     30|
+     31|     const navigation = screen.getByRole('navigation', { name: 'Workspa…
+     32|     const workspaceLink = within(navigation).getByRole('link', { name:…
+       |                                              ^
+     33|     expect(workspaceLink).toHaveAttribute('href', '/flockdoc/');
+     34|     expect(workspaceLink).toHaveAttribute('aria-current', 'page');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/__tests__/workspace.test.tsx > Flockdoc workspace > opens flockdocs from a single accessible click with a clean path
+AssertionError: expected '/' to be '/flockdoc/paper/paper-1' // Object.is equality
+
+Expected: "/flockdoc/paper/paper-1"
+Received: "/"
+
+ ❯ src/__tests__/workspace.test.tsx:55:38
+     53|     fireEvent.click(screen.getByRole('row', { name: /Planning Paper/ }…
+     54|
+     55|     expect(window.location.pathname).toBe('/flockdoc/paper/paper-1');
+       |                                      ^
+     56|     expect(window.location.hash).toBe('');
+     57|     expect(screen.getByLabelText('Paper editor')).toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  3 failed | 5 passed (8)
+   Start at  15:54:03
+   Duration  461ms (transform 89ms, setup 105ms, import 119ms, tests 119ms, environment 263ms)
+
