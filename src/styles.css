@@ -192,7 +192,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .spreadsheet-canvas { background: rgba(217,236,239,.28); }
 .calendar-title { background: linear-gradient(110deg, var(--reef), var(--ocean)); }
 .calendar-grid b { color: var(--reef); background: rgba(217,236,239,.65); }
-.calendar-grid.blank-sheet { margin-top: 0; }
+.calendar-grid.blank-sheet { --sheet-cell-width: 88px; --sheet-cell-height: 24px; width: max-content; max-width: none; margin: 0; grid-template-columns: repeat(18, var(--sheet-cell-width)); }
+.calendar-grid.blank-sheet b { width: var(--sheet-cell-width); height: var(--sheet-cell-height); }
+.calendar-grid.blank-sheet div { width: var(--sheet-cell-width); min-height: var(--sheet-cell-height); height: var(--sheet-cell-height); padding: 3px 6px; }
 .sheet-tabs button.active { color: var(--ocean); box-shadow: inset 0 2px var(--seafoam); }
 
 @media (max-width: 1120px) {

@@ -1,7 +1,8 @@
 import { ArrowLeft, Bold, ChevronDown, Italic, MessageSquare, Redo2, Share2, Undo2 } from 'lucide-react';
 import type { Flockdoc } from '../../types';
 
-const columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+const columns = Array.from({ length: 18 }, (_, index) => String.fromCharCode(65 + index));
+const defaultRowCount = 40;
 
 export function SpreadsheetEditor({ item, onBack, onRename }: { item: Flockdoc; onBack: () => void; onRename: (name: string) => void }) {
   return <main className="editor-shell sheet-editor">
@@ -11,7 +12,7 @@ export function SpreadsheetEditor({ item, onBack, onRename }: { item: Flockdoc; 
     <div className="formula"><span>A1</span><strong>fx</strong><input aria-label="Formula" /></div>
     <section className="spreadsheet-canvas" aria-label="Spreadsheet editor">
       <div className="sheet-tabs"><button className="active">Sheet 1</button></div>
-      <div className="calendar-grid blank-sheet">{columns.map(column => <b key={column}>{column}</b>)}{Array.from({ length: 35 }, (_, index) => <div key={index} contentEditable suppressContentEditableWarning />)}</div>
+      <div className="calendar-grid blank-sheet">{columns.map(column => <b key={column}>{column}</b>)}{Array.from({ length: columns.length * defaultRowCount }, (_, index) => <div key={index} contentEditable suppressContentEditableWarning />)}</div>
     </section>
   </main>;
 }
