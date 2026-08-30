@@ -6,11 +6,11 @@ Flockdoc is a standalone React/Vite repository. The existing Flockfly backend ow
 
 ## Requirements
 
-- Host the production frontend entirely in AWS.
+- Host the Flockdoc frontend in AWS while keeping the public product URL on `platform.flockfly.ai/flockdoc/`.
 - Keep assets private at rest and serve them only through CloudFront.
 - Support client-side routes with `index.html` fallbacks.
-- Proxy `/v1/*` to `api.flockfly.ai` without caching so browser API calls remain same-origin.
-- Allow an ACM certificate and custom domain to be attached when DNS is ready.
+- Keep `/v1/*` on the existing Vercel platform rewrite so browser API calls remain same-origin.
+- Reuse the existing `platform.flockfly.ai` hostname and certificate; do not provision a second public hostname or certificate.
 - Keep stack outputs sufficient for CI deployment and cache invalidation.
 - Preserve the local development API default while using same-origin API paths in production.
 
@@ -26,10 +26,13 @@ Flockdoc is a standalone React/Vite repository. The existing Flockfly backend ow
 ```text
 Vite build (dist)
   -> CDK BucketDeployment
-  -> private S3 bucket
-  -> CloudFront distribution
-       /v1/* -> api.flockfly.ai
-       /*    -> S3 origin
+  -> private S3 bucket under /flockdoc
+  -> generated CloudFront implementation origin
+  -> Vercel external rewrite for platform.flockfly.ai/flockdoc/*
+
+Browser /v1/*
+  -> existing Vercel API rewrite
+  -> api.flockfly.ai
 ```
 
 ## Implementation paths
@@ -40,6 +43,6 @@ Vite build (dist)
 - `src/lib/api.ts`: production same-origin API default.
 - `README.md`: deployment workflow and current data behavior.
 
-## Uncertainty
+## Resolved public routing
 
-The final custom hostname is not yet confirmed. The first stack therefore deploys to a CloudFront hostname and accepts optional `domainName` plus a complete us-east-1 ACM certificate ARN when available.
+The selected architecture uses `platform.flockfly.ai/flockdoc/`. CDK emits the generated CloudFront origin URL, which is stored as `FLOCKDOC_ORIGIN` in the platform Vercel project. The Flockdoc repository remains standalone; only the platform-owned routing configuration changes in the backend repository.
