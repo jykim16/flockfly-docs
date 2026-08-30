@@ -40,7 +40,7 @@ export default function App() {
     const item = items.find(entry => entry.id === routeMatch[2]);
     if (item) return <div className="editor-app">
       <PlatformHeader />
-      {item.type === 'paper' ? <PaperEditor item={item} onBack={() => { location.hash = ''; }} onRename={name => setItems(current => current.map(entry => entry.id === item.id ? { ...entry, name } : entry))} /> : <SpreadsheetEditor item={item} onBack={() => { location.hash = ''; }} />}
+      {item.type === 'paper' ? <PaperEditor item={item} onBack={() => { location.hash = ''; }} onRename={name => setItems(current => current.map(entry => entry.id === item.id ? { ...entry, name } : entry))} /> : <SpreadsheetEditor item={item} onBack={() => { location.hash = ''; }} onRename={name => setItems(current => current.map(entry => entry.id === item.id ? { ...entry, name } : entry))} />}
     </div>;
   }
 

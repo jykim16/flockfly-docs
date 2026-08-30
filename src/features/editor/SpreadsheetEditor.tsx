@@ -3,9 +3,9 @@ import type { Flockdoc } from '../../types';
 
 const columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
-export function SpreadsheetEditor({ item, onBack }: { item: Flockdoc; onBack: () => void }) {
+export function SpreadsheetEditor({ item, onBack, onRename }: { item: Flockdoc; onBack: () => void; onRename: (name: string) => void }) {
   return <main className="editor-shell sheet-editor">
-    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><strong>{item.name}</strong><span>Saved to Flockdoc</span></div><button className="share"><Share2 /> Share</button><span className="avatar">JK</span></header>
+    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Spreadsheet name" value={item.name} onChange={event => onRename(event.target.value)} /><span>Saved in this browser session</span></div><button className="share"><Share2 /> Share</button><span className="avatar">Local</span></header>
     <div className="sheet-menu"><button>File</button><button>Edit</button><button>View</button><button>Insert</button><button>Format</button><button>Data</button><button>Tools</button></div>
     <div className="sheet-toolbar"><button><Undo2 /></button><button><Redo2 /></button><i /><span>100% <ChevronDown /></span><button><Bold /></button><button><Italic /></button><span>Arial <ChevronDown /></span><span>10 <ChevronDown /></span><button className="comments"><MessageSquare /> Comments</button></div>
     <div className="formula"><span>A1</span><strong>fx</strong><input aria-label="Formula" /></div>
