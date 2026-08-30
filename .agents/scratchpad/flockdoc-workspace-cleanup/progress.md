@@ -6,7 +6,7 @@
 - [x] GREEN recorded.
 - [x] Remaining-control audit completed.
 - [x] Full validation completed.
-- [ ] Commit recorded.
+- [x] Commit recorded.
 
 ## Notes
 
@@ -18,6 +18,10 @@
 - React review: workspace WebMCP registration now runs once and reads changing API/item state through the existing refs, avoiding duplicate tool registration when authentication changes.
 - Rendered QA: the local `/flockdoc/` shell rendered without an error overlay or console warnings; New expanded its create menu and the Papers filter became active.
 - Full validation: 6 test files and 37 tests passed; the production Vite build completed successfully.
+- Implementation commit: `c970e27` (`refactor: simplify flockdoc workspace`), not pushed.
+- AWS stack `FlockdocWeb` deployed successfully to CloudFront distribution `EYZLF9M4ATRGX`.
+- Production QA at `https://platform.flockfly.ai/flockdoc/` found zero instances of Home, Shared with me, Starred, Trash, Storage, workspace Share, Copy link, or Document details; the console error/warning scan was clean.
+- Production WebMCP exposes only `flockdoc.list`, `flockdoc.create`, and `flockdoc.rename` at the workspace level.
 
 ## Remaining controls needing review
 

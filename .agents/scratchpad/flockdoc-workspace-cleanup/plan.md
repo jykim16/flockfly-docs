@@ -17,7 +17,7 @@
 - [x] Update public documentation and delete the obsolete component.
 - [x] Audit remaining controls that need review.
 - [x] Run the full test suite and production build.
-- [ ] Commit without pushing.
+- [x] Commit without pushing.
 
 ## Decisions
 
