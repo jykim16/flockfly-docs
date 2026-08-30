@@ -17,7 +17,7 @@
 - [x] Document bootstrap, synth, deploy, custom domain, and outputs.
 - [x] Run infrastructure tests, typecheck, synth, frontend tests, and frontend build.
 - [x] Review synthesized security and caching configuration.
-- [ ] Commit the verified implementation.
+- [x] Commit the verified implementation.
 
 ## Security and operations
 

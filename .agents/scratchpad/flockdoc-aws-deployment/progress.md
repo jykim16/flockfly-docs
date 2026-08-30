@@ -8,7 +8,7 @@
 - [x] GREEN: stack tests and synth pass.
 - [x] Frontend production wiring verified.
 - [x] Full validation complete.
-- [ ] Commit recorded.
+- [x] Commit recorded.
 
 ## Decisions
 
@@ -25,3 +25,7 @@
 - Synthesized template includes CloudFront OAC, HTTPS redirects, optimized static caching, and disabled `/v1/*` caching.
 - Refactor: replaced distribution-wide error responses with a static-behavior-only viewer-request rewrite so API 404 responses remain intact.
 - `npm audit` reports zero production or development vulnerabilities after upgrading the infrastructure test runner.
+
+## Commit
+
+- `c59139f feat: add AWS deployment infrastructure`
