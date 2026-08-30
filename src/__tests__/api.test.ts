@@ -26,12 +26,14 @@ describe('Flockdoc API client', () => {
       }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
 
-    const api = new FlockdocApi('token');
+    const api = new FlockdocApi();
     const listed = await api.list();
     expect(listed.flockdocs[0]).toMatchObject({ id: 'flockdoc_1', modifiedAt: '2026-08-29T00:00:00Z', headRevision: 2 });
     const state = await api.getState('flockdoc_1');
     expect(state).toMatchObject({ revision: 2, snapshot: { id: 'flockdoc_1', sheets: {} } });
-    expect(fetchMock.mock.calls[0][1].headers.authorization).toBe('Bearer token');
+    expect(fetchMock.mock.calls[0][0]).toBe('/v1/flockdocs');
+    expect(fetchMock.mock.calls[0][1].credentials).toBe('same-origin');
+    expect(fetchMock.mock.calls[0][1].headers.authorization).toBeUndefined();
   });
 
   it('saves against a base revision and exposes revision conflicts', async () => {

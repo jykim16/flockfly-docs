@@ -1,0 +1,408 @@
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:97990) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:97991) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/api.test.ts (3 tests | 1 failed) 15ms
+     × maps backend metadata and loads native snapshot state 9ms
+ ❯ src/__tests__/workspace.test.tsx (4 tests | 1 failed) 1261ms
+     × replaces browser state with the authenticated cloud workspace 1019ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/api.test.ts > Flockdoc API client > maps backend metadata and loads native snapshot state
+AssertionError: expected 'http://localhost:8800/v1/flockdocs' to be '/v1/flockdocs' // Object.is equality
+
+Expected: "/v1/flockdocs"
+Received: "http://localhost:8800/v1/flockdocs"
+
+ ❯ src/__tests__/api.test.ts:34:40
+     32|     const state = await api.getState('flockdoc_1');
+     33|     expect(state).toMatchObject({ revision: 2, snapshot: { id: 'flockd…
+     34|     expect(fetchMock.mock.calls[0][0]).toBe('/v1/flockdocs');
+       |                                        ^
+     35|     expect(fetchMock.mock.calls[0][1].credentials).toBe('same-origin');
+     36|     expect(fetchMock.mock.calls[0][1].headers.authorization).toBeUndef…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/__tests__/workspace.test.tsx > Flockdoc workspace > replaces browser state with the authenticated cloud workspace
+TestingLibraryElementError: Unable to find an element with the text: Cloud plan. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"app-shell "[39m
+    [36m>[39m
+      [36m<header[39m
+        [33maria-label[39m=[32m"Flockfly platform navigation"[39m
+        [33mclass[39m=[32m"platform-header"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Flockfly Flockdoc"[39m
+          [33mclass[39m=[32m"brand"[39m
+        [36m>[39m
+          [36m<img[39m
+            [33malt[39m=[32m""[39m
+            [33mclass[39m=[32m"brand-mark"[39m
+            [33msrc[39m=[32m"/icon.png"[39m
+          [36m/>[39m
+          [36m<span>[39m
+            [0mFlockfly [0m
+            [36m<em>[39m
+              [0mFlockdoc[0m
+            [36m</em>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<nav[39m
+          [33maria-label[39m=[32m"Platform"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/skills"[39m
+          [36m>[39m
+            [0mSkills[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/routers"[39m
+          [36m>[39m
+            [0mRouters[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/sessions"[39m
+          [36m>[39m
+            [0mSessions[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33maria-current[39m=[32m"page"[39m
+            [33mclass[39m=[32m"active"[39m
+            [33mhref[39m=[32m"#"[39m
+          [36m>[39m
+            [0mFlockdoc[0m
+          [36m</a>[39m
+        [36m</nav>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"user-chip"[39m
+        [36m>[39m
+          [36m<i[39m
+            [33maria-hidden[39m=[32m"true"[39m
+          [36m/>[39m
+          [36m<span>[39m
+            [0mPreview workspace[0m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<aside[39m
+        [33mclass[39m=[32m"sidebar"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"new-wrap"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33mclass[39m=[32m"new-button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-plus"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"20"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"20"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M5 12h14"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 5v14"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0m New[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<nav[39m
+          [33maria-label[39m=[32m"Workspace navigation"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-house"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mHome[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"active"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-folder-open"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mMy workspace[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-share2"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"18"[39m
+                [33mcy[39m=[32m"5"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"6"[39m
+                [33mcy[39m=[32m"12"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"18"[39m
+                [33mcy[39m=[32m"19"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<line[39m
+                [33mx1[39m=[32m"8.59"[39m
+                [33mx2[39m=[32m"15.42"[39m
+                [33my1[39m=[32m"13.51"[39m
+                [33my...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"app-shell "[39m
+    [36m>[39m
+      [36m<header[39m
+        [33maria-label[39m=[32m"Flockfly platform navigation"[39m
+        [33mclass[39m=[32m"platform-header"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Flockfly Flockdoc"[39m
+          [33mclass[39m=[32m"brand"[39m
+        [36m>[39m
+          [36m<img[39m
+            [33malt[39m=[32m""[39m
+            [33mclass[39m=[32m"brand-mark"[39m
+            [33msrc[39m=[32m"/icon.png"[39m
+          [36m/>[39m
+          [36m<span>[39m
+            [0mFlockfly [0m
+            [36m<em>[39m
+              [0mFlockdoc[0m
+            [36m</em>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<nav[39m
+          [33maria-label[39m=[32m"Platform"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/skills"[39m
+          [36m>[39m
+            [0mSkills[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/routers"[39m
+          [36m>[39m
+            [0mRouters[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/sessions"[39m
+          [36m>[39m
+            [0mSessions[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33maria-current[39m=[32m"page"[39m
+            [33mclass[39m=[32m"active"[39m
+            [33mhref[39m=[32m"#"[39m
+          [36m>[39m
+            [0mFlockdoc[0m
+          [36m</a>[39m
+        [36m</nav>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"user-chip"[39m
+        [36m>[39m
+          [36m<i[39m
+            [33maria-hidden[39m=[32m"true"[39m
+          [36m/>[39m
+          [36m<span>[39m
+            [0mPreview workspace[0m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<aside[39m
+        [33mclass[39m=[32m"sidebar"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"new-wrap"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33mclass[39m=[32m"new-button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-plus"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"20"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"20"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M5 12h14"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 5v14"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0m New[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<nav[39m
+          [33maria-label[39m=[32m"Workspace navigation"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-house"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mHome[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"active"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-folder-open"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mMy workspace[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m""[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-share2"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"18"[39m
+                [33mcy[39m=[32m"5"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"6"[39m
+                [33mcy[39m=[32m"12"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"18"[39m
+                [33mcy[39m=[32m"19"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<line[39m
+                [33mx1[39m=[32m"8.59"[39m
+                [33mx2[39m=[32m"15.42"[39m
+                [33my1[39m=[32m"13.51"[39m
+                [33my...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/__tests__/workspace.test.tsx:49:25
+     47|     render(<App />);
+     48|
+     49|     expect(await screen.findByText('Cloud plan')).toBeInTheDocument();
+       |                         ^
+     50|     expect(screen.queryByText('Browser only')).not.toBeInTheDocument();
+     51|     expect(screen.getByText('Flockfly cloud')).toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 5 passed (7)
+   Start at  13:08:45
+   Duration  2.22s (transform 210ms, setup 312ms, import 260ms, tests 1.28s, environment 895ms)
+

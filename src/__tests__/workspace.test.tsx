@@ -1,7 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from '../App';
-import { setToken } from '../lib/api';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -34,19 +33,22 @@ describe('Flockdoc workspace', () => {
   });
 
   it('replaces browser state with the authenticated cloud workspace', async () => {
-    setToken('test-token');
     localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, items: [{
       id: 'browser-only', name: 'Browser only', type: 'paper', modifiedAt: 'Just now', collaborators: [],
     }] }));
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ flockdocs: [{
-      id: 'cloud-1', name: 'Cloud plan', type: 'spreadsheet', updatedAt: '2026-08-29T00:00:00Z',
-      headRevision: 3, role: 'editor', permissions: { canRead: true, canComment: true, canEdit: true, canShare: false, canDelete: false },
-    }] }), { status: 200 })));
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { id: 'user-1' } }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ flockdocs: [{
+        id: 'cloud-1', name: 'Cloud plan', type: 'spreadsheet', updatedAt: '2026-08-29T00:00:00Z',
+        headRevision: 3, role: 'editor', permissions: { canRead: true, canComment: true, canEdit: true, canShare: false, canDelete: false },
+      }] }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
 
     render(<App />);
 
     expect(await screen.findByText('Cloud plan')).toBeInTheDocument();
     expect(screen.queryByText('Browser only')).not.toBeInTheDocument();
     expect(screen.getByText('Flockfly cloud')).toBeInTheDocument();
+    expect(fetchMock.mock.calls[0][0]).toBe('/v1/me');
   });
 });

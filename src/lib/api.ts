@@ -1,7 +1,12 @@
 import type { Comment, Flockdoc, FlockdocPermissions, FlockdocRole, FlockdocType } from '../types';
 
 const TOKEN_KEY = 'flockfly.token';
-const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? (import.meta.env.PROD ? 'https://api.flockfly.ai' : 'http://localhost:8800');
+const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? '';
+const PLATFORM_URL = import.meta.env.PROD ? 'https://platform.flockfly.ai' : location.origin;
+
+export function supportsPlatformSession(): boolean {
+  return !import.meta.env.PROD || location.origin === PLATFORM_URL;
+}
 
 interface ApiErrorBody {
   error?: { code?: string; message?: string; currentRevision?: number };
@@ -55,8 +60,8 @@ export function consumeAuthTokenFromHash(hash: string): string | null {
 }
 
 export function googleSignInUrl(): string {
-  const returnTo = `${location.origin}${import.meta.env.BASE_URL}`;
-  return `${API_URL}/v1/auth/google/start?returnTo=${encodeURIComponent(returnTo)}`;
+  const returnTo = import.meta.env.PROD ? `${PLATFORM_URL}/flockdoc/` : `${location.origin}${import.meta.env.BASE_URL}`;
+  return `${PLATFORM_URL}/v1/auth/google/start?returnTo=${encodeURIComponent(returnTo)}`;
 }
 
 function mapFlockdoc(flockdoc: BackendFlockdoc): Flockdoc {
@@ -73,19 +78,21 @@ function mapFlockdoc(flockdoc: BackendFlockdoc): Flockdoc {
 }
 
 export class FlockdocApi {
-  constructor(private readonly token: string) {}
+  constructor(private readonly token?: string) {}
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
     const response = await fetch(`${API_URL}${path}`, {
       ...init,
+      credentials: 'same-origin',
       headers: {
         ...(init?.body !== undefined ? { 'content-type': 'application/json' } : {}),
-        authorization: `Bearer ${this.token}`,
+        ...(this.token ? { authorization: `Bearer ${this.token}` } : {}),
         ...init?.headers,
       },
     });
     const text = await response.text();
-    const parsed = text ? JSON.parse(text) as T & ApiErrorBody : null as T;
+    let parsed: T & ApiErrorBody | null = null;
+    try { parsed = text ? JSON.parse(text) as T & ApiErrorBody : null; } catch { parsed = null; }
     if (!response.ok) {
       const error = (parsed as ApiErrorBody)?.error;
       if (response.status === 409 && error?.code === 'revision_conflict') {
@@ -93,7 +100,11 @@ export class FlockdocApi {
       }
       throw new FlockdocApiError(response.status, error?.code ?? 'unknown', error?.message ?? `Flockdoc API ${response.status}`);
     }
-    return parsed;
+    return parsed as T;
+  }
+
+  session() {
+    return this.request<unknown>('/v1/me');
   }
 
   async list(): Promise<{ flockdocs: Flockdoc[] }> {
