@@ -28,6 +28,11 @@ export interface FlockdocState {
   snapshot: Record<string, unknown> | null;
 }
 
+export interface PlatformSession {
+  user: { email: string };
+  billing?: { entitled?: boolean };
+}
+
 export class FlockdocApiError extends Error {
   constructor(public readonly status: number, public readonly code: string, message: string) {
     super(message);
@@ -104,7 +109,7 @@ export class FlockdocApi {
   }
 
   session() {
-    return this.request<unknown>('/v1/me');
+    return this.request<PlatformSession>('/v1/me');
   }
 
   async list(): Promise<{ flockdocs: Flockdoc[] }> {

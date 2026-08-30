@@ -30,6 +30,7 @@ export default function App() {
   const [route, setRoute] = useState(location.hash);
   const [syncStatus, setSyncStatus] = useState<'browser' | 'loading' | 'synced' | 'error'>('loading');
   const [authenticated, setAuthenticated] = useState(false);
+  const [account, setAccount] = useState<{ email: string; entitled: boolean } | null>(null);
   const api = useMemo(() => new FlockdocApi(token ?? undefined), [token]);
   const cloudApi = authenticated ? api : null;
   const itemsRef = useRef(items);
@@ -46,7 +47,10 @@ export default function App() {
       return () => { active = false; };
     }
     setSyncStatus('loading');
-    void api.session().then(() => api.list()).then(({ flockdocs }) => {
+    void api.session().then(session => {
+      if (active) setAccount({ email: session.user.email, entitled: session.billing?.entitled === true });
+      return api.list();
+    }).then(({ flockdocs }) => {
       if (!active) return;
       setAuthenticated(true);
       setItems(flockdocs);
@@ -54,6 +58,7 @@ export default function App() {
     }).catch(error => {
       if (!active) return;
       setAuthenticated(false);
+      setAccount(null);
       setSyncStatus(error instanceof Error && 'status' in error && [401, 403, 404].includes(Number(error.status)) ? 'browser' : 'error');
     });
     return () => { active = false; };
@@ -89,7 +94,7 @@ export default function App() {
     const item = items.find(entry => entry.id === routeMatch[2]);
     const updateItem = (updates: Partial<Flockdoc>) => setItems(current => current.map(entry => entry.id === item?.id ? { ...entry, ...updates } : entry));
     if (item) return <div className="editor-app">
-      <PlatformHeader workspaceLabel={cloudApi ? 'Flockfly cloud' : 'Preview workspace'} />
+      <PlatformHeader account={account} />
       {cloudApi
         ? <RemoteEditor api={cloudApi} item={item} onBack={() => { location.hash = ''; }} onUpdate={updateItem} />
         : item.type === 'paper'
@@ -109,7 +114,7 @@ export default function App() {
   };
 
   return <div className={`app-shell ${selected ? 'with-details' : ''}`}>
-    <PlatformHeader workspaceLabel={cloudApi ? 'Flockfly cloud' : 'Preview workspace'} />
+    <PlatformHeader account={account} />
     <Sidebar menuOpen={menuOpen} onToggleMenu={() => setMenuOpen(value => !value)} onCreate={create} />
     <main className="workspace">
       <header className="topbar"><label><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search papers and spreadsheets" /></label><button aria-label="Help"><HelpCircle /></button></header>

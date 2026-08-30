@@ -1,6 +1,6 @@
 export function Logo({ compact = false }: { compact?: boolean }) {
-  return <div className="brand" aria-label="Flockfly Flockdoc">
+  return <a className="brand" href="https://platform.flockfly.ai/#/" aria-label="Flockfly Platform">
     <img className="brand-mark" src={`${import.meta.env.BASE_URL}icon.png`} alt="" />
-    {!compact && <span>Flockfly <em>Flockdoc</em></span>}
-  </div>;
+    {!compact && <span>Flockfly <span className="platform">Platform</span></span>}
+  </a>;
 }
