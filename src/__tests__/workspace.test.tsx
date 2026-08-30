@@ -1,6 +1,9 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from '../App';
+import { setToken } from '../lib/api';
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe('Flockdoc workspace', () => {
   it('uses the shared Flockfly platform shell and coastal branding', () => {
@@ -28,5 +31,22 @@ describe('Flockdoc workspace', () => {
     expect(screen.getByText('No flockdocs yet')).toBeInTheDocument();
     expect(screen.queryByRole('complementary', { name: 'Document details' })).not.toBeInTheDocument();
     expect(screen.getByText('Storage data unavailable')).toBeInTheDocument();
+  });
+
+  it('replaces browser state with the authenticated cloud workspace', async () => {
+    setToken('test-token');
+    localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, items: [{
+      id: 'browser-only', name: 'Browser only', type: 'paper', modifiedAt: 'Just now', collaborators: [],
+    }] }));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ flockdocs: [{
+      id: 'cloud-1', name: 'Cloud plan', type: 'spreadsheet', updatedAt: '2026-08-29T00:00:00Z',
+      headRevision: 3, role: 'editor', permissions: { canRead: true, canComment: true, canEdit: true, canShare: false, canDelete: false },
+    }] }), { status: 200 })));
+
+    render(<App />);
+
+    expect(await screen.findByText('Cloud plan')).toBeInTheDocument();
+    expect(screen.queryByText('Browser only')).not.toBeInTheDocument();
+    expect(screen.getByText('Flockfly cloud')).toBeInTheDocument();
   });
 });
