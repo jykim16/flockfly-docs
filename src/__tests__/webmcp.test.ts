@@ -20,4 +20,26 @@ describe('Flockdoc WebMCP bridge', () => {
     ]);
     dispose();
   });
+
+  it('adds server-backed permissions and comments without exposing mock actions', () => {
+    const registerTool = vi.fn();
+    registerFlockdocWebMCP({
+      modelContext: { registerTool },
+      actions: {
+        listFlockdocs: vi.fn(),
+        createFlockdoc: vi.fn(),
+        renameFlockdoc: vi.fn(),
+        shareFlockdoc: vi.fn(),
+        commentOnFlockdoc: vi.fn(),
+      },
+    });
+
+    expect(registerTool.mock.calls.map(([tool]) => tool.name)).toEqual([
+      'flockdoc.list',
+      'flockdoc.create',
+      'flockdoc.rename',
+      'flockdoc.share',
+      'flockdoc.comment',
+    ]);
+  });
 });

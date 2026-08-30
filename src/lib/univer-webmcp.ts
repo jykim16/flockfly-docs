@@ -45,6 +45,7 @@ type WebMCPDocument = Document & {
 interface IRegisterUniverWebMCPOptions {
     ownerDocument: Document;
     univerAPI: FUniver;
+    canEdit?: boolean;
 }
 
 const textResult = (
@@ -668,13 +669,13 @@ function createSpreadsheetTools(univerAPI: FUniver): IWebMCPTool[] {
     ];
 }
 
-export function registerUniverWebMCP({ ownerDocument, univerAPI }: IRegisterUniverWebMCPOptions): () => void {
+export function registerUniverWebMCP({ ownerDocument, univerAPI, canEdit = true }: IRegisterUniverWebMCPOptions): () => void {
     const modelContext = (ownerDocument as WebMCPDocument).modelContext;
     const ownerWindow = ownerDocument.defaultView;
     if (!modelContext || !ownerWindow) return () => {};
 
     const controller = new ownerWindow.AbortController();
-    const tools = createSpreadsheetTools(univerAPI);
+    const tools = createSpreadsheetTools(univerAPI).filter((tool) => canEdit || tool.annotations?.readOnlyHint === true);
 
     for (const tool of tools) {
         try {

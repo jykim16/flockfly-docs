@@ -17,6 +17,19 @@ export interface Flockdoc {
   starred?: boolean;
   collaborators: Collaborator[];
   snapshot?: unknown;
+  headRevision?: number;
+  role?: FlockdocRole;
+  permissions?: FlockdocPermissions;
+}
+
+export type FlockdocRole = 'owner' | 'manager' | 'editor' | 'commenter' | 'viewer';
+
+export interface FlockdocPermissions {
+  canRead: boolean;
+  canComment: boolean;
+  canEdit: boolean;
+  canShare: boolean;
+  canDelete: boolean;
 }
 
 export interface Comment {

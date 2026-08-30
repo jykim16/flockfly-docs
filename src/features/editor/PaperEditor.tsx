@@ -7,10 +7,12 @@ interface PaperEditorProps {
   item: Flockdoc;
   onBack: () => void;
   onRename: (name: string) => void;
-  onSnapshot: (snapshot: unknown) => void;
+  onSnapshot: (snapshot: unknown) => void | Promise<void>;
+  canEdit?: boolean;
+  canShare?: boolean;
 }
 
-export function PaperEditor({ item, onBack, onRename, onSnapshot }: PaperEditorProps) {
+export function PaperEditor({ item, onBack, onRename, onSnapshot, canEdit = true, canShare = true }: PaperEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const onSnapshotRef = useRef(onSnapshot);
   const [status, setStatus] = useState('Loading Univer…');
@@ -27,12 +29,17 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot }: PaperEditorP
         id: item.id,
         name: item.name,
         snapshot: item.snapshot,
+        canEdit,
         onSnapshot: snapshot => {
-          onSnapshotRef.current(snapshot);
-          setStatus('Saved in this browser');
+          setStatus('Saving…');
+          void Promise.resolve(onSnapshotRef.current(snapshot))
+            .then(() => setStatus('Saved to Flockfly'))
+            .catch(error => setStatus(error instanceof Error && error.name === 'RevisionConflictError'
+              ? 'Newer revision available — reopen to refresh'
+              : 'Save failed — changes remain in this browser'));
         },
       });
-      setStatus('Saved in this browser');
+      setStatus(canEdit ? 'Saved' : 'View only');
     }).catch(error => {
       console.error('Failed to load Univer Paper', error);
       setStatus('Unable to load editor');
@@ -42,10 +49,10 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot }: PaperEditorP
       cancelled = true;
       mounted?.dispose();
     };
-  }, [item.id]);
+  }, [canEdit, item.id]);
 
   return <main className="editor-shell univer-shell">
-    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Paper name" value={item.name} onChange={event => onRename(event.target.value)} /><span>{status}</span></div><button className="share"><Share2 /> Share</button><span className="avatar">You</span></header>
+    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Paper name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{status}</span></div><button className="share" disabled={!canShare}><Share2 /> Share</button><span className="avatar">You</span></header>
     <div ref={hostRef} className="univer-editor-host" aria-label="Paper editor" />
   </main>;
 }

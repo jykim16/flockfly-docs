@@ -12,7 +12,7 @@ class FakeModelContext {
     }
 }
 
-function createHarness() {
+function createHarness(canEdit = true) {
     const range = {
         activate: vi.fn(),
         breakApart: vi.fn(),
@@ -99,7 +99,7 @@ function createHarness() {
         defaultView: { AbortController },
         modelContext,
     } as unknown as Document;
-    const cleanup = registerUniverWebMCP({ ownerDocument, univerAPI: univerAPI as never });
+    const cleanup = registerUniverWebMCP({ ownerDocument, univerAPI: univerAPI as never, canEdit });
 
     async function execute(name: string, input: Record<string, unknown> = {}) {
         const tool = modelContext.tools.get(name);
@@ -113,6 +113,12 @@ function createHarness() {
 }
 
 describe('Univer WebMCP', () => {
+    it('registers only read tools when the caller cannot edit', () => {
+        const { cleanup, modelContext } = createHarness(false);
+        expect([...modelContext.tools.keys()]).toEqual(['read_me', 'inspect_workbook', 'read_range']);
+        cleanup();
+    });
+
     it('registers spreadsheet tools and unregisters them on cleanup', () => {
         const { cleanup, modelContext } = createHarness();
 

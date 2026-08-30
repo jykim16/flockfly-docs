@@ -7,7 +7,7 @@ import { registerUniverWebMCP } from '../../../lib/univer-webmcp';
 import type { MountedUniverEditor, MountUniverEditorOptions } from './types';
 import '@univerjs/preset-sheets-core/lib/index.css';
 
-export function mountSpreadsheet({ host, id, name, snapshot, onSnapshot }: MountUniverEditorOptions): MountedUniverEditor {
+export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onSnapshot }: MountUniverEditorOptions): MountedUniverEditor {
   const { univer, univerAPI } = createUniver({
     locale: LocaleType.EN_US,
     locales: { [LocaleType.EN_US]: mergeLocales(sheetsLocale) },
@@ -17,18 +17,18 @@ export function mountSpreadsheet({ host, id, name, snapshot, onSnapshot }: Mount
   const workbook = univerAPI.createWorkbook(
     (snapshot ?? getSheetsEmptySnapshot(id, LocaleType.EN_US, name)) as IWorkbookData,
   );
-  const unregisterWebMCP = registerUniverWebMCP({ ownerDocument: host.ownerDocument, univerAPI });
+  const unregisterWebMCP = registerUniverWebMCP({ ownerDocument: host.ownerDocument, univerAPI, canEdit });
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
-  const commandSubscription = workbook.onCommandExecuted(() => {
+  const commandSubscription = canEdit ? workbook.onCommandExecuted(() => {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => onSnapshot(workbook.save()), 350);
-  });
+  }) : undefined;
 
   return {
     dispose() {
       clearTimeout(saveTimer);
-      onSnapshot(workbook.save());
-      commandSubscription.dispose();
+      if (canEdit) onSnapshot(workbook.save());
+      commandSubscription?.dispose();
       unregisterWebMCP();
       // Univer owns a nested React root. Dispose it after Flockdoc's outer
       // React commit finishes to avoid nested synchronous unmounts.

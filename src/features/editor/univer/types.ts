@@ -7,5 +7,6 @@ export interface MountUniverEditorOptions {
   id: string;
   name: string;
   snapshot?: unknown;
+  canEdit?: boolean;
   onSnapshot: (snapshot: unknown) => void;
 }

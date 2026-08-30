@@ -1,0 +1,126 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/api.test.ts src/__tests__/remote-persistence.test.ts src/__tests__/univer-webmcp.test.ts
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:23992) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23991) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:23990) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/remote-persistence.test.ts (0 test)
+ ❯ src/__tests__/api.test.ts (3 tests | 3 failed) 10ms
+     × stores and consumes the platform bearer token from an OAuth hash 4ms
+     × maps backend metadata and loads native snapshot state 5ms
+     × saves against a base revision and exposes revision conflicts 0ms
+ ❯ src/__tests__/univer-webmcp.test.ts (19 tests | 1 failed) 21ms
+     × registers only read tools when the caller cannot edit 7ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/remote-persistence.test.ts [ src/__tests__/remote-persistence.test.ts ]
+Error: Failed to resolve import "../lib/remote-persistence" from "src/__tests__/remote-persistence.test.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/jkim/Documents/vibe/webmcp/flockfly-docs/src/__tests__/remote-persistence.test.ts:2:40
+  1  |  import { describe, expect, it, vi } from "vitest";
+  2  |  import { SerializedSnapshotSaver } from "../lib/remote-persistence";
+     |                                           ^
+  3  |  describe("serialized snapshot persistence", () => {
+  4  |    it("serializes concurrent saves and advances the base revision", async () => {
+ ❯ TransformPluginContext._formatLog node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:42658:41
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:42655:16
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:40634:23
+ ❯ node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:40753:37
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:40680:7
+ ❯ EnvironmentPluginContainer.transform node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:42453:18
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:35845:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/api.test.ts > Flockdoc API client > stores and consumes the platform bearer token from an OAuth hash
+TypeError: setToken is not a function
+ ❯ src/__tests__/api.test.ts:8:5
+      6|
+      7|   it('stores and consumes the platform bearer token from an OAuth hash…
+      8|     setToken('existing');
+       |     ^
+      9|     expect(getToken()).toBe('existing');
+     10|     expect(consumeAuthTokenFromHash('#/auth?token=remote-token')).toBe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/__tests__/api.test.ts > Flockdoc API client > maps backend metadata and loads native snapshot state
+AssertionError: expected { id: 'flockdoc_1', …(6) } to match object { id: 'flockdoc_1', …(2) }
+(10 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "headRevision": 2,
+    "id": "flockdoc_1",
+-   "modifiedAt": "2026-08-29T00:00:00Z",
+  }
+
+ ❯ src/__tests__/api.test.ts:31:33
+     29|     const api = new FlockdocApi('token');
+     30|     const listed = await api.list();
+     31|     expect(listed.flockdocs[0]).toMatchObject({ id: 'flockdoc_1', modi…
+       |                                 ^
+     32|     const state = await api.getState('flockdoc_1');
+     33|     expect(state).toMatchObject({ revision: 2, snapshot: { id: 'flockd…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/__tests__/api.test.ts > Flockdoc API client > saves against a base revision and exposes revision conflicts
+TypeError: api.saveState is not a function
+ ❯ src/__tests__/api.test.ts:44:22
+     42|     const api = new FlockdocApi('token');
+     43|
+     44|     await expect(api.saveState('flockdoc_1', 2, 'save-1', { id: 'flock…
+       |                      ^
+     45|     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject(…
+     46|     await expect(api.saveState('flockdoc_1', 3, 'save-2', { id: 'flock…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/__tests__/univer-webmcp.test.ts > Univer WebMCP > registers only read tools when the caller cannot edit
+AssertionError: expected [ 'read_me', 'inspect_workbook', …(7) ] to deeply equal [ 'read_me', 'inspect_workbook', …(1) ]
+
+- Expected
++ Received
+
+  [
+    "read_me",
+    "inspect_workbook",
+    "read_range",
++   "write_range",
++   "format_range",
++   "merge_cells",
++   "modify_grid",
++   "manage_sheet",
++   "create_sheet",
+  ]
+
+ ❯ src/__tests__/univer-webmcp.test.ts:118:48
+    116|     it('registers only read tools when the caller cannot edit', () => {
+    117|         const { cleanup, modelContext } = createHarness(false);
+    118|         expect([...modelContext.tools.keys()]).toEqual(['read_me', 'in…
+       |                                                ^
+    119|         cleanup();
+    120|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  4 failed | 18 passed (22)
+   Start at  22:40:13
+   Duration  633ms (transform 129ms, setup 350ms, import 125ms, tests 31ms, environment 983ms)
+
