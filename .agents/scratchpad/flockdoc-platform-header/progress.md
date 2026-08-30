@@ -5,8 +5,8 @@
 - [x] RED tests recorded.
 - [x] Implementation GREEN.
 - [x] Full validation complete.
-- [ ] Commit recorded.
-- [ ] Deployment verified.
+- [x] Commit recorded.
+- [x] Deployment verified.
 
 ## Decisions
 
@@ -19,3 +19,6 @@
 - GREEN: the focused workspace suite passes 4/4 tests.
 - Full validation: 6 files and 35 tests pass; TypeScript and the Vite production build pass.
 - React review: the existing session request now supplies two primitive account fields; no new request, global state, or bundle dependency was added.
+- Implementation commit: `e578d88` (`fix: align flockdoc platform header`).
+- AWS `FlockdocWeb` deployed successfully to the existing `EYZLF9M4ATRGX` distribution.
+- Live browser verification at `https://platform.flockfly.ai/flockdoc/` confirmed the Platform brand, five ordered navigation links, canonical hash routes, and preview account chip. A rendered screenshot confirmed desktop spacing and alignment match the Platform shell.

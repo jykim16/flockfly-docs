@@ -15,8 +15,8 @@
 - [x] Implement markup, session data, and CSS parity.
 - [x] Run focused and full tests.
 - [x] Run the production build.
-- [ ] Commit without pushing.
-- [ ] Deploy CloudFront and visually verify the canonical page.
+- [x] Commit without pushing.
+- [x] Deploy CloudFront and visually verify the canonical page.
 
 ## Risks
 
