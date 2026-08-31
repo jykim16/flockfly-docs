@@ -198,6 +198,56 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
 .calendar-grid.blank-sheet div { width: var(--sheet-cell-width); min-height: var(--sheet-cell-height); height: var(--sheet-cell-height); padding: 3px 6px; }
 .sheet-tabs button.active { color: var(--ocean); box-shadow: inset 0 2px var(--seafoam); }
 
+.share-dialog-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(16,32,51,.48); backdrop-filter: blur(4px); }
+.share-dialog { width: min(680px, 100%); max-height: min(760px, calc(100vh - 48px)); overflow: hidden; border: 1px solid rgba(215,231,232,.9); border-radius: 20px; background: #fff; box-shadow: 0 28px 80px rgba(16,32,51,.26); }
+.share-dialog > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 24px 26px 20px; border-bottom: 1px solid var(--line); background: linear-gradient(135deg, rgba(217,236,239,.65), rgba(157,231,213,.2)); }
+.share-dialog h2, .share-dialog h3, .share-dialog p { margin: 0; }
+.share-dialog h2 { margin-top: 2px; color: var(--navy); font-size: 1.35rem; letter-spacing: -.025em; }
+.share-dialog-kicker { color: var(--ocean); font-size: .67rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.share-dialog-body { max-height: calc(min(760px, 100vh - 48px) - 92px); overflow-y: auto; padding: 24px 26px 28px; }
+.share-dialog-body > section + section { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 14px; }
+.section-heading h3 { color: var(--navy); font-size: .94rem; }
+.section-heading p { margin-top: 3px; color: var(--slate); font-size: .76rem; }
+.section-heading > svg { width: 18px; color: var(--ocean); }
+.share-add-row { display: grid; grid-template-columns: 110px minmax(170px,1fr) 112px auto; gap: 8px; }
+.share-dialog input, .share-dialog select { min-width: 0; height: 40px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; color: var(--navy); background: #fff; font: inherit; font-size: .79rem; }
+.share-dialog input:focus, .share-dialog select:focus { border-color: var(--ocean-light); outline: 0; box-shadow: 0 0 0 3px rgba(67,198,164,.14); }
+.share-dialog button { border: 0; cursor: pointer; font: inherit; }
+.share-dialog button:disabled { cursor: wait; opacity: .55; }
+.share-dialog button.primary, .share-dialog button.secondary { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 15px; border-radius: 999px; font-size: .77rem; font-weight: 650; white-space: nowrap; }
+.share-dialog button.primary { color: #fff; background: var(--navy); }
+.share-dialog button.primary:hover { background: var(--reef); }
+.share-dialog button.secondary { border: 1px solid var(--line); color: var(--reef); background: rgba(217,236,239,.35); }
+.share-dialog button.secondary:hover { border-color: var(--ocean-light); background: rgba(157,231,213,.24); }
+.share-dialog button.secondary svg { width: 15px; }
+.icon-button { width: 36px; height: 36px; display: inline-grid; flex: none; place-items: center; border-radius: 50%; color: var(--slate); background: transparent; }
+.icon-button:hover { color: var(--reef); background: rgba(217,236,239,.65); }
+.icon-button svg { width: 17px; }
+.icon-button.danger:hover { color: #a33d43; background: rgba(230,111,92,.1); }
+.access-list { display: grid; gap: 4px; margin: 16px 0 0; padding: 0; list-style: none; }
+.access-list li { min-height: 54px; display: grid; grid-template-columns: 38px minmax(0,1fr) 118px 36px; align-items: center; gap: 10px; padding: 6px 4px; border-radius: 10px; }
+.access-list li:hover { background: rgba(217,236,239,.22); }
+.principal-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; color: var(--reef); background: var(--mist); }
+.principal-icon.agent { color: #fff; background: var(--ocean); }
+.principal-icon svg { width: 16px; }
+.principal-name { min-width: 0; display: flex; flex-direction: column; }
+.principal-name strong { overflow: hidden; color: var(--navy); font-size: .8rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.principal-name small, .existing-link small { color: var(--slate); font-size: .68rem; }
+.access-list li.empty-access { display: block; min-height: 0; padding: 12px 2px; color: var(--slate); font-size: .77rem; }
+.share-link-row { display: flex; gap: 8px; }
+.share-link-row select { width: 132px; }
+.existing-link { min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 11px; background: rgba(247,251,250,.75); }
+.existing-link > span { display: flex; align-items: center; gap: 10px; }
+.existing-link > span > svg { width: 17px; color: var(--ocean); }
+.existing-link > span > span { display: flex; flex-direction: column; }
+.existing-link strong { font-size: .78rem; }
+.text-danger { padding: 6px 8px; color: #a33d43; background: transparent; font-size: .73rem; }
+.text-danger:hover { border-radius: 7px; background: rgba(230,111,92,.1); }
+.share-status { display: flex; align-items: center; gap: 7px; margin-top: 16px !important; color: var(--ocean); font-size: .75rem; font-weight: 600; }
+.share-status svg { width: 15px; }
+.share-dialog .form-error { margin-top: 14px; }
+
 @media (max-width: 760px) {
   .app-shell { display: grid; grid-template-columns: 1fr; grid-template-rows: auto 60px minmax(0,1fr); }
   .platform-header { grid-row: 1; height: auto; min-height: 64px; padding: .7rem 1rem; gap: .65rem 1rem; flex-wrap: wrap; }
@@ -211,4 +261,10 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
   .sync-banner { align-items: flex-start; flex-direction: column; gap: 12px; }
   .file-table { border-radius: 12px; }
   .editor-app { grid-template-rows: auto minmax(0,1fr); }
+  .share-dialog-backdrop { padding: 10px; }
+  .share-dialog { max-height: calc(100vh - 20px); border-radius: 15px; }
+  .share-dialog > header, .share-dialog-body { padding-inline: 17px; }
+  .share-add-row { grid-template-columns: 1fr 1fr; }
+  .share-add-row input { grid-column: 1 / -1; grid-row: 1; }
+  .share-add-row button { grid-column: 1 / -1; }
 }

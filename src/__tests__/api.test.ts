@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { FlockdocApi, RevisionConflictError, consumeAuthTokenFromHash, getToken, setToken } from '../lib/api';
+import { FlockdocApi, RevisionConflictError, consumeAuthTokenFromHash, getToken, googleSignInUrl, setToken } from '../lib/api';
 
 describe('Flockdoc API client', () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -11,6 +11,11 @@ describe('Flockdoc API client', () => {
     expect(getToken()).toBe('remote-token');
     setToken(null);
     expect(getToken()).toBeNull();
+  });
+
+  it('preserves a document invite token through sign-in', () => {
+    history.replaceState(null, '', '/flockdoc/paper/flockdoc_1?share=invite-token');
+    expect(new URL(googleSignInUrl()).searchParams.get('returnTo')).toBe('http://localhost:3000/flockdoc/paper/flockdoc_1?share=invite-token');
   });
 
   it('maps backend metadata and loads native snapshot state', async () => {
@@ -68,5 +73,38 @@ describe('Flockdoc API client', () => {
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ baseRevision: 2, idempotencyKey: 'save-1' });
     await expect(api.saveState('flockdoc_1', 3, 'save-2', { id: 'flockdoc_1' }))
       .rejects.toEqual(expect.objectContaining<Partial<RevisionConflictError>>({ currentRevision: 4 }));
+  });
+
+  it('manages document collaborators, invite links, and link claims', async () => {
+    const grant = { principalType: 'user', principalId: 'user_2', email: 'teammate@example.com', role: 'editor', status: 'active' };
+    const link = { id: 'link_1', flockdocId: 'flockdoc_1', role: 'viewer', expiresAt: null, revokedAt: null, createdAt: '2026-08-30T00:00:00Z' };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ grants: [grant] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ shareLinks: [link] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ shareLink: { ...link, token: 'secret-token' } }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ flockdoc: { id: 'flockdoc_1', type: 'paper', name: 'Plan', role: 'viewer' } }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const api = new FlockdocApi('token');
+
+    await expect(api.listAccess('flockdoc_1')).resolves.toEqual({ grants: [grant] });
+    await api.grantUserRole('flockdoc_1', 'teammate@example.com', 'editor');
+    await api.removeAccess('flockdoc_1', 'user', 'user_2');
+    await expect(api.listShareLinks('flockdoc_1')).resolves.toEqual({ shareLinks: [link] });
+    await expect(api.createShareLink('flockdoc_1', 'viewer')).resolves.toMatchObject({ shareLink: { token: 'secret-token' } });
+    await api.revokeShareLink('flockdoc_1', 'link_1');
+    await expect(api.claimShareLink('secret-token')).resolves.toMatchObject({ flockdoc: { id: 'flockdoc_1', role: 'viewer' } });
+
+    expect(fetchMock.mock.calls.map(([url, init]) => [url, init.method ?? 'GET', init.body ? JSON.parse(init.body) : null])).toEqual([
+      ['/v1/flockdocs/flockdoc_1/access', 'GET', null],
+      ['/v1/flockdocs/flockdoc_1/access', 'POST', { principalType: 'user', principalEmail: 'teammate@example.com', role: 'editor' }],
+      ['/v1/flockdocs/flockdoc_1/access/user/user_2', 'DELETE', null],
+      ['/v1/flockdocs/flockdoc_1/share-links', 'GET', null],
+      ['/v1/flockdocs/flockdoc_1/share-links', 'POST', { role: 'viewer' }],
+      ['/v1/flockdocs/flockdoc_1/share-links/link_1', 'DELETE', null],
+      ['/v1/flockdoc-links/secret-token/claim', 'POST', null],
+    ]);
   });
 });

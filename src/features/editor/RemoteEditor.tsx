@@ -4,6 +4,7 @@ import { SerializedSnapshotSaver } from '../../lib/remote-persistence';
 import type { Flockdoc } from '../../types';
 import { PaperEditor } from './PaperEditor';
 import { SpreadsheetEditor } from './SpreadsheetEditor';
+import { DocumentShareDialog } from '../sharing/DocumentShareDialog';
 
 interface RemoteEditorProps {
   api: FlockdocApi;
@@ -19,6 +20,7 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate }: Omit<
   ));
   const renameTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const latestName = useRef(item.name);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => () => clearTimeout(renameTimer.current), []);
 
@@ -40,8 +42,9 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate }: Omit<
     onSnapshot,
     canEdit: item.permissions?.canEdit ?? false,
     canShare: item.permissions?.canShare ?? false,
+    onShare: () => setSharing(true),
   };
-  return item.type === 'paper' ? <PaperEditor {...common} /> : <SpreadsheetEditor {...common} />;
+  return <>{item.type === 'paper' ? <PaperEditor {...common} /> : <SpreadsheetEditor {...common} />}{sharing ? <DocumentShareDialog api={api} flockdocId={item.id} flockdocType={item.type} name={item.name} onClose={() => setSharing(false)} /> : null}</>;
 }
 
 export function RemoteEditor({ api, item, onBack, onUpdate }: RemoteEditorProps) {

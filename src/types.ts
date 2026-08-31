@@ -23,6 +23,28 @@ export interface Flockdoc {
 }
 
 export type FlockdocRole = 'owner' | 'manager' | 'editor' | 'commenter' | 'viewer';
+export type FlockdocAssignableRole = Exclude<FlockdocRole, 'owner'>;
+export type FlockdocLinkRole = Exclude<FlockdocRole, 'owner' | 'manager'>;
+export type FlockdocPrincipalType = 'user' | 'team' | 'agent';
+
+export interface FlockdocAccessGrant {
+  principalType: FlockdocPrincipalType;
+  principalId: string;
+  role: FlockdocAssignableRole;
+  email?: string;
+  username?: string | null;
+  status?: 'active' | 'pending_account';
+}
+
+export interface FlockdocShareLink {
+  id: string;
+  flockdocId: string;
+  role: FlockdocLinkRole;
+  expiresAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+  token?: string;
+}
 
 export interface FlockdocPermissions {
   canRead: boolean;

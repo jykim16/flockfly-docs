@@ -1,4 +1,4 @@
-import type { Flockdoc, FlockdocPermissions, FlockdocRole, FlockdocType } from '../types';
+import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocLinkRole, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType } from '../types';
 
 const TOKEN_KEY = 'flockfly.token';
 const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? '';
@@ -66,7 +66,8 @@ export function consumeAuthTokenFromHash(hash: string): string | null {
 }
 
 export function googleSignInUrl(): string {
-  const returnTo = import.meta.env.PROD ? `${PLATFORM_URL}/flockdoc/` : `${location.origin}${import.meta.env.BASE_URL}`;
+  const returnPath = location.pathname.startsWith('/flockdoc/') ? `${location.pathname}${location.search}` : '/flockdoc/';
+  const returnTo = `${import.meta.env.PROD ? PLATFORM_URL : location.origin}${returnPath}`;
   return `${PLATFORM_URL}/v1/auth/google/start?returnTo=${encodeURIComponent(returnTo)}`;
 }
 
@@ -157,5 +158,34 @@ export class FlockdocApi {
 
   grantRole(id: string, principalType: string, principalId: string, role: string) {
     return this.request<void>(`/v1/flockdocs/${id}/access`, { method: 'POST', body: JSON.stringify({ principalType, principalId, role }) });
+  }
+
+  listAccess(id: string) {
+    return this.request<{ grants: FlockdocAccessGrant[] }>(`/v1/flockdocs/${id}/access`);
+  }
+
+  grantUserRole(id: string, principalEmail: string, role: FlockdocAssignableRole) {
+    return this.request<void>(`/v1/flockdocs/${id}/access`, { method: 'POST', body: JSON.stringify({ principalType: 'user', principalEmail, role }) });
+  }
+
+  removeAccess(id: string, principalType: FlockdocPrincipalType, principalId: string) {
+    return this.request<void>(`/v1/flockdocs/${id}/access/${principalType}/${encodeURIComponent(principalId)}`, { method: 'DELETE' });
+  }
+
+  listShareLinks(id: string) {
+    return this.request<{ shareLinks: FlockdocShareLink[] }>(`/v1/flockdocs/${id}/share-links`);
+  }
+
+  createShareLink(id: string, role: FlockdocLinkRole) {
+    return this.request<{ shareLink: FlockdocShareLink & { token: string } }>(`/v1/flockdocs/${id}/share-links`, { method: 'POST', body: JSON.stringify({ role }) });
+  }
+
+  revokeShareLink(id: string, linkId: string) {
+    return this.request<void>(`/v1/flockdocs/${id}/share-links/${encodeURIComponent(linkId)}`, { method: 'DELETE' });
+  }
+
+  async claimShareLink(token: string): Promise<{ flockdoc: Flockdoc }> {
+    const response = await this.request<{ flockdoc: BackendFlockdoc }>(`/v1/flockdoc-links/${encodeURIComponent(token)}/claim`, { method: 'POST' });
+    return { flockdoc: mapFlockdoc(response.flockdoc) };
   }
 }

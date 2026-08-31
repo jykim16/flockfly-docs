@@ -10,9 +10,10 @@ interface PaperEditorProps {
   onSnapshot: (snapshot: unknown) => void | Promise<void>;
   canEdit?: boolean;
   canShare?: boolean;
+  onShare?: () => void;
 }
 
-export function PaperEditor({ item, onBack, onRename, onSnapshot, canEdit = true, canShare = true }: PaperEditorProps) {
+export function PaperEditor({ item, onBack, onRename, onSnapshot, canEdit = true, canShare = true, onShare }: PaperEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const onSnapshotRef = useRef(onSnapshot);
   const [status, setStatus] = useState('Loading Univer…');
@@ -52,7 +53,7 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, canEdit = true
   }, [canEdit, item.id]);
 
   return <main className="editor-shell univer-shell">
-    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Paper name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{status}</span></div><button className="share" disabled={!canShare}><Share2 /> Share</button><span className="avatar">You</span></header>
+    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Paper name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>
     <div ref={hostRef} className="univer-editor-host" aria-label="Paper editor" />
   </main>;
 }

@@ -57,7 +57,11 @@ export default function App() {
     setSyncStatus('loading');
     void api.session().then(session => {
       if (active) setAccount({ email: session.user.email, entitled: session.billing?.entitled === true });
-      return api.list();
+      const shareToken = new URLSearchParams(location.search).get('share');
+      return shareToken ? api.claimShareLink(shareToken).then(() => {
+        history.replaceState(null, '', location.pathname);
+        return api.list();
+      }) : api.list();
     }).then(({ flockdocs }) => {
       if (!active) return;
       setAuthenticated(true);
