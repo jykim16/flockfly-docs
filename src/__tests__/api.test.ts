@@ -75,6 +75,20 @@ describe('Flockdoc API client', () => {
       .rejects.toEqual(expect.objectContaining<Partial<RevisionConflictError>>({ currentRevision: 4 }));
   });
 
+  it('requests a scoped realtime ticket and identifies snapshot writes by client', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ url: 'wss://api.example/realtime?ticket=abc', expiresInSeconds: 60 }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ revision: 3, snapshotKey: 'snapshot_3', duplicate: false }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const api = new FlockdocApi('token');
+
+    await expect(api.realtimeTicket('flockdoc_1', 'browser_1')).resolves.toMatchObject({ expiresInSeconds: 60 });
+    await api.saveState('flockdoc_1', 2, 'save-1', { id: 'flockdoc_1' }, 'browser_1');
+
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ clientId: 'browser_1' });
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toMatchObject({ clientId: 'browser_1' });
+  });
+
   it('uses Router-shaped document members, invitations, and general access', async () => {
     const member = { email: 'teammate@example.com', userId: 'user_2', username: 'Teammate', role: 'manager', status: 'active', accessTypes: ['read', 'edit'] };
     const invitation = { id: 'finv_1', flockdocId: 'flockdoc_1', flockdocName: 'Plan', flockdocType: 'paper', email: 'pending@example.com', role: 'editor' };

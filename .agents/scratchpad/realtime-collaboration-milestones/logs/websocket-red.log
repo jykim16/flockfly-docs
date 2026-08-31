@@ -1,0 +1,38 @@
+
+> @flockfly/context-api@0.1.0 test
+> vitest run --run test/flockdoc-realtime-websocket.test.ts
+
+
+ RUN  v3.2.7 /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/flockdoc-realtime-websocket.test.ts [ test/flockdoc-realtime-websocket.test.ts ]
+Error: Cannot find module '../src/flockdoc-realtime-server.ts' imported from '/Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api/test/flockdoc-realtime-websocket.test.ts'
+ ❯ test/flockdoc-realtime-websocket.test.ts:6:1
+      4| import WebSocket from "ws";
+      5| import type { FlockdocRealtimeEvent } from "@flockfly/context-shared";
+      6| import { attachFlockdocRealtimeServer } from "../src/flockdoc-realtime…
+       | ^
+      7| import { MemoryRealtimeBroker } from "../src/ports/realtime.ts";
+      8| import { issueFlockdocRealtimeTicket } from "../src/services/flockdoc-…
+
+Caused by: Error: Failed to load url ../src/flockdoc-realtime-server.ts (resolved id: ../src/flockdoc-realtime-server.ts) in /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api/test/flockdoc-realtime-websocket.test.ts. Does the file exist?
+ ❯ loadAndTransform ../node_modules/vite/dist/node/chunks/config.js:22739:33
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  14:41:05
+   Duration  161ms (transform 13ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 27ms)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+npm error workspace @flockfly/context-api@0.1.0
+npm error location /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+npm error command failed
+npm error command sh -c vitest run --run test/flockdoc-realtime-websocket.test.ts

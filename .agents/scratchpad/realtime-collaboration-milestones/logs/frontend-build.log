@@ -1,0 +1,8 @@
+
+> flockfly-docs@0.1.0 build
+> tsc -b && vite build
+
+src/__tests__/flockdoc-realtime.test.ts(36,88): error TS2322: Type 'number' is not assignable to type 'void | Promise<void>'.
+src/__tests__/flockdoc-realtime.test.ts(67,17): error TS2352: Conversion of type '{ revision: number; snapshot: { value: string; }; flockdoc: { id: string; }; }' to type 'FlockdocState' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Types of property 'flockdoc' are incompatible.
+    Type '{ id: string; }' is missing the following properties from type 'Flockdoc': name, type, modifiedAt, prefix, collaborators

@@ -179,6 +179,7 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
 .editor-loading span { font-size: .82rem; }
 .editor-loading button { margin-top: 10px; padding: 9px 15px; border: 1px solid var(--line); border-radius: 999px; color: var(--navy); background: #fff; }
 .editor-loading.error strong { color: #a33d43; }
+.realtime-warning { position: fixed; z-index: 20; top: 76px; left: 50%; transform: translateX(-50%); max-width: min(620px, calc(100vw - 32px)); padding: 9px 14px; border: 1px solid #f0c36d; border-radius: 8px; background: #fff8e6; color: #6b4f00; box-shadow: 0 4px 14px rgb(25 28 33 / 12%); font-size: 13px; }
 .editor-shell { grid-row: 2; min-height: 0; overflow: auto; background: rgba(217,236,239,.28); }
 .editor-shell.univer-shell { height: 100%; display: grid; grid-template-rows: 66px minmax(0, 1fr); overflow: hidden; background: #fff; }
 .univer-editor-host { width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: hidden; background: #fff; }

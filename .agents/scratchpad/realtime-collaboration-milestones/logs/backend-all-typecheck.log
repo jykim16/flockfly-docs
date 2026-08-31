@@ -1,0 +1,24 @@
+
+> @flockfly/context-router@0.1.0 typecheck
+> npm run typecheck --workspaces
+
+
+> @flockfly/context-shared@0.1.0 typecheck
+> tsc -p tsconfig.json
+
+
+> @flockfly/context-api@0.1.0 typecheck
+> tsc -p tsconfig.json
+
+
+> @flockfly/context-cli@0.1.0 typecheck
+> tsc -p tsconfig.json
+
+
+> @flockfly/context-ui@0.1.0 typecheck
+> tsc -p tsconfig.json
+
+
+> @flockfly/context-renderer@0.1.0 typecheck
+> tsc -p tsconfig.json --noEmit
+

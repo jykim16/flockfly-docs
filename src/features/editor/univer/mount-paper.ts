@@ -6,7 +6,7 @@ import { createUniver } from '@univerjs/presets';
 import type { MountedUniverEditor, MountUniverEditorOptions } from './types';
 import '@univerjs/preset-docs-core/lib/index.css';
 
-export function mountPaper({ host, id, name, snapshot, canEdit = true, onSnapshot }: MountUniverEditorOptions): MountedUniverEditor {
+export function mountPaper({ host, id, name, snapshot, canEdit = true, onSnapshot, onDirty }: MountUniverEditorOptions): MountedUniverEditor {
   const { univer, univerAPI } = createUniver({
     locale: LocaleType.EN_US,
     locales: { [LocaleType.EN_US]: mergeLocales(docsLocale) },
@@ -18,14 +18,20 @@ export function mountPaper({ host, id, name, snapshot, canEdit = true, onSnapsho
   );
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   const commandSubscription = canEdit ? univerAPI.addEvent(univerAPI.Event.CommandExecuted, () => {
+    onDirty?.();
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => onSnapshot(document.save()), 350);
+    saveTimer = setTimeout(() => {
+      saveTimer = undefined;
+      onSnapshot(document.save());
+    }, 350);
   }) : undefined;
 
   return {
     dispose() {
-      clearTimeout(saveTimer);
-      if (canEdit) onSnapshot(document.save());
+      if (saveTimer) {
+        clearTimeout(saveTimer);
+        onSnapshot(document.save());
+      }
       commandSubscription?.dispose();
       // Univer owns a nested React root. Dispose it after Flockdoc's outer
       // React commit finishes to avoid nested synchronous unmounts.

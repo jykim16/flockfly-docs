@@ -8,12 +8,13 @@ interface SpreadsheetEditorProps {
   onBack: () => void;
   onRename: (name: string) => void;
   onSnapshot: (snapshot: unknown) => void | Promise<void>;
+  onDirty?: () => void;
   canEdit?: boolean;
   canShare?: boolean;
   onShare?: () => void;
 }
 
-export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, canEdit = true, canShare = true, onShare }: SpreadsheetEditorProps) {
+export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty, canEdit = true, canShare = true, onShare }: SpreadsheetEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const onSnapshotRef = useRef(onSnapshot);
   const [status, setStatus] = useState('Loading Univer…');
@@ -31,6 +32,7 @@ export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, canEdit 
         name: item.name,
         snapshot: item.snapshot,
         canEdit,
+        onDirty,
         onSnapshot: snapshot => {
           setStatus('Saving…');
           void Promise.resolve(onSnapshotRef.current(snapshot))

@@ -9,4 +9,5 @@ export interface MountUniverEditorOptions {
   snapshot?: unknown;
   canEdit?: boolean;
   onSnapshot: (snapshot: unknown) => void;
+  onDirty?: () => void;
 }

@@ -1,0 +1,17 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/univer-webmcp.test.ts src/__tests__/remote-persistence.test.ts
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:12957) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:12958) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  2 passed (2)
+      Tests  21 passed (21)
+   Start at  14:49:49
+   Duration  318ms (transform 54ms, setup 120ms, import 35ms, tests 27ms, environment 297ms)
+
