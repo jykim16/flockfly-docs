@@ -22,9 +22,9 @@
 - [x] Implement folder creation and breadcrumb navigation.
 - [x] Implement permission-aware Move and Delete row actions.
 - [x] Expose matching WebMCP tools.
-- [ ] Run full frontend/backend tests, types, builds, and rendered QA.
-- [ ] Commit repositories without pushing.
-- [ ] Deploy API before Flockdoc and verify production.
+- [x] Run full frontend/backend tests, types, builds, and rendered QA.
+- [x] Commit repositories without pushing.
+- [x] Deploy API before Flockdoc and verify production.
 
 ## Decisions
 
