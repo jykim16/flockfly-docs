@@ -5,7 +5,7 @@
 - [x] RED: frontend invite and member controls expose “Can edit” between manage and comment.
 - [x] GREEN: update shared contracts, schema migration, services, routes, frontend types, and labels.
 - [x] REFACTOR: keep role label logic centralized and preserve legacy share-link behavior.
-- [ ] VERIFY: full frontend/backend tests, typechecks, build, infrastructure tests, commits, deployment, and hosted smoke check.
+- [x] VERIFY: full frontend/backend tests, typechecks, build, infrastructure tests, commits, deployment, and hosted smoke check.
 
 ## Realtime recommendation deliverable
 
