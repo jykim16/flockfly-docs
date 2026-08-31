@@ -1,7 +1,7 @@
 import type { FlockdocApi } from './api';
 
 export type FlockdocRealtimeActor = {
-  type: 'user' | 'agent';
+  type: 'user' | 'team' | 'agent' | 'link';
   id: string;
   displayName: string;
 };
@@ -15,15 +15,24 @@ type RealtimeEventBase = {
   occurredAt: string;
 };
 
-export type FlockdocRealtimeEvent = RealtimeEventBase & ({
-  kind: 'revision.committed';
+type CommittedEventBase = RealtimeEventBase & {
   revision: number;
+  idempotencyKey: string;
+};
+
+export type FlockdocCommittedEvent = CommittedEventBase & ({
+  kind: 'revision.committed';
   snapshotKey: string;
 } | {
+  kind: 'update.committed';
+  updateBase64: string;
+});
+
+export type FlockdocRealtimeEvent = FlockdocCommittedEvent | RealtimeEventBase & {
   kind: 'presence.updated';
   action: 'joined' | 'left';
   connectionId: string;
-});
+};
 
 export interface RealtimeSocket {
   close(): void;
@@ -33,6 +42,7 @@ export interface RealtimeSocket {
 type RealtimeClientOptions = {
   createSocket?: (url: string) => RealtimeSocket;
   retryDelayMs?: (attempt: number) => number;
+  onConnected?: () => void | Promise<void>;
 };
 
 function isRealtimeEvent(value: unknown): value is FlockdocRealtimeEvent {
@@ -41,7 +51,7 @@ function isRealtimeEvent(value: unknown): value is FlockdocRealtimeEvent {
   return event.protocolVersion === 1
     && typeof event.eventId === 'string'
     && typeof event.flockdocId === 'string'
-    && (event.kind === 'revision.committed' || event.kind === 'presence.updated');
+    && (event.kind === 'revision.committed' || event.kind === 'update.committed' || event.kind === 'presence.updated');
 }
 
 export function getFlockdocRealtimeClientId(): string {
@@ -60,6 +70,7 @@ export class FlockdocRealtimeClient {
   private attempt = 0;
   private readonly createSocket: (url: string) => RealtimeSocket;
   private readonly retryDelayMs: (attempt: number) => number;
+  private readonly onConnected?: () => void | Promise<void>;
 
   constructor(
     private readonly api: FlockdocApi,
@@ -70,6 +81,7 @@ export class FlockdocRealtimeClient {
   ) {
     this.createSocket = options.createSocket ?? (url => new WebSocket(url));
     this.retryDelayMs = options.retryDelayMs ?? (attempt => Math.min(1_000 * 2 ** attempt, 15_000));
+    this.onConnected = options.onConnected;
   }
 
   async start(): Promise<void> {
@@ -92,12 +104,17 @@ export class FlockdocRealtimeClient {
       if (!this.active) return;
       const socket = this.createSocket(ticket.url);
       this.socket = socket;
-      socket.addEventListener('open', () => { this.attempt = 0; });
+      socket.addEventListener('open', () => {
+        this.attempt = 0;
+        Promise.resolve(this.onConnected?.()).catch(() => socket.close());
+      });
       socket.addEventListener('message', event => {
         if (!(event instanceof MessageEvent) || typeof event.data !== 'string') return;
         try {
           const parsed = JSON.parse(event.data) as unknown;
-          if (isRealtimeEvent(parsed) && parsed.flockdocId === this.flockdocId) void this.onEvent(parsed);
+          if (isRealtimeEvent(parsed) && parsed.flockdocId === this.flockdocId) {
+            Promise.resolve(this.onEvent(parsed)).catch(() => socket.close());
+          }
         } catch {
           // Ignore malformed transport messages; reconnect/catch-up remains independent.
         }
@@ -119,5 +136,48 @@ export class FlockdocRealtimeClient {
       this.retryTimer = undefined;
       void this.connect();
     }, delay);
+  }
+}
+
+type RealtimeRecoveryOptions = {
+  currentRevision: () => number;
+  onEvent: (event: FlockdocCommittedEvent) => void | Promise<void>;
+  onSnapshotRequired: (headRevision: number) => void | Promise<void>;
+  pageLimit?: number;
+};
+
+export class FlockdocRealtimeRecovery {
+  private running?: Promise<void>;
+
+  constructor(
+    private readonly api: FlockdocApi,
+    private readonly flockdocId: string,
+    private readonly options: RealtimeRecoveryOptions,
+  ) {}
+
+  recover(): Promise<void> {
+    if (this.running) return this.running;
+    const operation = this.run().finally(() => {
+      if (this.running === operation) this.running = undefined;
+    });
+    this.running = operation;
+    return operation;
+  }
+
+  private async run(): Promise<void> {
+    let cursor = this.options.currentRevision();
+    const limit = this.options.pageLimit ?? 100;
+    for (let pageCount = 0; pageCount < 1_000; pageCount++) {
+      const page = await this.api.listUpdates(this.flockdocId, cursor, limit);
+      if (page.requiresSnapshot) {
+        await this.options.onSnapshotRequired(page.headRevision);
+        return;
+      }
+      for (const event of page.updates) await this.options.onEvent(event);
+      if (!page.page.hasMore) return;
+      if (page.page.nextRevision <= cursor) throw new Error('Flockdoc recovery cursor did not advance.');
+      cursor = page.page.nextRevision;
+    }
+    throw new Error('Flockdoc recovery exceeded the page safety limit.');
   }
 }

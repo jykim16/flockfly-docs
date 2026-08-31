@@ -17,12 +17,17 @@ export class RemoteSnapshotSynchronizer {
     if (event.kind !== 'revision.committed'
       || event.clientId === this.options.clientId
       || event.revision <= this.options.currentRevision()) return 'ignored';
+    return this.refresh(event.revision);
+  }
+
+  async refresh(targetRevision: number): Promise<'applied' | 'blocked' | 'ignored'> {
+    if (targetRevision <= this.options.currentRevision()) return 'ignored';
     if (this.options.hasUnsavedChanges()) {
-      this.options.blocked?.(event.revision);
+      this.options.blocked?.(targetRevision);
       return 'blocked';
     }
     const state = await this.options.load();
-    if (state.revision < event.revision || state.revision <= this.options.currentRevision()) return 'ignored';
+    if (state.snapshotRevision < targetRevision || state.revision <= this.options.currentRevision()) return 'ignored';
     this.options.apply(state);
     return 'applied';
   }

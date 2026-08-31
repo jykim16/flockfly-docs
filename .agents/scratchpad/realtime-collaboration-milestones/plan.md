@@ -33,10 +33,30 @@ Git commits cannot span repositories. Each milestone therefore gets at most one 
 4. Implement the frontend reconnecting client and safe remote snapshot refresh.
 5. Refactor, run focused suites, then full tests/typechecks/builds.
 
+## Milestone 2 acceptance tests
+
+- Readers can list committed events strictly after a non-negative revision cursor.
+- Results are ordered by revision, bounded by a validated limit, and expose `hasMore` plus the next revision cursor.
+- Snapshot and opaque update rows use versioned protocol envelopes with stable event IDs, originating client IDs, actor metadata, and timestamps.
+- A request older than retained history returns `requiresSnapshot: true` and the current head revision.
+- Users without document read access cannot inspect update history.
+- The frontend API encodes update cursors and pagination limits correctly.
+- Opening and reopening a WebSocket invokes recovery with a fresh durable cursor.
+- Recovery replays every page in order and uses the authoritative snapshot fallback when the server reports a retention gap.
+- Snapshot fallback preserves unsaved local edits using the Milestone 1 safety policy.
+
+## Milestone 2 TDD sequence
+
+1. Add failing backend API tests for ordered pagination, envelope shape, authorization, validation, and simulated retention gaps.
+2. Add failing frontend API/client/recovery tests for reconnect catch-up and fallback.
+3. Extend the durable schema and persistence writes with client identity.
+4. Implement the backend listing service and authenticated GET route.
+5. Implement frontend recovery pagination and connect it to every WebSocket open.
+6. Refactor, run focused suites, then full tests/typechecks/builds.
+
 ## Risks
 
 - Multiple API tasks require Redis Pub/Sub; an in-memory broker is only for local/test use.
 - WebSocket health must be independent of durable persistence; missed messages are repaired by Milestone 2.
 - Whole-snapshot writes still conflict during Milestone 1. Only clean clients auto-refresh.
 - Structural spreadsheet and Paper concurrency remain deliberately out of scope until their dedicated milestones.
-

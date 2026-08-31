@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FlockdocApi, FlockdocState } from '../lib/api';
-import { FlockdocRealtimeClient, type FlockdocRealtimeEvent, type RealtimeSocket } from '../lib/flockdoc-realtime';
+import { FlockdocRealtimeClient, FlockdocRealtimeRecovery, type FlockdocRealtimeEvent, type RealtimeSocket } from '../lib/flockdoc-realtime';
 import { RemoteSnapshotSynchronizer } from '../lib/realtime-snapshot-sync';
 
 class FakeSocket implements RealtimeSocket {
@@ -22,6 +22,7 @@ const revisionEvent: FlockdocRealtimeEvent = {
   kind: 'revision.committed',
   flockdocId: 'flockdoc_1',
   revision: 4,
+  idempotencyKey: 'snapshot-4',
   snapshotKey: 'snapshot_4',
   clientId: 'browser_2',
   actor: { type: 'user', id: 'user_2', displayName: 'Teammate' },
@@ -33,7 +34,7 @@ describe('flockdoc realtime client', () => {
     const socket = new FakeSocket();
     const api = { realtimeTicket: vi.fn().mockResolvedValue({ url: 'wss://api.example/realtime?ticket=abc', expiresInSeconds: 60 }) } as unknown as FlockdocApi;
     const received: FlockdocRealtimeEvent[] = [];
-    const client = new FlockdocRealtimeClient(api, 'flockdoc_1', 'browser_1', event => received.push(event), {
+    const client = new FlockdocRealtimeClient(api, 'flockdoc_1', 'browser_1', event => { received.push(event); }, {
       createSocket: vi.fn().mockReturnValue(socket),
     });
 
@@ -61,10 +62,96 @@ describe('flockdoc realtime client', () => {
     client.stop();
     vi.useRealTimers();
   });
+
+  it('runs durable recovery after every socket open', async () => {
+    vi.useFakeTimers();
+    const first = new FakeSocket();
+    const second = new FakeSocket();
+    const sockets = [first, second];
+    const recovered = vi.fn();
+    const api = { realtimeTicket: vi.fn().mockResolvedValue({ url: 'wss://api.example/realtime?ticket=abc', expiresInSeconds: 60 }) } as unknown as FlockdocApi;
+    const client = new FlockdocRealtimeClient(api, 'flockdoc_1', 'browser_1', vi.fn(), {
+      createSocket: () => sockets.shift()!,
+      retryDelayMs: () => 10,
+      onConnected: recovered,
+    });
+    await client.start();
+    first.emit('open');
+    expect(recovered).toHaveBeenCalledTimes(1);
+    first.emit('close');
+    await vi.advanceTimersByTimeAsync(10);
+    second.emit('open');
+    expect(recovered).toHaveBeenCalledTimes(2);
+    client.stop();
+    vi.useRealTimers();
+  });
+});
+
+describe('durable realtime recovery', () => {
+  const updateEvent: FlockdocRealtimeEvent = {
+    protocolVersion: 1,
+    eventId: 'flockdoc_1:revision:3',
+    kind: 'update.committed',
+    flockdocId: 'flockdoc_1',
+    revision: 3,
+    idempotencyKey: 'update-3',
+    updateBase64: 'AQID',
+    clientId: 'agent_1',
+    actor: { type: 'agent', id: 'agent_1', displayName: 'Planner' },
+    occurredAt: '2026-08-31T00:00:01.000Z',
+  };
+
+  it('replays every durable page in revision order', async () => {
+    const api = { listUpdates: vi.fn()
+      .mockResolvedValueOnce({
+        updates: [{ ...revisionEvent, revision: 2, idempotencyKey: 'snapshot-2' }, updateEvent],
+        headRevision: 4,
+        retainedFromRevision: 1,
+        requiresSnapshot: false,
+        page: { limit: 2, hasMore: true, nextRevision: 3 },
+      })
+      .mockResolvedValueOnce({
+        updates: [{ ...revisionEvent, revision: 4 }],
+        headRevision: 4,
+        retainedFromRevision: 1,
+        requiresSnapshot: false,
+        page: { limit: 2, hasMore: false, nextRevision: 4 },
+      }) } as unknown as FlockdocApi;
+    const replayed: number[] = [];
+    const recovery = new FlockdocRealtimeRecovery(api, 'flockdoc_1', {
+      currentRevision: () => 1,
+      onEvent: event => { replayed.push(event.revision); },
+      onSnapshotRequired: vi.fn(),
+      pageLimit: 2,
+    });
+
+    await recovery.recover();
+    expect(api.listUpdates).toHaveBeenNthCalledWith(1, 'flockdoc_1', 1, 2);
+    expect(api.listUpdates).toHaveBeenNthCalledWith(2, 'flockdoc_1', 3, 2);
+    expect(replayed).toEqual([2, 3, 4]);
+  });
+
+  it('loads an authoritative snapshot instead of replaying across a retention gap', async () => {
+    const fallback = vi.fn();
+    const api = { listUpdates: vi.fn().mockResolvedValue({
+      updates: [],
+      headRevision: 8,
+      retainedFromRevision: 7,
+      requiresSnapshot: true,
+      page: { limit: 100, hasMore: false, nextRevision: 2 },
+    }) } as unknown as FlockdocApi;
+    const recovery = new FlockdocRealtimeRecovery(api, 'flockdoc_1', {
+      currentRevision: () => 2,
+      onEvent: vi.fn(),
+      onSnapshotRequired: fallback,
+    });
+    await recovery.recover();
+    expect(fallback).toHaveBeenCalledWith(8);
+  });
 });
 
 describe('remote snapshot synchronization', () => {
-  const state = { revision: 4, snapshot: { value: 'remote' }, flockdoc: { id: 'flockdoc_1' } } as FlockdocState;
+  const state = { revision: 4, snapshotRevision: 4, snapshot: { value: 'remote' }, flockdoc: { id: 'flockdoc_1' } } as unknown as FlockdocState;
 
   it('loads a newer remote snapshot when local state is clean', async () => {
     const apply = vi.fn();
@@ -93,6 +180,22 @@ describe('remote snapshot synchronization', () => {
     await expect(sync.handle(revisionEvent)).resolves.toBe('blocked');
     await expect(sync.handle({ ...revisionEvent, clientId: 'browser_1' })).resolves.toBe('ignored');
     expect(load).not.toHaveBeenCalled();
+    expect(blocked).toHaveBeenCalledWith(4);
+  });
+
+  it('uses the same unsaved-change guard for snapshot recovery', async () => {
+    const apply = vi.fn();
+    const blocked = vi.fn();
+    const sync = new RemoteSnapshotSynchronizer({
+      clientId: 'browser_1',
+      currentRevision: () => 2,
+      hasUnsavedChanges: () => true,
+      load: vi.fn().mockResolvedValue(state),
+      apply,
+      blocked,
+    });
+    await expect(sync.refresh(4)).resolves.toBe('blocked');
+    expect(apply).not.toHaveBeenCalled();
     expect(blocked).toHaveBeenCalledWith(4);
   });
 });

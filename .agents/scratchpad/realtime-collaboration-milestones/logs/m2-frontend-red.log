@@ -1,0 +1,87 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/api.test.ts src/__tests__/flockdoc-realtime.test.ts
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:19210) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:19211) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/flockdoc-realtime.test.ts (8 tests | 4 failed) 12ms
+     × runs durable recovery after every socket open 2ms
+     × replays every durable page in revision order 0ms
+     × loads an authoritative snapshot instead of replaying across a retention gap 0ms
+     × uses the same unsaved-change guard for snapshot recovery 0ms
+ ❯ src/__tests__/api.test.ts (8 tests | 1 failed) 13ms
+     × lists durable updates after an encoded revision cursor 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/api.test.ts > Flockdoc API client > lists durable updates after an encoded revision cursor
+TypeError: api.listUpdates is not a function
+ ❯ src/__tests__/api.test.ts:104:22
+    102|     const api = new FlockdocApi('token');
+    103|
+    104|     await expect(api.listUpdates('flockdoc_1', 7, 50)).resolves.toEqua…
+       |                      ^
+    105|     expect(fetchMock.mock.calls[0][0]).toBe('/v1/flockdocs/flockdoc_1/…
+    106|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/__tests__/flockdoc-realtime.test.ts > flockdoc realtime client > runs durable recovery after every socket open
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ src/__tests__/flockdoc-realtime.test.ts:80:23
+     78|     await client.start();
+     79|     first.emit('open');
+     80|     expect(recovered).toHaveBeenCalledTimes(1);
+       |                       ^
+     81|     first.emit('close');
+     82|     await vi.advanceTimersByTimeAsync(10);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/__tests__/flockdoc-realtime.test.ts > durable realtime recovery > replays every durable page in revision order
+TypeError: FlockdocRealtimeRecovery is not a constructor
+ ❯ src/__tests__/flockdoc-realtime.test.ts:121:22
+    119|       }) } as unknown as FlockdocApi;
+    120|     const replayed: number[] = [];
+    121|     const recovery = new FlockdocRealtimeRecovery(api, 'flockdoc_1', {
+       |                      ^
+    122|       currentRevision: () => 1,
+    123|       onEvent: event => { replayed.push(event.revision); },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/__tests__/flockdoc-realtime.test.ts > durable realtime recovery > loads an authoritative snapshot instead of replaying across a retention gap
+TypeError: FlockdocRealtimeRecovery is not a constructor
+ ❯ src/__tests__/flockdoc-realtime.test.ts:143:22
+    141|       page: { limit: 100, hasMore: false, nextRevision: 2 },
+    142|     }) } as unknown as FlockdocApi;
+    143|     const recovery = new FlockdocRealtimeRecovery(api, 'flockdoc_1', {
+       |                      ^
+    144|       currentRevision: () => 2,
+    145|       onEvent: vi.fn(),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/__tests__/flockdoc-realtime.test.ts > remote snapshot synchronization > uses the same unsaved-change guard for snapshot recovery
+TypeError: sync.refresh is not a function
+ ❯ src/__tests__/flockdoc-realtime.test.ts:197:23
+    195|       blocked,
+    196|     });
+    197|     await expect(sync.refresh(4)).resolves.toBe('blocked');
+       |                       ^
+    198|     expect(apply).not.toHaveBeenCalled();
+    199|     expect(blocked).toHaveBeenCalledWith(4);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  5 failed | 11 passed (16)
+   Start at  15:06:37
+   Duration  307ms (transform 62ms, setup 120ms, import 45ms, tests 25ms, environment 285ms)
+

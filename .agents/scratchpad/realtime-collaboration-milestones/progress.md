@@ -28,9 +28,30 @@
 - Backend: `8c7bcc1` — `feat(flockdoc): add realtime collaboration foundation`
 - Frontend: this milestone commit — `feat: add realtime collaboration foundation`
 
-## Later milestones
+## Milestone 2 — durable recovery
 
-- [ ] Milestone 2 — durable recovery.
+- [x] RED: backend ordered history, pagination, validation, authorization, and retention-gap tests failed for missing behavior.
+- [x] RED: frontend API, reconnect recovery, replay, and snapshot-fallback tests failed for missing behavior.
+- [x] GREEN: backend durable event listing and client identity persistence pass.
+- [x] GREEN: frontend reconnect catch-up and safe fallback pass.
+- [x] REFACTOR: stable revision-derived event IDs, strict cursor advancement, serialized recovery, and recovery-error reconnects follow existing API/client conventions.
+- [x] VERIFY: backend 237 passing/1 skipped; frontend 58 passing; infrastructure 2 passing; backend workspace typechecks; frontend typecheck and production build pass.
+- [x] COMMIT: one matching milestone commit per affected repository recorded here.
+
+### TDD notes
+
+- Backend RED returned the expected route-level 404s before the durable GET endpoint existed.
+- Frontend RED failed on the missing list API, recovery coordinator, connect hook, and snapshot-recovery method.
+- `snapshotRevision` is now explicit so a checkpoint is never mistaken for content covering later operation revisions.
+- Retention is permitted only when an authoritative checkpoint covers the discarded prefix; a reported gap therefore triggers checkpoint loading rather than partial replay.
+
+### Milestone 2 commits
+
+- Backend: `9707ffb` — `feat(flockdoc): add durable realtime recovery`
+- Frontend: this milestone commit — `feat: add durable realtime recovery`
+
+## Remaining milestones
+
 - [ ] Milestone 3 — spreadsheet operations.
 - [ ] Milestone 4 — structural collaboration.
 - [ ] Milestone 5 — Paper collaboration.

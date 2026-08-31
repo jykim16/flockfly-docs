@@ -1,4 +1,5 @@
 import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocInvitation, FlockdocLinkRole, FlockdocMember, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType, FlockdocVisibility } from '../types';
+import type { FlockdocCommittedEvent } from './flockdoc-realtime';
 
 const TOKEN_KEY = 'flockfly.token';
 const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? '';
@@ -27,6 +28,7 @@ interface BackendFlockdoc {
 export interface FlockdocState {
   flockdoc: Flockdoc;
   revision: number;
+  snapshotRevision: number;
   snapshot: Record<string, unknown> | null;
 }
 
@@ -148,8 +150,8 @@ export class FlockdocApi {
   }
 
   async getState(id: string): Promise<FlockdocState> {
-    const response = await this.request<{ flockdoc: BackendFlockdoc; revision: number; snapshot: Record<string, unknown> | null }>(`/v1/flockdocs/${id}/state`);
-    return { ...response, flockdoc: mapFlockdoc(response.flockdoc) };
+    const response = await this.request<{ flockdoc: BackendFlockdoc; revision: number; snapshotRevision?: number; snapshot: Record<string, unknown> | null }>(`/v1/flockdocs/${id}/state`);
+    return { ...response, snapshotRevision: response.snapshotRevision ?? response.revision, flockdoc: mapFlockdoc(response.flockdoc) };
   }
 
   saveState(id: string, baseRevision: number, idempotencyKey: string, snapshot: unknown, clientId?: string) {
@@ -162,6 +164,17 @@ export class FlockdocApi {
     return this.request<{ url: string; expiresInSeconds: number }>(`/v1/flockdocs/${id}/realtime-ticket`, {
       method: 'POST', body: JSON.stringify({ clientId }),
     });
+  }
+
+  listUpdates(id: string, afterRevision: number, limit = 100) {
+    const query = new URLSearchParams({ afterRevision: String(afterRevision), limit: String(limit) });
+    return this.request<{
+      updates: FlockdocCommittedEvent[];
+      headRevision: number;
+      retainedFromRevision: number | null;
+      requiresSnapshot: boolean;
+      page: { limit: number; hasMore: boolean; nextRevision: number };
+    }>(`/v1/flockdocs/${id}/updates?${query}`);
   }
 
   grantRole(id: string, principalType: string, principalId: string, role: string) {

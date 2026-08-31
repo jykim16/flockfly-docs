@@ -1,0 +1,17 @@
+
+> @flockfly/context-api@0.1.0 test
+> vitest run --run test/flockdoc-collaboration-foundation.test.ts
+
+
+ RUN  v3.2.7 /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+
+ ✓ test/flockdoc-collaboration-foundation.test.ts (14 tests) 3964ms
+   ✓ flockdoc collaboration foundation > lists durable committed events in bounded revision order  513ms
+   ✓ flockdoc collaboration foundation > requires a snapshot when the requested revision predates retained history  322ms
+   ✓ flockdoc collaboration foundation > publishes one committed revision event after an idempotent snapshot save  300ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  15:04:35
+   Duration  4.34s (transform 146ms, setup 0ms, collect 231ms, tests 3.96s, environment 0ms, prepare 28ms)
+

@@ -89,6 +89,22 @@ describe('Flockdoc API client', () => {
     expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toMatchObject({ clientId: 'browser_1' });
   });
 
+  it('lists durable updates after an encoded revision cursor', async () => {
+    const response = {
+      updates: [],
+      headRevision: 7,
+      retainedFromRevision: 1,
+      requiresSnapshot: false,
+      page: { limit: 50, hasMore: false, nextRevision: 7 },
+    };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(response), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const api = new FlockdocApi('token');
+
+    await expect(api.listUpdates('flockdoc_1', 7, 50)).resolves.toEqual(response);
+    expect(fetchMock.mock.calls[0][0]).toBe('/v1/flockdocs/flockdoc_1/updates?afterRevision=7&limit=50');
+  });
+
   it('uses Router-shaped document members, invitations, and general access', async () => {
     const member = { email: 'teammate@example.com', userId: 'user_2', username: 'Teammate', role: 'manager', status: 'active', accessTypes: ['read', 'edit'] };
     const invitation = { id: 'finv_1', flockdocId: 'flockdoc_1', flockdocName: 'Plan', flockdocType: 'paper', email: 'pending@example.com', role: 'editor' };

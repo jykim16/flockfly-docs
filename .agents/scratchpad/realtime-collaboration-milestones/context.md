@@ -26,6 +26,21 @@ browser WebSocket <- scoped ticket <- authenticated Flockdoc API
 
 Milestone 2 will make the update log the recovery path. Later milestones replace snapshot notification payloads with structured operations while retaining this transport, authorization, revision cursor, and snapshot fallback.
 
+## Milestone 2 recovery design
+
+```text
+socket opens/reopens
+        |
+        v
+GET updates?afterRevision=<local>&limit=<bounded>
+        |
+        +-- ordered retained events -> replay in revision order
+        |
+        `-- retention gap -> load authoritative snapshot checkpoint
+```
+
+Each persisted update records the originating client ID so the durable event envelope has the same echo-suppression semantics as live delivery. Snapshot rows become `revision.committed` events; opaque legacy update rows become `update.committed` events and remain replayable for the operation milestone.
+
 ## Constraints and decisions
 
 - HTTP remains the authoritative write path; WebSockets deliver committed events and presence.
@@ -33,6 +48,9 @@ Milestone 2 will make the update log the recovery path. Later milestones replace
 - Direct WebSocket connections use short-lived, single-use document-scoped tickets because the platform session cookie is HttpOnly and scoped through the platform origin.
 - Presence is ephemeral and must never consume document revisions.
 - Clients never overwrite unsaved local state after receiving a remote revision.
+- Catch-up cursors are document revisions, not transport message IDs.
+- The API returns `limit + 1` internally to provide stable bounded pagination without a count query.
+- If retained history starts after the requested cursor, clients load the current snapshot instead of guessing across a gap.
 - There is no repository-level `CODEASSIST.md`; relevant READMEs and the existing realtime recommendation were reviewed.
 
 ## Implementation paths
@@ -42,4 +60,3 @@ Milestone 2 will make the update log the recovery path. Later milestones replace
 - Frontend transport/API: `src/lib/api.ts`, `src/lib/flockdoc-realtime.ts`
 - Frontend editor integration: `src/features/editor/RemoteEditor.tsx`
 - Tests: each repository's existing Vitest suites
-

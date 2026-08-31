@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FlockdocApi, FlockdocState } from '../../lib/api';
 import { SerializedSnapshotSaver } from '../../lib/remote-persistence';
-import { FlockdocRealtimeClient, getFlockdocRealtimeClientId, type FlockdocRealtimeEvent } from '../../lib/flockdoc-realtime';
+import { FlockdocRealtimeClient, FlockdocRealtimeRecovery, getFlockdocRealtimeClientId, type FlockdocRealtimeEvent } from '../../lib/flockdoc-realtime';
 import { RemoteSnapshotSynchronizer } from '../../lib/realtime-snapshot-sync';
 import type { Flockdoc } from '../../types';
 import { PaperEditor } from './PaperEditor';
@@ -55,6 +55,7 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
         await snapshotSync.handle(event);
         return;
       }
+      if (event.kind === 'update.committed') return;
       if (event.clientId === clientId) return;
       if (event.action === 'joined') {
         collaborators.current.set(event.connectionId, {
@@ -67,7 +68,14 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
       }
       onUpdateRef.current({ collaborators: [...collaborators.current.values()] });
     };
-    const realtime = new FlockdocRealtimeClient(api, item.id, clientId, onRealtimeEvent);
+    const recovery = new FlockdocRealtimeRecovery(api, item.id, {
+      currentRevision: () => saver.revision,
+      onEvent: onRealtimeEvent,
+      onSnapshotRequired: async revision => { await snapshotSync.refresh(revision); },
+    });
+    const realtime = new FlockdocRealtimeClient(api, item.id, clientId, onRealtimeEvent, {
+      onConnected: () => recovery.recover(),
+    });
     void realtime.start();
     return () => realtime.stop();
   }, [api, clientId, item.id, saver]);
