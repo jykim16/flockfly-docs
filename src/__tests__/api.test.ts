@@ -77,7 +77,7 @@ describe('Flockdoc API client', () => {
 
   it('uses Router-shaped document members, invitations, and general access', async () => {
     const member = { email: 'teammate@example.com', userId: 'user_2', username: 'Teammate', role: 'manager', status: 'active', accessTypes: ['read', 'edit'] };
-    const invitation = { id: 'finv_1', flockdocId: 'flockdoc_1', flockdocName: 'Plan', flockdocType: 'paper', email: 'pending@example.com', role: 'commenter' };
+    const invitation = { id: 'finv_1', flockdocId: 'flockdoc_1', flockdocName: 'Plan', flockdocType: 'paper', email: 'pending@example.com', role: 'editor' };
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({ flockdoc: { id: 'flockdoc_1' }, members: [member], invitations: [invitation] }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ invitation }), { status: 201 }))
@@ -92,7 +92,7 @@ describe('Flockdoc API client', () => {
     const api = new FlockdocApi('token');
 
     await api.listMembers('flockdoc_1');
-    await api.inviteMember('flockdoc_1', 'pending@example.com', 'commenter');
+    await api.inviteMember('flockdoc_1', 'pending@example.com', 'editor');
     await api.changeMemberRole('flockdoc_1', 'teammate@example.com', 'viewer');
     await api.removeMember('flockdoc_1', 'teammate@example.com');
     await api.setVisibility('flockdoc_1', 'public');
@@ -103,7 +103,7 @@ describe('Flockdoc API client', () => {
 
     expect(fetchMock.mock.calls.map(([url, init]) => [url, init.method ?? 'GET', init.body ? JSON.parse(init.body) : null])).toEqual([
       ['/v1/flockdocs/flockdoc_1/members', 'GET', null],
-      ['/v1/flockdocs/flockdoc_1/members', 'POST', { email: 'pending@example.com', role: 'commenter' }],
+      ['/v1/flockdocs/flockdoc_1/members', 'POST', { email: 'pending@example.com', role: 'editor' }],
       ['/v1/flockdocs/flockdoc_1/members/teammate%40example.com', 'PATCH', { role: 'viewer' }],
       ['/v1/flockdocs/flockdoc_1/members/teammate%40example.com', 'DELETE', null],
       ['/v1/flockdocs/flockdoc_1/visibility', 'PATCH', { visibility: 'public' }],

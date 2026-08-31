@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown, Copy, Globe2, LockKeyhole, UserPlus, X } from 'lucide-react';
 import type { FlockdocApi } from '../../lib/api';
+import { flockdocAssignableRoles, flockdocRoleLabel } from '../../lib/flockdoc-roles';
 import type { FlockdocAssignableRole, FlockdocInvitation, FlockdocMember, FlockdocType, FlockdocVisibility } from '../../types';
 
 interface Props {
@@ -14,20 +15,11 @@ interface Props {
   onClose: () => void;
 }
 
-function roleLabel(role: FlockdocMember['role'] | FlockdocInvitation['role']) {
-  if (role === 'owner') return 'Owner';
-  if (role === 'manager') return 'Can manage';
-  if (role === 'commenter') return 'Can comment';
-  return 'Can view';
-}
-
 function initials(member: FlockdocMember) {
   const source = member.username ?? member.email.split('@')[0] ?? member.email;
   const parts = source.split(/[._-]+/).filter(Boolean);
   return (parts.length > 1 ? `${parts[0]?.[0] ?? ''}${parts[1]?.[0] ?? ''}` : source.slice(0, 2)).toUpperCase();
 }
-
-const roles: FlockdocAssignableRole[] = ['manager', 'commenter', 'viewer'];
 
 export function DocumentShareDialog({ api, flockdocId, flockdocType, name, currentUserEmail = '', onClose }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -116,7 +108,7 @@ export function DocumentShareDialog({ api, flockdocId, flockdocType, name, curre
     try {
       const response = await api.changeMemberRole(flockdocId, member.email, role);
       setMembers(current => current.map(item => item.email === member.email ? response.member : item));
-      setMenuEmail(null); setSuccess(`${member.email} is now ${roleLabel(role).toLowerCase()}.`);
+      setMenuEmail(null); setSuccess(`${member.email} is now ${flockdocRoleLabel(role).toLowerCase()}.`);
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not change this role.'); }
     finally { setBusy(null); }
   };
@@ -152,10 +144,10 @@ export function DocumentShareDialog({ api, flockdocId, flockdocType, name, curre
     <div ref={dialogRef} className="share-dialog" role="dialog" aria-modal="true" aria-labelledby="flockdoc-share-title" aria-describedby="flockdoc-share-description">
       <div className="share-dialog-main">
         <header className="share-dialog-head"><div><h2 id="flockdoc-share-title">Share “{name}”</h2><p id="flockdoc-share-description">Invite people and choose how this document can be opened.</p></div><button type="button" className="share-icon-button" aria-label="Close sharing dialog" onClick={onClose}><X aria-hidden="true" /></button></header>
-        {canInvite ? <form className="share-invite" onSubmit={submit}><input ref={emailRef} type="email" aria-label="Invite by email" placeholder="Invite by email" value={email} onChange={event => setEmail(event.target.value)} required /><select aria-label="Invite role" value={inviteRole} onChange={event => setInviteRole(event.target.value as FlockdocAssignableRole)}>{roles.map(role => <option key={role} value={role}>{roleLabel(role)}</option>)}</select><button type="submit" disabled={busy !== null}><UserPlus />{busy === 'invite' ? 'Sending…' : 'Send invite'}</button></form> : null}
+        {canInvite ? <form className="share-invite" onSubmit={submit}><input ref={emailRef} type="email" aria-label="Invite by email" placeholder="Invite by email" value={email} onChange={event => setEmail(event.target.value)} required /><select aria-label="Invite role" value={inviteRole} onChange={event => setInviteRole(event.target.value as FlockdocAssignableRole)}>{flockdocAssignableRoles.map(role => <option key={role} value={role}>{flockdocRoleLabel(role)}</option>)}</select><button type="submit" disabled={busy !== null}><UserPlus />{busy === 'invite' ? 'Sending…' : 'Send invite'}</button></form> : null}
         <section className="share-section"><div className="share-section-title"><h3>People and invitations</h3><span>{members.length} with access · {invitations.length} pending</span></div><ul className="share-people">
-          {members.map(member => <li key={member.email} className="share-person" aria-label={member.email}><span className={`share-avatar${member.role === 'owner' ? ' owner' : ''}`}>{initials(member)}</span><span className="share-identity"><strong>{member.username ?? member.email}{member.email === currentUserEmail ? ' (you)' : ''}</strong>{member.username ? <span>{member.email}</span> : null}</span>{member.role === 'owner' || !canManageAccess ? <span className="share-fixed-role">{roleLabel(member.role)}</span> : confirmEmail === member.email ? <span className="share-confirm-remove"><button className="compact danger" onClick={() => void remove(member.email)}>Confirm remove access</button><button className="compact secondary" onClick={() => setConfirmEmail(null)}>Cancel</button></span> : <span className="share-role-control"><button className="share-role-button" aria-label={`Manage access for ${member.email}`} aria-expanded={menuEmail === member.email} onClick={() => setMenuEmail(open => open === member.email ? null : member.email)}>{roleLabel(member.role)} <ChevronDown /></button>{menuEmail === member.email ? <span className="share-role-menu">{roles.map(role => <button key={role} onClick={() => void changeRole(member, role)}>{roleLabel(role)}</button>)}<button className="remove" onClick={() => { setConfirmEmail(member.email); setMenuEmail(null); }}>Remove access</button></span> : null}</span>}</li>)}
-          {invitations.map(invitation => <li key={invitation.id} className="share-person" aria-label={invitation.email}><span className="share-avatar pending">{invitation.email.slice(0, 2).toUpperCase()}</span><span className="share-identity"><strong>{invitation.email}</strong><span className="tag pending">Invitation pending</span></span><span className="share-pending-control"><span className="share-fixed-role">{roleLabel(invitation.role)}</span>{canManageAccess ? <button className="share-icon-button" aria-label={`Cancel invitation for ${invitation.email}`} onClick={() => void remove(invitation.email)}><X /></button> : null}</span></li>)}
+          {members.map(member => <li key={member.email} className="share-person" aria-label={member.email}><span className={`share-avatar${member.role === 'owner' ? ' owner' : ''}`}>{initials(member)}</span><span className="share-identity"><strong>{member.username ?? member.email}{member.email === currentUserEmail ? ' (you)' : ''}</strong>{member.username ? <span>{member.email}</span> : null}</span>{member.role === 'owner' || !canManageAccess ? <span className="share-fixed-role">{flockdocRoleLabel(member.role)}</span> : confirmEmail === member.email ? <span className="share-confirm-remove"><button className="compact danger" onClick={() => void remove(member.email)}>Confirm remove access</button><button className="compact secondary" onClick={() => setConfirmEmail(null)}>Cancel</button></span> : <span className="share-role-control"><button className="share-role-button" aria-label={`Manage access for ${member.email}`} aria-expanded={menuEmail === member.email} onClick={() => setMenuEmail(open => open === member.email ? null : member.email)}>{flockdocRoleLabel(member.role)} <ChevronDown /></button>{menuEmail === member.email ? <span className="share-role-menu">{flockdocAssignableRoles.map(role => <button key={role} onClick={() => void changeRole(member, role)}>{flockdocRoleLabel(role)}</button>)}<button className="remove" onClick={() => { setConfirmEmail(member.email); setMenuEmail(null); }}>Remove access</button></span> : null}</span>}</li>)}
+          {invitations.map(invitation => <li key={invitation.id} className="share-person" aria-label={invitation.email}><span className="share-avatar pending">{invitation.email.slice(0, 2).toUpperCase()}</span><span className="share-identity"><strong>{invitation.email}</strong><span className="tag pending">Invitation pending</span></span><span className="share-pending-control"><span className="share-fixed-role">{flockdocRoleLabel(invitation.role)}</span>{canManageAccess ? <button className="share-icon-button" aria-label={`Cancel invitation for ${invitation.email}`} onClick={() => void remove(invitation.email)}><X /></button> : null}</span></li>)}
         </ul></section>
         <section className="share-section"><div className="share-section-title"><h3>General access</h3><span>Public access is view only</span></div><div className="share-access-options">{(['private', 'public'] as const).map(option => <label key={option} className={`share-access-option${visibility === option ? ' selected' : ''}`}><input aria-label={option === 'public' ? 'Public' : 'Restricted'} type="radio" name="flockdoc-visibility" checked={visibility === option} disabled={!canManageAccess || busy !== null} onChange={() => void changeVisibility(option)} /><span className="share-access-icon">{option === 'public' ? <Globe2 /> : <LockKeyhole />}</span><span className="share-access-copy"><strong>{option === 'public' ? 'Public' : 'Restricted'}</strong><span>{option === 'public' ? 'Anyone with the link can open and add it as Can view.' : 'Only people listed above can open this document.'}</span></span><span className="share-radio-mark" /></label>)}</div><p className="share-access-note"><Check /><span><strong>{visibility === 'public' ? 'Public · Can view.' : 'Restricted.'}</strong> {visibility === 'public' ? 'Existing member roles stay unchanged.' : 'Only listed people keep access.'}</span></p></section>
         {error ? <p className="form-error" role="alert">{error}</p> : null}{success && success !== 'Link copied' ? <p className="share-success"><Check />{success}</p> : null}

@@ -23,9 +23,9 @@ export interface Flockdoc {
   permissions?: FlockdocPermissions;
 }
 
-export type FlockdocRole = 'owner' | 'manager' | 'commenter' | 'viewer';
+export type FlockdocRole = 'owner' | 'manager' | 'editor' | 'commenter' | 'viewer';
 export type FlockdocAssignableRole = Exclude<FlockdocRole, 'owner'>;
-export type FlockdocLinkRole = Exclude<FlockdocRole, 'owner' | 'manager'>;
+export type FlockdocLinkRole = Exclude<FlockdocRole, 'owner' | 'manager' | 'editor'>;
 export type FlockdocVisibility = 'private' | 'public';
 export type FlockdocPrincipalType = 'user' | 'team' | 'agent';
 

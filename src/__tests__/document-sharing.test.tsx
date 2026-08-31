@@ -9,7 +9,7 @@ function apiMock() {
       { email: 'owner@example.com', username: 'Owner', role: 'owner', status: 'active' },
       { email: 'alex@example.com', username: 'Alex', role: 'manager', status: 'active' },
     ], invitations: [{ id: 'finv_1', email: 'pending@example.com', role: 'commenter' }] }),
-    inviteMember: vi.fn().mockResolvedValue({ invitation: { id: 'finv_2', email: 'new@example.com', role: 'commenter' } }),
+    inviteMember: vi.fn().mockResolvedValue({ invitation: { id: 'finv_2', email: 'new@example.com', role: 'editor' } }),
     changeMemberRole: vi.fn().mockResolvedValue({ member: { email: 'alex@example.com', role: 'viewer' } }),
     removeMember: vi.fn().mockResolvedValue(undefined),
     setVisibility: vi.fn().mockResolvedValue({ flockdoc: { visibility: 'public' } }),
@@ -22,14 +22,14 @@ describe('document sharing', () => {
     render(<DocumentShareDialog api={api as unknown as FlockdocApi} flockdocId="flockdoc_1" flockdocType="paper" name="Launch plan" currentUserEmail="owner@example.com" onClose={() => {}} />);
     expect(await screen.findByRole('dialog', { name: 'Share “Launch plan”' })).toBeInTheDocument();
     expect(screen.getAllByRole('option', { name: 'Can manage' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('option', { name: 'Can edit' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('option', { name: 'Can comment' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('option', { name: 'Can view' }).length).toBeGreaterThan(0);
-    expect(screen.queryByText('Editor')).not.toBeInTheDocument();
     expect(await screen.findByText('pending@example.com')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Invite by email'), { target: { value: 'new@example.com' } });
-    fireEvent.change(screen.getByLabelText('Invite role'), { target: { value: 'commenter' } });
+    fireEvent.change(screen.getByLabelText('Invite role'), { target: { value: 'editor' } });
     fireEvent.click(screen.getByRole('button', { name: 'Send invite' }));
-    await waitFor(() => expect(api.inviteMember).toHaveBeenCalledWith('flockdoc_1', 'new@example.com', 'commenter'));
+    await waitFor(() => expect(api.inviteMember).toHaveBeenCalledWith('flockdoc_1', 'new@example.com', 'editor'));
   });
 
   it('uses the Router role menu and general access controls', async () => {

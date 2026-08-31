@@ -1,0 +1,721 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/document-sharing.test.tsx src/__tests__/api.test.ts
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:82313) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:82312) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/document-sharing.test.tsx (2 tests | 1 failed) 136ms
+     × matches the Router sharing roles and invitation structure 101ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/document-sharing.test.tsx > document sharing > matches the Router sharing roles and invitation structure
+TestingLibraryElementError: Unable to find an accessible element with the role "option" and name "Can edit"
+
+Here are the accessible roles:
+
+  dialog:
+
+  Name "Share “Launch plan”":
+  [36m<div[39m
+    [33maria-describedby[39m=[32m"flockdoc-share-description"[39m
+    [33maria-labelledby[39m=[32m"flockdoc-share-title"[39m
+    [33maria-modal[39m=[32m"true"[39m
+    [33mclass[39m=[32m"share-dialog"[39m
+    [33mrole[39m=[32m"dialog"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"share-dialog-head"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Share “Launch plan”":
+  [36m<h2[39m
+    [33mid[39m=[32m"flockdoc-share-title"[39m
+  [36m/>[39m
+
+  Name "People and invitations":
+  [36m<h3 />[39m
+
+  Name "General access":
+  [36m<h3 />[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mid[39m=[32m"flockdoc-share-description"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"share-access-note"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Close sharing dialog":
+  [36m<button[39m
+    [33maria-label[39m=[32m"Close sharing dialog"[39m
+    [33mclass[39m=[32m"share-icon-button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Send invite":
+  [36m<button[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  Name "Manage access for alex@example.com":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Manage access for alex@example.com"[39m
+    [33mclass[39m=[32m"share-role-button"[39m
+  [36m/>[39m
+
+  Name "Cancel invitation for pending@example.com":
+  [36m<button[39m
+    [33maria-label[39m=[32m"Cancel invitation for pending@example.com"[39m
+    [33mclass[39m=[32m"share-icon-button"[39m
+  [36m/>[39m
+
+  Name "Copy link":
+  [36m<button[39m
+    [33mclass[39m=[32m"secondary share-copy"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Done":
+  [36m<button[39m
+    [33mdata-done[39m=[32m"true"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Invite by email":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Invite by email"[39m
+    [33mplaceholder[39m=[32m"Invite by email"[39m
+    [33mrequired[39m=[32m""[39m
+    [33mtype[39m=[32m"email"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  combobox:
+
+  Name "Invite role":
+  [36m<select[39m
+    [33maria-label[39m=[32m"Invite role"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  option:
+
+  Name "Can manage":
+  [36m<option[39m
+    [33mvalue[39m=[32m"manager"[39m
+  [36m/>[39m
+
+  Name "Can comment":
+  [36m<option[39m
+    [33mvalue[39m=[32m"commenter"[39m
+  [36m/>[39m
+
+  Name "Can view":
+  [36m<option[39m
+    [33mvalue[39m=[32m"viewer"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  [36m<ul[39m
+    [33mclass[39m=[32m"share-people"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "owner@example.com":
+  [36m<li[39m
+    [33maria-label[39m=[32m"owner@example.com"[39m
+    [33mclass[39m=[32m"share-person"[39m
+  [36m/>[39m
+
+  Name "alex@example.com":
+  [36m<li[39m
+    [33maria-label[39m=[32m"alex@example.com"[39m
+    [33mclass[39m=[32m"share-person"[39m
+  [36m/>[39m
+
+  Name "pending@example.com":
+  [36m<li[39m
+    [33maria-label[39m=[32m"pending@example.com"[39m
+    [33mclass[39m=[32m"share-person"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong />[39m
+
+  Name "":
+  [36m<strong />[39m
+
+  Name "":
+  [36m<strong />[39m
+
+  Name "":
+  [36m<strong />[39m
+
+  Name "":
+  [36m<strong />[39m
+
+  Name "":
+  [36m<strong />[39m
+
+  --------------------------------------------------
+  radio:
+
+  Name "Restricted":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Restricted"[39m
+    [33mchecked[39m=[32m""[39m
+    [33mname[39m=[32m"flockdoc-visibility"[39m
+    [33mtype[39m=[32m"radio"[39m
+  [36m/>[39m
+
+  Name "Public":
+  [36m<input[39m
+    [33maria-label[39m=[32m"Public"[39m
+    [33mname[39m=[32m"flockdoc-visibility"[39m
+    [33mtype[39m=[32m"radio"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  contentinfo:
+
+  Name "":
+  [36m<footer[39m
+    [33mclass[39m=[32m"share-dialog-footer"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m"overflow: hidden;"[39m
+[36m>[39m
+  [36m<div />[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"share-backdrop"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33maria-describedby[39m=[32m"flockdoc-share-description"[39m
+      [33maria-labelledby[39m=[32m"flockdoc-share-title"[39m
+      [33maria-modal[39m=[32m"true"[39m
+      [33mclass[39m=[32m"share-dialog"[39m
+      [33mrole[39m=[32m"dialog"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"share-dialog-main"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"share-dialog-head"[39m
+        [36m>[39m
+          [36m<div>[39m
+            [36m<h2[39m
+              [33mid[39m=[32m"flockdoc-share-title"[39m
+            [36m>[39m
+              [0mShare “[0m
+              [0mLaunch plan[0m
+              [0m”[0m
+            [36m</h2>[39m
+            [36m<p[39m
+              [33mid[39m=[32m"flockdoc-share-description"[39m
+            [36m>[39m
+              [0mInvite people and choose how this document can be opened.[0m
+            [36m</p>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33maria-label[39m=[32m"Close sharing dialog"[39m
+            [33mclass[39m=[32m"share-icon-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-x"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M18 6 6 18"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m6 6 12 12"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</button>[39m
+        [36m</header>[39m
+        [36m<form[39m
+          [33mclass[39m=[32m"share-invite"[39m
+        [36m>[39m
+          [36m<input[39m
+            [33maria-label[39m=[32m"Invite by email"[39m
+            [33mplaceholder[39m=[32m"Invite by email"[39m
+            [33mrequired[39m=[32m""[39m
+            [33mtype[39m=[32m"email"[39m
+            [33mvalue[39m=[32m""[39m
+          [36m/>[39m
+          [36m<select[39m
+            [33maria-label[39m=[32m"Invite role"[39m
+          [36m>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"manager"[39m
+            [36m>[39m
+              [0mCan manage[0m
+            [36m</option>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"commenter"[39m
+            [36m>[39m
+              [0mCan comment[0m
+            [36m</option>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"viewer"[39m
+            [36m>[39m
+              [0mCan view[0m
+            [36m</option>[39m
+          [36m</select>[39m
+          [36m<button[39m
+            [33mtype[39m=[32m"submit"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-user-plus"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"9"[39m
+                [33mcy[39m=[32m"7"[39m
+                [33mr[39m=[32m"4"[39m
+              [36m/>[39m
+              [36m<line[39m
+                [33mx1[39m=[32m"19"[39m
+                [33mx2[39m=[32m"19"[39m
+                [33my1[39m=[32m"8"[39m
+                [33my2[39m=[32m"14"[39m
+              [36m/>[39m
+              [36m<line[39m
+                [33mx1[39m=[32m"22"[39m
+                [33mx2[39m=[32m"16"[39m
+                [33my1[39m=[32m"11"[39m
+                [33my2[39m=[32m"11"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mSend invite[0m
+          [36m</button>[39m
+        [36m</form>[39m
+        [36m<section[39m
+          [33mclass[39m=[32m"share-section"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"share-section-title"[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0mPeople and invitations[0m
+            [36m</h3>[39m
+            [36m<span>[39m
+              [0m2[0m
+              [0m with access · [0m
+              [0m1[0m
+              [0m pending[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<ul[39m
+            [33mclass[39m=[32m"share-people"[39m
+          [36m>[39m
+            [36m<li[39m
+              [33maria-label[39m=[32m"owner@example.com"[39m
+              [33mclass[39m=[32m"share-person"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-avatar owner"[39m
+              [36m>[39m
+                [0mOW[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-identity"[39m
+              [36m>[39m
+                [36m<strong>[39m
+                  [0mOwner[0m
+                  [0m (you)[0m
+                [36m</strong>[39m
+                [36m<span>[39m
+                  [0mowner@example.com[0m
+                [36m</span>[39m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-fixed-role"[39m
+              [36m>[39m
+                [0mOwner[0m
+              [36m</span>[39m
+            [36m</li>[39m
+            [36m<li[39m
+              [33maria-label[39m=[32m"alex@example.com"[39m
+              [33mclass[39m=[32m"share-person"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-avatar"[39m
+              [36m>[39m
+                [0mAL[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-identity"[39m
+              [36m>[39m
+                [36m<strong>[39m
+                  [0mAlex[0m
+                [36m</strong>[39m
+                [36m<span>[39m
+                  [0malex@example.com[0m
+                [36m</span>[39m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-role-control"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33maria-expanded[39m=[32m"false"[39m
+                  [33maria-label[39m=[32m"Manage access for alex@example.com"[39m
+                  [33mclass[39m=[32m"share-role-button"[39m
+                [36m>[39m
+                  [0mCan manage[0m
+                  [0m [0m
+                  [36m<svg[39m
+                    [33mclass[39m=[32m"lucide lucide-chevron-down"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"24"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"24"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</button>[39m
+              [36m</span>[39m
+            [36m</li>[39m
+            [36m<li[39m
+              [33maria-label[39m=[32m"pending@example.com"[39m
+              [33mclass[39m=[32m"share-person"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-avatar pending"[39m
+              [36m>[39m
+                [0mPE[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-identity"[39m
+              [36m>[39m
+                [36m<strong>[39m
+                  [0mpending@example.com[0m
+                [36m</strong>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"tag pending"[39m
+                [36m>[39m
+                  [0mInvitation pending[0m
+                [36m</span>[39m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-pending-control"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"share-fixed-role"[39m
+                [36m>[39m
+                  [0mCan comment[0m
+                [36m</span>[39m
+                [36m<button[39m
+                  [33maria-label[39m=[32m"Cancel invitation for pending@example.com"[39m
+                  [33mclass[39m=[32m"share-icon-button"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33mclass[39m=[32m"lucide lucide-x"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"24"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"24"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M18 6 6 18"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"m6 6 12 12"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</button>[39m
+              [36m</span>[39m
+            [36m</li>[39m
+          [36m</ul>[39m
+        [36m</section>[39m
+        [36m<section[39m
+          [33mclass[39m=[32m"share-section"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"share-section-title"[39m
+          [36m>[39m
+            [36m<h3>[39m
+              [0mGeneral access[0m
+            [36m</h3>[39m
+            [36m<span>[39m
+              [0mPublic access is view only[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"share-access-options"[39m
+          [36m>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"share-access-option selected"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-label[39m=[32m"Restricted"[39m
+                [33mchecked[39m=[32m""[39m
+                [33mname[39m=[32m"flockdoc-visibility"[39m
+                [33mtype[39m=[32m"radio"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-access-icon"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33mclass[39m=[32m"lucide lucide-lock-keyhole"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"24"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"24"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<circle[39m
+                    [33mcx[39m=[32m"12"[39m
+                    [33mcy[39m=[32m"16"[39m
+                    [33mr[39m=[32m"1"[39m
+                  [36m/>[39m
+                  [36m<rect[39m
+                    [33mheight[39m=[32m"12"[39m
+                    [33mrx[39m=[32m"2"[39m
+                    [33mwidth[39m=[32m"18"[39m
+                    [33mx[39m=[32m"3"[39m
+                    [33my[39m=[32m"10"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M7 10V7a5 5 0 0 1 10 0v3"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-access-copy"[39m
+              [36m>[39m
+                [36m<strong>[39m
+                  [0mRestricted[0m
+                [36m</strong>[39m
+                [36m<span>[39m
+                  [0mOnly people listed above can open this document.[0m
+                [36m</span>[39m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-radio-mark"[39m
+              [36m/>[39m
+            [36m</label>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"share-access-option"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-label[39m=[32m"Public"[39m
+                [33mname[39m=[32m"flockdoc-visibility"[39m
+                [33mtype[39m=[32m"radio"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-access-icon"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33mclass[39m=[32m"lucide lucide-earth"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"24"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"24"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M21.54 15H17a2 2 0 0 0-2 2v4.54"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"[39m
+                  [36m/>[39m
+                  [36m<circle[39m
+                    [33mcx[39m=[32m"12"[39m
+                    [33mcy[39m=[32m"12"[39m
+                    [33mr[39m=[32m"10"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-access-copy"[39m
+              [36m>[39m
+                [36m<strong>[39m
+                  [0mPublic[0m
+                [36m</strong>[39m
+                [36m<span>[39m
+                  [0mAnyone with the link can open and add it as Can view.[0m
+                [36m</span>[39m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"share-radio-mark"[39m
+              [36m/>[39m
+            [36m</label>[39m
+          [36m</div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"share-access-note"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-check"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M20 6 9 17l-5-5"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<span>[39m
+              [36m<strong>[39m
+                [0mRestricted.[0m
+              [36m</strong>[39m
+              [0m [0m
+              [0mOnly listed people keep access.[0m
+            [36m</span>[39m
+          [36m</p>[39m
+        [36m</section>[39m
+      [36m</div>[39m
+      [36m<footer[39m
+        [33mclass[39m=[32m"share-dialog-footer"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"secondary share-copy"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-copy"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"14"[39m
+              [33mrx[39m=[32m"2"[39m
+              [33mry[39m=[32m"2"[39m
+              [33mwidth[39m=[32m"14"[39m
+              [33mx[39m=[32m"8"[39m
+              [33my[39m=[32m"8"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mCopy link[0m
+          [36m</span>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mdata-done[39m=[32m"true"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mDone[0m
+        [36m</button>[39m
+      [36m</footer>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:109:15
+ ❯ src/__tests__/document-sharing.test.tsx:25:19
+     23|     expect(await screen.findByRole('dialog', { name: 'Share “Launch pl…
+     24|     expect(screen.getAllByRole('option', { name: 'Can manage' }).lengt…
+     25|     expect(screen.getAllByRole('option', { name: 'Can edit' }).length)…
+       |                   ^
+     26|     expect(screen.getAllByRole('option', { name: 'Can comment' }).leng…
+     27|     expect(screen.getAllByRole('option', { name: 'Can view' }).length)…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 7 passed (8)
+   Start at  13:20:42
+   Duration  801ms (transform 92ms, setup 214ms, import 111ms, tests 151ms, environment 787ms)
+

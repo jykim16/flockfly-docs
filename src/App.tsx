@@ -8,6 +8,7 @@ import { SpreadsheetEditor } from './features/editor/SpreadsheetEditor';
 import { FlockdocTable } from './features/workspace/FlockdocTable';
 import { FolderBreadcrumb } from './features/workspace/FolderBreadcrumb';
 import { consumeAuthTokenFromHash, FlockdocApi, getToken, googleSignInUrl, supportsPlatformSession } from './lib/api';
+import { flockdocRoleLabel } from './lib/flockdoc-roles';
 import { registerFlockdocWebMCP } from './lib/webmcp';
 import { currentFlockdocPath, migrateLegacyFlockdocPath, navigateFlockdoc } from './lib/navigation';
 import { loadWorkspace, saveWorkspace } from './lib/workspace-storage';
@@ -16,7 +17,6 @@ import type { Flockdoc, FlockdocInvitation, FlockdocType, WorkspaceFilter } from
 import './styles.css';
 
 function routeFor(item: Flockdoc) { return `/flockdoc/${item.type}/${item.id}`; }
-
 export default function App() {
   const [token] = useState(() => {
     const isAuthCallback = location.hash.startsWith('#/auth') || location.pathname === '/flockdoc/auth';
@@ -161,7 +161,7 @@ export default function App() {
         {syncStatus === 'browser' ? <aside className="sync-banner"><div><strong>Keep your flockdocs on every device</strong><span>Sign in once on Flockfly to store Paper and Spreadsheet revisions securely.</span></div><a href={googleSignInUrl()}>Sign in to sync</a></aside> : null}
         {syncStatus === 'loading' ? <p className="sync-note">Loading your cloud workspace…</p> : null}
         {syncStatus === 'error' ? <p className="sync-note error">Cloud sync is unavailable. Your browser copy has not been removed.</p> : null}
-        {cloudApi && invitations.length ? <aside className="flockdoc-invitations"><strong>Document invitations</strong>{invitations.map(invitation => <div key={invitation.id}><span><b>{invitation.flockdocName}</b> · {invitation.role === 'manager' ? 'Can manage' : invitation.role === 'commenter' ? 'Can comment' : 'Can view'}</span><button onClick={() => void cloudApi.respondToInvitation(invitation.id, 'decline').then(() => setInvitations(current => current.filter(item => item.id !== invitation.id)))}>Decline</button><button className="primary" onClick={() => void cloudApi.respondToInvitation(invitation.id, 'accept').then(() => Promise.all([cloudApi.list(), cloudApi.listInvitations()])).then(([listed, pending]) => { setItems(listed.flockdocs); setInvitations(pending.invitations); })}>Accept</button></div>)}</aside> : null}
+        {cloudApi && invitations.length ? <aside className="flockdoc-invitations"><strong>Document invitations</strong>{invitations.map(invitation => <div key={invitation.id}><span><b>{invitation.flockdocName}</b> · {flockdocRoleLabel(invitation.role)}</span><button onClick={() => void cloudApi.respondToInvitation(invitation.id, 'decline').then(() => setInvitations(current => current.filter(item => item.id !== invitation.id)))}>Decline</button><button className="primary" onClick={() => void cloudApi.respondToInvitation(invitation.id, 'accept').then(() => Promise.all([cloudApi.list(), cloudApi.listInvitations()])).then(([listed, pending]) => { setItems(listed.flockdocs); setInvitations(pending.invitations); })}>Accept</button></div>)}</aside> : null}
         <div className="title-row"><h1>My workspace</h1></div>
         <FolderBreadcrumb prefix={currentPrefix} onNavigate={setCurrentPrefix} />
         <div className="filters">{([['all', 'All'], ['paper', 'Papers'], ['spreadsheet', 'Spreadsheets']] as const).map(([value, label]) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div>

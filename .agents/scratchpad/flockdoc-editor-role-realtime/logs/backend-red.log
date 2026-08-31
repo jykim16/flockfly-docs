@@ -1,0 +1,89 @@
+
+ RUN  v3.2.7 /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+
+ ❯ test/flockdocs.test.ts (7 tests | 2 failed) 2988ms
+   ✓ flockdocs > creates, lists, renames, trashes, and restores a flockdoc  779ms
+   × flockdocs > distinguishes editor capabilities from manager sharing access 501ms
+     → expected 400 to be 204 // Object.is equality
+   × flockdocs > uses Router-shaped invitations, members, role changes, and removal 382ms
+     → expected 400 to be 201 // Object.is equality
+   ✓ flockdocs > matches Router general access with restricted and public membership  335ms
+   ✓ flockdocs > rejects invalid flockdoc types and unauthenticated access  315ms
+   ✓ flockdocs > creates, resolves, lists, and revokes permission-backed share links  352ms
+   ✓ flockdocs > lets a signed-in recipient claim an invite link without downgrading stronger access  322ms
+ ❯ test/flockdoc-collaboration-foundation.test.ts (8 tests | 1 failed) 3234ms
+   ✓ flockdoc collaboration foundation > persists snapshot state idempotently and rejects stale revisions  759ms
+   × flockdoc collaboration foundation > allows editors and managers to save state while viewers remain read-only 453ms
+     → expected 400 to be 204 // Object.is equality
+   ✓ flockdoc collaboration foundation > rejects malformed snapshot state requests  373ms
+   ✓ flockdoc collaboration foundation > journals updates idempotently and creates version checkpoints  358ms
+   ✓ flockdoc collaboration foundation > creates threaded comments for commenters and resolves a thread  347ms
+   ✓ flockdoc collaboration foundation > creates virtual folders from normalized flockdoc prefixes and moves files between them  338ms
+   ✓ flockdoc collaboration foundation > rejects malformed and traversal flockdoc prefixes  326ms
+   ✓ flockdoc collaboration foundation > does not retain the retired folder entity schema 279ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/flockdoc-collaboration-foundation.test.ts > flockdoc collaboration foundation > allows editors and managers to save state while viewers remain read-only
+AssertionError: expected 400 to be 204 // Object.is equality
+
+- Expected
++ Received
+
+- 204
++ 400
+
+ ❯ test/flockdoc-collaboration-foundation.test.ts:59:20
+     57|         method: "POST",
+     58|         body: JSON.stringify({ principalType: "user", principalId, rol…
+     59|       }))).status).toBe(204);
+       |                    ^
+     60|     }
+     61| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  test/flockdocs.test.ts > flockdocs > distinguishes editor capabilities from manager sharing access
+AssertionError: expected 400 to be 204 // Object.is equality
+
+- Expected
++ Received
+
+- 204
++ 400
+
+ ❯ test/flockdocs.test.ts:68:18
+     66|       method: "POST",
+     67|       body: JSON.stringify({ principalType: "user", principalId: edito…
+     68|     }))).status).toBe(204);
+       |                  ^
+     69|     expect((await app.request(`/v1/flockdocs/${id}/access`, authed(own…
+     70|       method: "POST",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  test/flockdocs.test.ts > flockdocs > uses Router-shaped invitations, members, role changes, and removal
+AssertionError: expected 400 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 400
+
+ ❯ test/flockdocs.test.ts:135:28
+    133|       body: JSON.stringify({ email: "Teammate@Example.com", role: "edi…
+    134|     }));
+    135|     expect(invited.status).toBe(201);
+       |                            ^
+    136|     const invitation = (await json(invited)).invitation;
+    137|     expect(invitation).toMatchObject({ flockdocId: id, email: "teammat…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  3 failed | 12 passed (15)
+   Start at  13:20:42
+   Duration  3.82s (transform 214ms, setup 0ms, collect 689ms, tests 6.22s, environment 0ms, prepare 91ms)
+
