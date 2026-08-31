@@ -36,4 +36,4 @@ Backend schema and shared contract → Flockdoc service mapping → HTTP create/
 
 ## Compatibility decision
 
-The first rolling deployment keeps the old folder table and `parent_folder_id` column as inert compatibility storage so already-running ECS tasks cannot fail mid-rollout. New code and wire contracts stop using the folder entity immediately. A later cleanup migration can physically drop the legacy schema after every deployed task is prefix-aware.
+Deployment used two stages: first migrate folder ancestry while retaining the legacy schema for draining tasks, then deploy a prefix-only cleanup that drops the folder table, `parent_folder_id`, and obsolete folder access grants. This preserves rolling-release safety while leaving no active folder entity.

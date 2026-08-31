@@ -21,6 +21,6 @@
 - [x] Replace frontend folder state with derived prefixes.
 - [x] Update move UI and WebMCP schemas/actions.
 - [x] Remove explicit folder components, routes, and services from active code.
-- [ ] Run full tests, type-check, build, and rendered QA.
-- [ ] Commit both repositories without pushing.
-- [ ] Deploy API first, then Flockdoc, and verify production.
+- [x] Run full tests, type-check, build, and rendered QA.
+- [x] Commit both repositories without pushing.
+- [x] Deploy API first, then Flockdoc, and verify production.
