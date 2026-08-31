@@ -1,0 +1,405 @@
+
+> @flockfly/context-api@0.1.0 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+
+stdout | test/load-pagination.test.ts > large skill collection pagination > returns deterministic bounded pages with additive metadata
+{"event":"collection_skills_list","requestId":"req_XVD_H61gqrRw","durationMs":1,"pageSize":2,"hasMore":true}
+
+stdout | test/load-pagination.test.ts > large skill collection pagination > returns deterministic bounded pages with additive metadata
+{"event":"collection_skills_list","requestId":"req_5_Qm_eRpMjCs","durationMs":3,"pageSize":2,"hasMore":true}
+
+stdout | test/load-pagination.test.ts > large skill collection pagination > returns deterministic bounded pages with additive metadata
+{"event":"collection_skills_list","requestId":"req_WVdw99eWqzWP","durationMs":1,"pageSize":1,"hasMore":false}
+
+stdout | test/retrieverLocal.test.ts > LocalEmbeddingRetriever > rescues a sparse-router lexical match outside the bounded ANN candidate set
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":23,"fallbackMs":2,"rankMs":0,"annRows":0,"fallbackCandidates":1,"resultCount":1}
+
+stdout | test/retrieverLocal.test.ts > LocalEmbeddingRetriever > lets a strong visible name match displace a full ANN result page
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":0,"fallbackMs":0,"rankMs":1,"annRows":20,"fallbackCandidates":1,"resultCount":20}
+
+stdout | test/search.test.ts > POST /v1/search > searches only skills attached to a router the caller belongs to
+{"event":"skill_search","requestId":"req_Qd4BVAnfTqsx","durationMs":14,"resultCount":2}
+
+stdout | test/load-pagination.test.ts > large skill collection pagination > rejects a cursor whose boundary row changed
+{"event":"collection_skills_list","requestId":"req_soP9pAG0FTZQ","durationMs":1,"pageSize":2,"hasMore":true}
+
+stdout | test/search.test.ts > POST /v1/search > returns results with ranks, owner labels, and usage counts
+{"event":"skill_search","requestId":"req_iGaWJHj6vMgS","durationMs":29,"resultCount":1}
+
+stdout | test/retrieverLocal.test.ts > LocalEmbeddingRetriever > selects at most 20 active indexed candidates inside an ACL scope
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":6,"fallbackMs":3,"rankMs":0,"annRows":20,"fallbackCandidates":10,"resultCount":20}
+
+stdout | test/load-pagination.test.ts > large skill collection pagination > defaults to 50, caps at 100, and rejects malformed cursors
+{"event":"collection_skills_list","requestId":"req_tpG0PVplCXAJ","durationMs":1,"pageSize":50,"hasMore":true}
+
+stdout | test/load-pagination.test.ts > large skill collection pagination > defaults to 50, caps at 100, and rejects malformed cursors
+{"event":"collection_skills_list","requestId":"req_sQkdBN1ZPu-b","durationMs":2,"pageSize":100,"hasMore":true}
+
+stdout | test/search.test.ts > POST /v1/search > ranks exact name matches above name tokens above description tokens
+{"event":"skill_search","requestId":"req_SUHXsWuKEprV","durationMs":18,"resultCount":3}
+
+stderr | test/retrieverSkillRouter.test.ts > SkillRouterRetriever > falls back to lexical scoring when the model call fails
+[SkillRouterRetriever] retrieve failed, falling back to lexical scoring: endpoint unavailable
+
+stdout | test/search.test.ts > POST /v1/search > is deterministic across repeated searches
+{"event":"skill_search","requestId":"req_lozhI-zJ_oVL","durationMs":12,"resultCount":3}
+
+stdout | test/search.test.ts > POST /v1/search > is deterministic across repeated searches
+{"event":"skill_search","requestId":"req_-60GUgBv0p8P","durationMs":5,"resultCount":3}
+
+stdout | test/load-pagination.test.ts > large skill collection pagination > paginates attached router skills with the same cursor contract
+{"event":"router_skills_list","requestId":"req_ddiEG1Wwc4__","durationMs":3,"pageSize":2,"hasMore":true}
+
+stdout | test/load-pagination.test.ts > large skill collection pagination > paginates attached router skills with the same cursor contract
+{"event":"router_skills_list","requestId":"req_NWCC90M8WFEJ","durationMs":3,"pageSize":2,"hasMore":false}
+
+ ✓ test/load-pagination.test.ts (4 tests) 5640ms
+   ✓ large skill collection pagination > returns deterministic bounded pages with additive metadata  2311ms
+   ✓ large skill collection pagination > rejects a cursor whose boundary row changed  1162ms
+   ✓ large skill collection pagination > defaults to 50, caps at 100, and rejects malformed cursors  1147ms
+   ✓ large skill collection pagination > paginates attached router skills with the same cursor contract  1020ms
+ ✓ test/feedback.test.ts (4 tests) 5861ms
+   ✓ skill feedback > records thumbs up and reports counts  2276ms
+   ✓ skill feedback > switches and toggles a user's vote  1159ms
+   ✓ skill feedback > keeps one vote per user and aggregates across users  994ms
+   ✓ skill feedback > rejects invalid values and unauthenticated calls  1431ms
+stdout | test/attachments.test.ts > router skill attachments > lists router skills with active frontmatter for members
+{"event":"router_skills_list","requestId":"req_P4yegm7c6w1_","durationMs":1,"pageSize":1,"hasMore":false}
+
+ ✓ test/retrieverSkillRouter.test.ts (6 tests) 6166ms
+   ✓ SkillRouterRetriever > indexes a document with an embedding and can retrieve it back by id  2225ms
+   ✓ SkillRouterRetriever > reranks retrieval candidates and returns them in score order  918ms
+   ✓ SkillRouterRetriever > only reranks candidates within the caller's ACL'd set, even if others are indexed  887ms
+   ✓ SkillRouterRetriever > falls back to lexical scoring when the model call fails  679ms
+   ✓ SkillRouterRetriever > removes a skill's indexed document  784ms
+   ✓ pgvector ANN query > orders skill_documents by cosine distance to the query vector  669ms
+stdout | test/search.test.ts > POST /v1/search > excludes skills the caller's routers never attached
+{"event":"skill_search","requestId":"req_PtstlhBZz0ih","durationMs":12,"resultCount":0}
+
+stdout | test/attachments.test.ts > router skill attachments > attaches at publish time when routerId is provided
+{"event":"router_skills_list","requestId":"req_DwkdAAyWJDeJ","durationMs":1,"pageSize":1,"hasMore":false}
+
+stdout | test/search.test.ts > POST /v1/search > records search and impression telemetry
+{"event":"skill_search","requestId":"req_1ftTbuMUFwSv","durationMs":25,"resultCount":2}
+
+ ✓ test/sessionsNative.test.ts (7 tests) 7214ms
+   ✓ collection session storage — native push/reconcile > normalizes a raw Claude entry and pushes it via the fake normalizer  2308ms
+   ✓ collection session storage — native push/reconcile > propagates subpath into the normalized entry's source for subagent transcripts  1080ms
+   ✓ collection session storage — native push/reconcile > rejects an unsupported harness before ever touching storage  872ms
+   ✓ collection session storage — native push/reconcile > normalizes a raw Codex entry and pushes it via the fake normalizer  706ms
+   ✓ collection session storage — native push/reconcile > propagates subpath into the normalized Codex entry's source  747ms
+   ✓ collection session storage — native push/reconcile > requires the session to already exist, same as the unified push  680ms
+   ✓ collection session storage — native push/reconcile > reconciles by id and is a true no-op the second time  817ms
+ ✓ test/auth.test.ts (7 tests) 7297ms
+   ✓ auth and identity > rejects unauthenticated /v1/me  2331ms
+   ✓ auth and identity > rejects an invalid token  1119ms
+   ✓ auth and identity > returns user, org, and default router from /v1/me  892ms
+   ✓ auth and identity > authenticates from the web cookie and revokes it on logout  761ms
+   ✓ auth and identity > keeps exactly one default router across repeated logins  726ms
+   ✓ auth and identity > completes the CLI start/approve/poll flow  636ms
+   ✓ auth and identity > hands the CLI token out exactly once  831ms
+stdout | test/attachments.test.ts > router skill attachments > detaches a skill from a member router
+{"event":"router_skills_list","requestId":"req_HmWLC_fkCGS6","durationMs":1,"pageSize":0,"hasMore":false}
+
+ ✓ test/attachments.test.ts (7 tests) 7463ms
+   ✓ router skill attachments > attaches a visible skill to a member router  2370ms
+   ✓ router skill attachments > is idempotent on repeated attach  1133ms
+   ✓ router skill attachments > rejects attaching to a router the user does not have create access on  1014ms
+   ✓ router skill attachments > returns structured errors for unknown routers and skills  698ms
+   ✓ router skill attachments > lists router skills with active frontmatter for members  748ms
+   ✓ router skill attachments > attaches at publish time when routerId is provided  617ms
+   ✓ router skill attachments > detaches a skill from a member router  881ms
+ ✓ test/app.test.ts (5 tests) 25ms
+ ✓ test/ports.test.ts (13 tests) 15ms
+stderr | test/retrieverLocal.test.ts > LocalEmbeddingRetriever > keeps filtered vector order when local reranking fails or is malformed
+[LocalEmbeddingRetriever] rerank failed, keeping vector order: local reranker unavailable
+
+stderr | test/retrieverLocal.test.ts > LocalEmbeddingRetriever > keeps filtered vector order when local reranking fails or is malformed
+[LocalEmbeddingRetriever] rerank failed, keeping vector order: Local reranker returned 1 scores for 2 documents.
+
+ ✓ test/stripe-billing.test.ts (2 tests) 7ms
+ ✓ test/searchAnnIndex.test.ts (4 tests) 5ms
+stdout | test/onboarding.test.ts > onboarding funnel > records privacy-safe milestones once and reports unique-user drop-off
+{"event":"skill_search","requestId":"req_TD2TLfbw-ZcK","durationMs":9,"resultCount":1}
+
+ ✓ test/runtime.test.ts (4 tests) 6ms
+ ✓ test/sqlConfig.test.ts (2 tests) 1ms
+stderr | test/retrieverLocal.test.ts > LocalEmbeddingRetriever > falls back lexically when local embedding fails
+[LocalEmbeddingRetriever] retrieve failed, falling back to lexical scoring: local model unavailable
+
+ ↓ test/native-onboarding.test.ts (1 test | 1 skipped)
+stdout | test/search.test.ts > POST /v1/search > excludes disabled Routers by default per user but includes an explicitly scoped disabled Router
+{"event":"skill_search","requestId":"req_383BME7I-Xyw","durationMs":3,"resultCount":0}
+
+stdout | test/search.test.ts > POST /v1/search > excludes disabled Routers by default per user but includes an explicitly scoped disabled Router
+{"event":"skill_search","requestId":"req_mBnS1cszxhbI","durationMs":6,"resultCount":1}
+
+stdout | test/search.test.ts > POST /v1/search > excludes disabled Routers by default per user but includes an explicitly scoped disabled Router
+{"event":"skill_search","requestId":"req_LrRRs4uZiILe","durationMs":6,"resultCount":1}
+
+ ✓ test/googleAuth.test.ts (9 tests) 8753ms
+   ✓ google oauth > reports auth config and disables dev login when Google is configured  2351ms
+   ✓ google oauth > keeps dev login enabled by default when Google is not configured  1113ms
+   ✓ google oauth > completes web login with a persistent HttpOnly cookie and no token in the redirect  1207ms
+   ✓ google oauth > returns OAuth tokens only to allowlisted application origins  640ms
+   ✓ google oauth > rejects replayed or unknown states  782ms
+   ✓ google oauth > rejects wrong-audience and unverified-email tokens  552ms
+   ✓ google oauth > completes the CLI login flow through Google  818ms
+   ✓ google oauth > approves a CLI session for the authenticated platform user  691ms
+   ✓ google oauth > stores bearer tokens hashed at rest  593ms
+ ✓ test/onboarding.test.ts (2 tests) 2065ms
+   ✓ onboarding funnel > records privacy-safe milestones once and reports unique-user drop-off  1371ms
+   ✓ onboarding funnel > rejects unknown client milestones  691ms
+stdout | test/indexing.test.ts > durable skill indexing > becomes searchable after the durable retry indexes the active document
+{"event":"skill_search","requestId":"req_RTY4xAUENzNn","durationMs":11,"resultCount":1}
+
+ ✓ test/indexing.test.ts (9 tests) 8946ms
+   ✓ durable skill indexing > reconciles an active document produced by an older embedding model  2274ms
+   ✓ durable skill indexing > acknowledges publish during an embedding outage and durably queues the exact committed version  1124ms
+   ✓ durable skill indexing > retries idempotently after recovery and records retry, success, and recovered metrics  936ms
+   ✓ durable skill indexing > acknowledges an update during an outage and queues only the new active version  740ms
+   ✓ durable skill indexing > reclaims an interrupted lease after restart and prevents a second coordinator from claiming it twice  660ms
+   ✓ durable skill indexing > queues updates transactionally and never lets an older claimed version complete over the active version  755ms
+   ✓ durable skill indexing > reconciles historical missing and stale documents without creating versions and emits backfill/staleness metrics  895ms
+   ✓ durable skill indexing > repairs through the collection-scoped endpoint and reports indexing status  693ms
+   ✓ durable skill indexing > becomes searchable after the durable retry indexes the active document  866ms
+ ✓ test/retrieverLocal.test.ts (12 tests) 9135ms
+   ✓ LocalEmbeddingRetriever > rescues a sparse-router lexical match outside the bounded ANN candidate set  2401ms
+   ✓ LocalEmbeddingRetriever > serializes local inference to bound transient tensor memory  1077ms
+   ✓ LocalEmbeddingRetriever > selects at most 20 active indexed candidates inside an ACL scope  1048ms
+   ✓ LocalEmbeddingRetriever > executes both model inference paths during startup warmup  665ms
+   ✓ LocalEmbeddingRetriever > indexes with a model marker and ranks ACL-filtered documents by local embeddings  662ms
+   ✓ LocalEmbeddingRetriever > uses frontmatter intent to resolve close semantic scores and omits irrelevant results  605ms
+   ✓ LocalEmbeddingRetriever > uses learned relevance to rank unseen provisioning paraphrases  724ms
+   ✓ LocalEmbeddingRetriever > keeps filtered vector order when local reranking fails or is malformed  696ms
+   ✓ LocalEmbeddingRetriever > falls back lexically when local embedding fails  627ms
+   ✓ LocalEmbeddingRetriever > keeps unindexed candidates searchable while reconciliation backfills embeddings  625ms
+ ✓ test/search.test.ts (11 tests) 9238ms
+   ✓ POST /v1/search > searches only skills attached to a router the caller belongs to  2487ms
+   ✓ POST /v1/search > returns results with ranks, owner labels, and usage counts  1124ms
+   ✓ POST /v1/search > ranks exact name matches above name tokens above description tokens  1089ms
+   ✓ POST /v1/search > is deterministic across repeated searches  874ms
+   ✓ POST /v1/search > excludes skills the caller's routers never attached  764ms
+   ✓ POST /v1/search > records search and impression telemetry  698ms
+   ✓ POST /v1/search > rejects empty queries and unauthenticated calls  798ms
+   ✓ POST /v1/search > excludes disabled Routers by default per user but includes an explicitly scoped disabled Router  845ms
+   ✓ POST /v1/search > never lets explicit Router scope bypass membership authorization  553ms
+ ✓ test/access-principals.test.ts (2 tests) 1786ms
+   ✓ principal access > keeps the existing email helpers compatible  1264ms
+   ✓ principal access > grants, lists, resolves, and revokes typed principals  521ms
+stdout | test/publish.test.ts > skill publishing > lists the public collection's skills for any authenticated user
+{"event":"collection_skills_list","requestId":"req_AwG3eE-eeeRN","durationMs":1,"pageSize":1,"hasMore":false}
+
+ ✓ test/flockdocs.test.ts (4 tests) 3307ms
+   ✓ flockdocs > creates, lists, renames, trashes, and restores a flockdoc  1355ms
+   ✓ flockdocs > uses the unified permission capabilities for viewers, editors, and managers  886ms
+   ✓ flockdocs > rejects invalid flockdoc types and unauthenticated access  619ms
+   ✓ flockdocs > creates, resolves, lists, and revokes permission-backed share links  446ms
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"plans":{"listUsesCursorIndex":true,"vectorUsesAnnIndex":true,"vectorUsesRouterAclIndex":true}}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"collection_skills_list","requestId":"req_TGn39YfBsp7u","durationMs":4,"pageSize":100,"hasMore":true}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":8,"fallbackMs":38,"rankMs":1,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req_dFbILxrknGEu","durationMs":58,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":8,"fallbackMs":34,"rankMs":1,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req_txwXRIHXWnN_","durationMs":50,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":7,"fallbackMs":36,"rankMs":0,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req_eMpalo5sajk1","durationMs":52,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":8,"fallbackMs":35,"rankMs":1,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req__qQlcGPPpsCh","durationMs":52,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":8,"fallbackMs":33,"rankMs":1,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req_Gh4ULG2mZXQa","durationMs":49,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":6,"fallbackMs":36,"rankMs":0,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req_KWZ95yO622UL","durationMs":49,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":6,"fallbackMs":34,"rankMs":0,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req_Hi1sMgIu_c_S","durationMs":48,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":7,"fallbackMs":32,"rankMs":0,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req_0X7VGNlCUigW","durationMs":47,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":9,"fallbackMs":61,"rankMs":1,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":15,"fallbackMs":92,"rankMs":1,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":22,"fallbackMs":117,"rankMs":1,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"local_retrieval","embeddingMs":0,"vectorSqlMs":29,"fallbackMs":146,"rankMs":1,"annRows":20,"fallbackCandidates":180,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req_wE-1FXaBhMH5","durationMs":198,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req_seL-PffqlEXa","durationMs":199,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req_MLxzMvtOlYUE","durationMs":199,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"event":"skill_search","requestId":"req_8pmQX0xZwOz1","durationMs":199,"resultCount":20}
+
+stdout | test/load-scale.test.ts > production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates
+{"fixture":{"visibleSkills":10000,"concurrentSearches":4},"runtime":{"platform":"darwin","arch":"arm64","node":"v26.7.0"},"results":{"listMs":9,"searchP95Ms":60,"concurrentSearchMs":204,"heapDeltaBytes":4486488,"maxQueriesPerSearch":18}}
+
+ ✓ test/load-scale.test.ts (1 test) 10231ms
+   ✓ production-shaped large library load > keeps 10k-skill list and search requests inside latency and memory gates  10231ms
+stdout | test/loading.test.ts > progressive skill loading > records load events and correlates them to a recent search
+{"event":"skill_search","requestId":"req_wZf7l3MvNQTr","durationMs":7,"resultCount":1}
+
+ ✓ test/publish.test.ts (13 tests) 10413ms
+   ✓ skill publishing > renders an unsaved package draft with request details and logs  2424ms
+   ✓ skill publishing > publishes a valid fixture package into the public collection  1036ms
+   ✓ skill publishing > rejects publishing without create access to the collection  1011ms
+   ✓ skill publishing > rejects a package without SKILL.md  704ms
+   ✓ skill publishing > rejects frontmatter missing name or description  710ms
+   ✓ skill publishing > rejects unsafe paths without storing anything  616ms
+   ✓ skill publishing > rejects duplicate paths after normalization  883ms
+   ✓ skill publishing > returns a structured conflict for duplicate names and replaces on confirm  698ms
+   ✓ skill publishing > does not replace without confirmation even with replaceSkillId  686ms
+   ✓ skill publishing > lists the public collection's skills for any authenticated user  512ms
+   ✓ skill publishing > returns skill detail with manifest, canEdit, and ownerLabel for any authenticated user  395ms
+   ✓ skill publishing > loads a package for editing and saves it as a new version  361ms
+   ✓ skill publishing > lets anyone view a public skill's package but denies editing without access  373ms
+stdout | test/loading.test.ts > progressive skill loading > does not correlate loads of skills the search never surfaced
+{"event":"skill_search","requestId":"req_JAYU2CLISRwY","durationMs":3,"resultCount":0}
+
+ ✓ test/loading.test.ts (13 tests) 10711ms
+   ✓ progressive skill loading > returns only SKILL.md content on the default load  2453ms
+   ✓ progressive skill loading > returns a referenced file when explicitly requested  1040ms
+   ✓ progressive skill loading > loads multiple files with clear boundaries via the load endpoint  1230ms
+   ✓ progressive skill loading > defaults the load endpoint to SKILL.md when no paths are given  803ms
+   ✓ progressive skill loading > renders runtime expressions for agents while preserving editable source for the UI  674ms
+   ✓ progressive skill loading > renders requested template files with runtime syntax but leaves function source raw  819ms
+   ✓ progressive skill loading > rejects loading a skill not attached to any of the caller's routers  826ms
+   ✓ progressive skill loading > hides skills not attached to any router the caller belongs to  799ms
+   ✓ progressive skill loading > rejects traversal and absolute paths with a generic error  539ms
+   ✓ progressive skill loading > returns package_file_not_found for missing paths  401ms
+   ✓ progressive skill loading > requires authentication  376ms
+   ✓ progressive skill loading > records load events and correlates them to a recent search  381ms
+   ✓ progressive skill loading > does not correlate loads of skills the search never surfaced  367ms
+ ✓ test/collections.test.ts (14 tests) 10748ms
+   ✓ skill collections (paid) > rejects creation for a Free account with a payment_required error  2398ms
+   ✓ skill collections (paid) > allows creation once the org is trialing, granting the creator full access  1061ms
+   ✓ skill collections (paid) > allows creation once the org is active, granting the creator full access  949ms
+   ✓ skill collections (paid) > rejects blank names without granting a bypass to entitled orgs  733ms
+   ✓ skill collections (paid) > makes a private collection unfetchable — even to its owner — the moment its org's subscription lapses  775ms
+   ✓ skill collections (paid) > keeps a private collection unreadable to outsiders until they accept an invitation  669ms
+   ✓ skill collections (paid) > makes a public-visibility collection link-readable without listing it for non-members  889ms
+   ✓ skill collections (paid) > invites explicit manager and viewer roles idempotently, then lets only the owner change roles  786ms
+   ✓ skill collections (paid) > lets the owner remove a member but never the owner themselves  604ms
+   ✓ skill collections (paid) > declines an invitation only for the addressed recipient without granting access  452ms
+   ✓ skill collections (paid) > blocks deleting a collection that still has skills, then allows it once empty  388ms
+   ✓ skill collections (paid) > keeps the public collection stable: no one can delete or change its visibility through membership routes  347ms
+   ✓ skill collections (paid) > lists the public collection for every authenticated user alongside their own memberships  354ms
+   ✓ skill collections (paid) > requires authentication for collection and collection-invitation endpoints  339ms
+ ✓ test/flockdoc-collaboration-foundation.test.ts (8 tests) 4640ms
+   ✓ flockdoc collaboration foundation > persists snapshot state idempotently and rejects stale revisions  1359ms
+   ✓ flockdoc collaboration foundation > allows viewers to read state but only editors to save it  836ms
+   ✓ flockdoc collaboration foundation > rejects malformed snapshot state requests  555ms
+   ✓ flockdoc collaboration foundation > journals updates idempotently and creates version checkpoints  423ms
+   ✓ flockdoc collaboration foundation > creates threaded comments for commenters and resolves a thread  383ms
+   ✓ flockdoc collaboration foundation > creates virtual folders from normalized flockdoc prefixes and moves files between them  372ms
+   ✓ flockdoc collaboration foundation > rejects malformed and traversal flockdoc prefixes  352ms
+   ✓ flockdoc collaboration foundation > migrates legacy nested folder ancestry into flockdoc prefixes  358ms
+ ✓ test/sessions.test.ts (15 tests) 11252ms
+   ✓ collection session storage > publishes into the caller's personal collection automatically, and pushes never overwrite prior entries  2340ms
+   ✓ collection session storage > is idempotent: creating a session that already exists returns its existing metadata unchanged  1114ms
+   ✓ collection session storage > requires a session to be created before push or reconcile can be called, and rejects empty pushes  1008ms
+   ✓ collection session storage > reconcile adds only entries whose id wasn't already pushed, and is a true no-op when repeated  664ms
+   ✓ collection session storage > paginates entries across multiple pushes with a small limit  768ms
+   ✓ collection session storage > gives filesystem-like prefix listing, aggregating every session's parts into one row  604ms
+   ✓ collection session storage > lists a freshly created, never-pushed session alongside ones with logs  963ms
+   ✓ collection session storage > returns 404 for a missing session and for moving a missing key  639ms
+   ✓ collection session storage > an owner/manager sees every session in a collection; a plain router member without manage access sees and can unlink only their own  825ms
+   ✓ collection session storage > a collection owner/manager can move or unlink a session someone else published there, but a total outsider cannot  495ms
+   ✓ collection session storage > deleting from a non-personal collection unlinks only that collection; deleting from the personal collection removes the session everywhere  390ms
+   ✓ collection session storage > lists session sharing targets (personal + router-owned collections) with sharing defaulting to disabled  365ms
+   ✓ collection session storage > session sharing is off by default and independent of router enablement — both must be true for a collection to receive sessions  386ms
+   ✓ collection session storage > rejects toggling session sharing for the personal collection or a collection with no router access  348ms
+   ✓ collection session storage > does not merge two different owners' sessions that happen to share the same key in a shared collection  342ms
+ ✓ test/billing.test.ts (24 tests) 11938ms
+   ✓ organization billing > creates hosted Checkout for a 14-day $20 monthly trial and always collects payment  2281ms
+   ✓ organization billing > creates a separate one-time $5 support Checkout without changing entitlement  1092ms
+   ✓ organization billing > reuses the stored Stripe customer and opens the Customer Portal  799ms
+   ✓ organization billing > requires authentication for Checkout and Customer Portal  740ms
+   ✓ organization billing > rejects Customer Portal before Stripe has created a customer  681ms
+   ✓ organization billing > rejects Checkout when the organization is already trialing or active  722ms
+   ✓ organization billing > keeps individual and router-sharing routes free when billing status is null  554ms
+   ✓ organization billing > keeps individual and router-sharing routes free when billing status is trialing  806ms
+   ✓ organization billing > keeps individual and router-sharing routes free when billing status is active  688ms
+   ✓ organization billing > keeps individual and router-sharing routes free when billing status is past_due  507ms
+   ✓ organization billing > keeps individual and router-sharing routes free when billing status is canceled  451ms
+   ✓ organization billing > keeps individual and router-sharing routes free when billing status is incomplete  371ms
+   ✓ organization billing > keeps individual and router-sharing routes free when billing status is incomplete_expired  345ms
+   ✓ organization billing > keeps individual and router-sharing routes free when billing status is unpaid  361ms
+   ✓ organization billing > keeps individual and router-sharing routes free when billing status is paused  334ms
+   ✓ organization billing > keeps health, auth identity, and billing status reachable without entitlement  319ms
+   ✓ organization billing > applies subscription events idempotently and ignores older out-of-order state  305ms
+stdout | test/routers.test.ts > routers > lets a Router owned by a private collection go public, exposing its skills through the Router alone
+{"event":"router_skills_list","requestId":"req_rG0SRtxZ34vV","durationMs":0,"pageSize":1,"hasMore":false}
+
+ ✓ test/routers.test.ts (25 tests) 14212ms
+   ✓ routers > creates a router with the creator holding full access  2271ms
+   ✓ routers > rejects empty router names  1069ms
+   ✓ routers > lists the default router and any created routers  888ms
+   ✓ routers > keeps existing-user invitations non-authorizing until the recipient accepts  853ms
+   ✓ routers > invites explicit manager and viewer roles idempotently without account enumeration  786ms
+   ✓ routers > lets only the owner change member roles while keeping ownership fixed  686ms
+   ✓ routers > rejects unsupported invite and member roles without changing access  882ms
+   ✓ routers > keeps unknown-email invitations pending after signup until explicit acceptance  790ms
+   ✓ routers > migrates legacy pending Router grants into a non-authorizing invitation  600ms
+   ✓ routers > allows only the addressed recipient to decline an invitation without receiving access  490ms
+   ✓ routers > allows Router detail only for accepted members or authenticated users with a public link  452ms
+   ✓ routers > lets owners and managers list every member while denying viewers and non-members  447ms
+   ✓ routers > requires authentication for router endpoints  337ms
+   ✓ routers > lets the creator remove a member, but never the creator themselves  356ms
+   ✓ routers > prevents a non-creator member from removing others (only create+read access)  320ms
+   ✓ routers > lets the creator delete a router, but a non-creator cannot  303ms
+   ✓ routers > lists only blessed public Routers while ordinary public Routers remain link-accessible  303ms
+   ✓ routers > lets a Router owned by a private collection go public, exposing its skills through the Router alone  318ms
+   ✓ routers > keeps standing Router access intact after the owning collection membership is revoked — permissions stay independent  306ms
+   ✓ routers > joins and leaves a public Router idempotently without granting mutation or delete access  305ms
+
+ Test Files  27 passed | 1 skipped (28)
+      Tests  227 passed | 1 skipped (228)
+   Start at  20:38:08
+   Duration  14.78s (transform 808ms, setup 0ms, collect 7.14s, tests 167.08s, environment 3ms, prepare 1.80s)
+

@@ -1,0 +1,107 @@
+
+> @flockfly/context-api@0.1.0 test
+> vitest run --run test/flockdoc-collaboration-foundation.test.ts
+
+
+ RUN  v3.2.7 /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+
+ ❯ test/flockdoc-collaboration-foundation.test.ts (8 tests | 3 failed) 2551ms
+   ✓ flockdoc collaboration foundation > persists snapshot state idempotently and rejects stale revisions  508ms
+   ✓ flockdoc collaboration foundation > allows viewers to read state but only editors to save it  307ms
+   ✓ flockdoc collaboration foundation > rejects malformed snapshot state requests 275ms
+   ✓ flockdoc collaboration foundation > journals updates idempotently and creates version checkpoints 279ms
+   ✓ flockdoc collaboration foundation > creates threaded comments for commenters and resolves a thread  325ms
+   × flockdoc collaboration foundation > creates virtual folders from normalized flockdoc prefixes and moves files between them 269ms
+     → expected { id: 'flockdoc_MQKooOkpDw4z', …(13) } to match object { prefix: 'Planning/2027/' }
+(19 matching properties omitted from actual)
+   × flockdoc collaboration foundation > rejects malformed and traversal flockdoc prefixes 269ms
+     → expected 201 to be 400 // Object.is equality
+   × flockdoc collaboration foundation > migrates legacy nested folder ancestry into flockdoc prefixes 319ms
+     → column "prefix" does not exist
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/flockdoc-collaboration-foundation.test.ts > flockdoc collaboration foundation > creates virtual folders from normalized flockdoc prefixes and moves files between them
+AssertionError: expected { id: 'flockdoc_MQKooOkpDw4z', …(13) } to match object { prefix: 'Planning/2027/' }
+(19 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "prefix": "Planning/2027/",
++   "createdAt": "2026-08-31T03:31:01.352Z",
++   "headRevision": 0,
++   "id": "flockdoc_MQKooOkpDw4z",
++   "name": "Collaboration",
++   "orgId": "org_s_9ZTYTFi0lJ",
++   "ownerUserId": "user_wnMEVGlhfFL1",
++   "parentFolderId": null,
++   "permissions": {
++     "canComment": true,
++     "canDelete": true,
++     "canEdit": true,
++     "canRead": true,
++     "canShare": true,
++   },
++   "purgeAt": null,
++   "role": "owner",
++   "snapshotKey": null,
++   "trashedAt": null,
++   "type": "paper",
++   "updatedAt": "2026-08-31T03:31:01.352Z",
+  }
+
+ ❯ test/flockdoc-collaboration-foundation.test.ts:170:30
+    168|       body: JSON.stringify({ name: "Collaboration", type: "paper", pre…
+    169|     })));
+    170|     expect(created.flockdoc).toMatchObject({ prefix: "Planning/2027/" …
+       |                              ^
+    171|     expect(created.flockdoc).not.toHaveProperty("parentFolderId");
+    172| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  test/flockdoc-collaboration-foundation.test.ts > flockdoc collaboration foundation > rejects malformed and traversal flockdoc prefixes
+AssertionError: expected 201 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 201
+
+ ❯ test/flockdoc-collaboration-foundation.test.ts:193:37
+    191|         body: JSON.stringify({ name: "Invalid target", type: "paper", …
+    192|       }));
+    193|       expect(createResponse.status).toBe(400);
+       |                                     ^
+    194| 
+    195|       const moveResponse = await app.request(`/v1/flockdocs/${flockdoc…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  test/flockdoc-collaboration-foundation.test.ts > flockdoc collaboration foundation > migrates legacy nested folder ancestry into flockdoc prefixes
+error: column "prefix" does not exist
+ ❯ ye.Ve ../node_modules/@electric-sql/pg-protocol/src/parser.ts:432:11
+ ❯ ye.nt ../node_modules/@electric-sql/pg-protocol/src/parser.ts:210:16
+ ❯ ye.parse ../node_modules/@electric-sql/pg-protocol/src/parser.ts:102:25
+ ❯ pe.execProtocol ../node_modules/@electric-sql/pglite/src/pglite.ts:631:26
+ ❯ pe.l ../node_modules/@electric-sql/pglite/src/base.ts:130:12
+ ❯ ../node_modules/@electric-sql/pglite/src/base.ts:223:44
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 5 passed (8)
+   Start at  20:30:59
+   Duration  2.91s (transform 136ms, setup 0ms, collect 217ms, tests 2.55s, environment 0ms, prepare 29ms)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+npm error workspace @flockfly/context-api@0.1.0
+npm error location /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+npm error command failed
+npm error command sh -c vitest run --run test/flockdoc-collaboration-foundation.test.ts

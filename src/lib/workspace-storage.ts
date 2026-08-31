@@ -1,4 +1,5 @@
-import type { Flockdoc, FlockdocFolder } from '../types';
+import type { Flockdoc } from '../types';
+import { normalizePrefix } from './prefixes';
 
 export const WORKSPACE_STORAGE_KEY = 'flockfly.flockdoc.workspace.v1';
 export const FOLDER_STORAGE_KEY = 'flockfly.flockdoc.folders.v1';
@@ -8,12 +9,10 @@ interface WorkspaceRecord {
   flockdocs: Flockdoc[];
 }
 
-interface FolderRecord {
-  version: 1;
-  folders: FlockdocFolder[];
-}
+type LegacyFlockdoc = Omit<Flockdoc, 'prefix'> & { prefix?: string; parentFolderId?: string | null };
+type LegacyFolder = { id: string; name: string; parentFolderId: string | null };
 
-function isFlockdoc(value: unknown): value is Flockdoc {
+function isFlockdoc(value: unknown): value is LegacyFlockdoc {
   if (!value || typeof value !== 'object') return false;
   const item = value as Partial<Flockdoc>;
   return typeof item.id === 'string'
@@ -23,13 +22,17 @@ function isFlockdoc(value: unknown): value is Flockdoc {
     && Array.isArray(item.collaborators);
 }
 
-function isFolder(value: unknown): value is FlockdocFolder {
-  if (!value || typeof value !== 'object') return false;
-  const folder = value as Partial<FlockdocFolder>;
-  return typeof folder.id === 'string'
-    && typeof folder.name === 'string'
-    && (folder.parentFolderId === null || typeof folder.parentFolderId === 'string')
-    && typeof folder.modifiedAt === 'string';
+function legacyFolderPath(storage: Storage, folderId: string): string {
+  try {
+    const record = JSON.parse(storage.getItem(FOLDER_STORAGE_KEY) ?? '{}') as { version?: number; folders?: LegacyFolder[] };
+    if (record.version !== 1 || !Array.isArray(record.folders)) return '';
+    const folders = new Map(record.folders.map(folder => [folder.id, folder]));
+    const segments: string[] = [];
+    const seen = new Set<string>();
+    let id: string | null = folderId;
+    while (id && !seen.has(id)) { seen.add(id); const folder = folders.get(id); if (!folder) return ''; segments.unshift(folder.name); id = folder.parentFolderId; }
+    return normalizePrefix(segments.join('/'));
+  } catch { return ''; }
 }
 
 export function loadWorkspace(storage: Storage): Flockdoc[] {
@@ -38,7 +41,12 @@ export function loadWorkspace(storage: Storage): Flockdoc[] {
     if (!raw) return [];
     const record = JSON.parse(raw) as Partial<WorkspaceRecord>;
     if (record.version !== 1 || !Array.isArray(record.flockdocs) || !record.flockdocs.every(isFlockdoc)) return [];
-    return record.flockdocs;
+    return record.flockdocs.map(item => {
+      const legacy = item as LegacyFlockdoc;
+      const prefix = typeof legacy.prefix === 'string' ? normalizePrefix(legacy.prefix) : legacy.parentFolderId ? legacyFolderPath(storage, legacy.parentFolderId) : '';
+      const { parentFolderId: _retired, ...current } = legacy;
+      return { ...current, prefix } as Flockdoc;
+    });
   } catch {
     return [];
   }
@@ -47,21 +55,5 @@ export function loadWorkspace(storage: Storage): Flockdoc[] {
 export function saveWorkspace(flockdocs: Flockdoc[], storage: Storage): void {
   const record: WorkspaceRecord = { version: 1, flockdocs };
   storage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(record));
-}
-
-export function loadFolders(storage: Storage): FlockdocFolder[] {
-  try {
-    const raw = storage.getItem(FOLDER_STORAGE_KEY);
-    if (!raw) return [];
-    const record = JSON.parse(raw) as Partial<FolderRecord>;
-    if (record.version !== 1 || !Array.isArray(record.folders) || !record.folders.every(isFolder)) return [];
-    return record.folders;
-  } catch {
-    return [];
-  }
-}
-
-export function saveFolders(folders: FlockdocFolder[], storage: Storage): void {
-  const record: FolderRecord = { version: 1, folders };
-  storage.setItem(FOLDER_STORAGE_KEY, JSON.stringify(record));
+  storage.removeItem(FOLDER_STORAGE_KEY);
 }

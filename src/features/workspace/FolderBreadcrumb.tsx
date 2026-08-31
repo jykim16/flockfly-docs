@@ -1,12 +1,11 @@
 import { ChevronRight } from 'lucide-react';
-import type { FlockdocFolder } from '../../types';
-
-export function FolderBreadcrumb({ folders, onNavigate }: { folders: FlockdocFolder[]; onNavigate: (id: string | null) => void }) {
+export function FolderBreadcrumb({ prefix, onNavigate }: { prefix: string; onNavigate: (prefix: string) => void }) {
+  const segments = prefix.split('/').filter(Boolean);
   return <nav className="folder-breadcrumb" aria-label="Folder path">
-    <button type="button" onClick={() => onNavigate(null)}>My workspace</button>
-    {folders.map((folder, index) => <span className="breadcrumb-segment" key={folder.id}>
+    <button type="button" onClick={() => onNavigate('')}>My workspace</button>
+    {segments.map((segment, index) => <span className="breadcrumb-segment" key={`${segments.slice(0, index + 1).join('/')}/`}>
       <ChevronRight aria-hidden="true" />
-      {index === folders.length - 1 ? <span>{folder.name}</span> : <button type="button" onClick={() => onNavigate(folder.id)}>{folder.name}</button>}
+      {index === segments.length - 1 ? <span>{segment}</span> : <button type="button" onClick={() => onNavigate(`${segments.slice(0, index + 1).join('/')}/`)}>{segment}</button>}
     </span>)}
   </nav>;
 }

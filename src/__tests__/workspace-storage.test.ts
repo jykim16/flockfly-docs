@@ -1,21 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import type { Flockdoc, FlockdocFolder } from '../types';
-import { FOLDER_STORAGE_KEY, loadFolders, loadWorkspace, saveFolders, saveWorkspace, WORKSPACE_STORAGE_KEY } from '../lib/workspace-storage';
+import type { Flockdoc } from '../types';
+import { FOLDER_STORAGE_KEY, loadWorkspace, saveWorkspace, WORKSPACE_STORAGE_KEY } from '../lib/workspace-storage';
 
 const paper: Flockdoc = {
   id: 'paper-1',
   name: 'Persistent plan',
   type: 'paper',
+  prefix: '',
   modifiedAt: 'Just now',
   collaborators: [],
   snapshot: { id: 'paper-1', body: { dataStream: 'Hello\r\n' } },
-};
-
-const folder: FlockdocFolder = {
-  id: 'folder-1',
-  name: 'Planning',
-  parentFolderId: null,
-  modifiedAt: 'Just now',
 };
 
 describe('workspace storage', () => {
@@ -30,13 +24,18 @@ describe('workspace storage', () => {
     expect(JSON.parse(localStorage.getItem(WORKSPACE_STORAGE_KEY)!)).toMatchObject({ version: 1 });
   });
 
-  it('round-trips local folders independently of legacy flockdoc storage', () => {
-    saveWorkspace([paper], localStorage);
-    saveFolders([folder], localStorage);
+  it('migrates legacy nested folder IDs to prefixes and clears folder storage on save', () => {
+    localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify({ version: 1, flockdocs: [{ ...paper, prefix: undefined, parentFolderId: 'folder-child' }] }));
+    localStorage.setItem(FOLDER_STORAGE_KEY, JSON.stringify({ version: 1, folders: [
+      { id: 'folder-parent', name: 'Planning', parentFolderId: null, modifiedAt: 'Just now' },
+      { id: 'folder-child', name: '2027', parentFolderId: 'folder-parent', modifiedAt: 'Just now' },
+    ] }));
 
-    expect(loadFolders(localStorage)).toEqual([folder]);
-    expect(loadWorkspace(localStorage)).toEqual([paper]);
-    expect(JSON.parse(localStorage.getItem(FOLDER_STORAGE_KEY)!)).toMatchObject({ version: 1 });
+    const migrated = loadWorkspace(localStorage);
+    expect(migrated[0]).toMatchObject({ id: paper.id, prefix: 'Planning/2027/' });
+    expect(migrated[0]).not.toHaveProperty('parentFolderId');
+    saveWorkspace(migrated, localStorage);
+    expect(localStorage.getItem(FOLDER_STORAGE_KEY)).toBeNull();
   });
 
   it.each([

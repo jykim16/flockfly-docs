@@ -47,7 +47,7 @@ button { color: inherit; }
 .file-row.expanded { grid-template-columns: 1fr; min-height: 76px; }
 .file-row-detail { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .file-row-detail strong { margin-right: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.file-row-detail select { min-width: 190px; height: 34px; padding: 0 9px; border: 1px solid var(--line); border-radius: 8px; color: var(--navy); background: #fff; }
+.file-row-detail input { min-width: 230px; height: 34px; padding: 0 9px; border: 1px solid var(--line); border-radius: 8px; color: var(--navy); background: #fff; }
 .file-row-detail button.primary, .folder-dialog button.primary { color: #fff; border-color: var(--navy); background: var(--navy); }
 .file-row-detail button.danger { color: #fff; border-color: #b94a4f; background: #b94a4f; }
 .delete-note { color: var(--slate); font-size: 12px; }
@@ -168,15 +168,8 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
 .empty-state span { font-size: .82rem; }
 .type-icon.paper { color: var(--ocean); }
 .type-icon.spreadsheet { color: #238c70; }
-.dialog-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(16,32,51,.34); backdrop-filter: blur(3px); }
-.folder-dialog { width: min(420px, 100%); padding: 24px; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: 0 24px 70px rgba(16,32,51,.24); }
-.folder-dialog h2 { margin: 0 0 20px; color: var(--navy); font-size: 1.2rem; }
-.folder-dialog form, .folder-dialog label { display: grid; gap: 8px; }
-.folder-dialog label { color: var(--slate); font-size: .78rem; font-weight: 600; }
-.folder-dialog input { height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; color: var(--navy); background: #fff; font-weight: 400; }
-.folder-dialog input:focus { border-color: var(--ocean-light); outline: 0; box-shadow: 0 0 0 3px rgba(67,198,164,.16); }
-.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
-.folder-dialog button:disabled, .file-row-detail button:disabled { cursor: wait; opacity: .55; }
+.file-row-detail input:focus { border-color: var(--ocean-light); outline: 0; box-shadow: 0 0 0 3px rgba(67,198,164,.16); }
+.file-row-detail button:disabled { cursor: wait; opacity: .55; }
 
 
 .editor-app { height: 100vh; display: grid; grid-template-rows: 64px minmax(0,1fr); overflow: hidden; background: #f7fbfa; }

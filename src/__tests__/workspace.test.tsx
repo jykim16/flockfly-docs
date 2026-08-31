@@ -64,17 +64,14 @@ describe('Flockdoc workspace', () => {
     const menu = screen.getByRole('menu', { name: 'Create' });
     expect(within(menu).getByRole('menuitem', { name: 'Paper' })).toBeInTheDocument();
     expect(within(menu).getByRole('menuitem', { name: 'Spreadsheet' })).toBeInTheDocument();
-    expect(within(menu).getByRole('menuitem', { name: 'Folder' })).toBeInTheDocument();
+    expect(within(menu).queryByRole('menuitem', { name: 'Folder' })).not.toBeInTheDocument();
   });
 
-  it('creates and browses persisted local folders', () => {
+  it('derives and browses virtual folders from flockdoc prefixes', () => {
+    localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, flockdocs: [{
+      id: 'paper-1', name: 'Planning Paper', type: 'paper', modifiedAt: 'Just now', prefix: 'Planning/2027/', collaborators: [],
+    }] }));
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /new/i }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Folder' }));
-
-    const dialog = screen.getByRole('dialog', { name: 'Create folder' });
-    fireEvent.change(within(dialog).getByRole('textbox', { name: 'Folder name' }), { target: { value: 'Planning' } });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
 
     const folderRow = screen.getByRole('row', { name: /Planning Folder/ });
     fireEvent.click(within(folderRow).getByRole('button', { name: 'Open Planning' }));
@@ -83,22 +80,35 @@ describe('Flockdoc workspace', () => {
     expect(within(breadcrumb).getByText('Planning')).toBeInTheDocument();
   });
 
-  it('moves a local file into a folder and deletes it after confirmation', () => {
+  it('creates a new flockdoc under the currently browsed prefix', () => {
     localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, flockdocs: [{
-      id: 'paper-1', name: 'Planning Paper', type: 'paper', modifiedAt: 'Just now', parentFolderId: null, collaborators: [],
+      id: 'existing', name: 'Existing', type: 'paper', modifiedAt: 'Just now', prefix: 'Planning/', collaborators: [],
     }] }));
-    localStorage.setItem('flockfly.flockdoc.folders.v1', JSON.stringify({ version: 1, folders: [{
-      id: 'folder-1', name: 'Planning', parentFolderId: null, modifiedAt: 'Just now',
+    render(<App />);
+    fireEvent.click(within(screen.getByRole('row', { name: /Planning Folder/ })).getByRole('button', { name: 'Open Planning' }));
+    fireEvent.click(screen.getByRole('button', { name: /new/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Paper' }));
+
+    expect(screen.getByLabelText('Paper editor')).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('flockfly.flockdoc.workspace.v1')!).flockdocs).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'Untitled Paper', prefix: 'Planning/' }),
+    ]));
+  });
+
+  it('moves a local file to a new path prefix and deletes it after confirmation', () => {
+    localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, flockdocs: [{
+      id: 'paper-1', name: 'Planning Paper', type: 'paper', modifiedAt: 'Just now', prefix: '', collaborators: [],
     }] }));
     render(<App />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Move Planning Paper' }));
-    fireEvent.change(screen.getByRole('combobox', { name: 'Move Planning Paper to' }), { target: { value: 'folder-1' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Move Planning Paper to folder path' }), { target: { value: 'Planning/2027' } });
     fireEvent.click(screen.getByRole('button', { name: 'Confirm move' }));
     expect(screen.queryByRole('row', { name: /Planning Paper/ })).not.toBeInTheDocument();
 
     const folderRow = screen.getByRole('row', { name: /Planning Folder/ });
     fireEvent.click(within(folderRow).getByRole('button', { name: 'Open Planning' }));
+    fireEvent.click(within(screen.getByRole('row', { name: /2027 Folder/ })).getByRole('button', { name: 'Open 2027' }));
     expect(screen.getByRole('row', { name: /Planning Paper/ })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete Planning Paper' }));
@@ -109,7 +119,7 @@ describe('Flockdoc workspace', () => {
 
   it('hides move and delete when backend permissions do not allow them', () => {
     localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, flockdocs: [{
-      id: 'paper-1', name: 'Read-only Paper', type: 'paper', modifiedAt: 'Just now', parentFolderId: null, collaborators: [],
+      id: 'paper-1', name: 'Read-only Paper', type: 'paper', modifiedAt: 'Just now', prefix: '', collaborators: [],
       permissions: { canRead: true, canComment: false, canEdit: false, canShare: false, canDelete: false },
     }] }));
     render(<App />);
@@ -138,8 +148,7 @@ describe('Flockdoc workspace', () => {
       .mockResolvedValueOnce(new Response(JSON.stringify({ flockdocs: [{
         id: 'cloud-1', name: 'Cloud plan', type: 'spreadsheet', updatedAt: '2026-08-29T00:00:00Z',
         headRevision: 3, role: 'editor', permissions: { canRead: true, canComment: true, canEdit: true, canShare: false, canDelete: false },
-      }] }), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ folders: [] }), { status: 200 }));
+      }] }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
 
     render(<App />);

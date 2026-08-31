@@ -10,7 +10,6 @@ describe('Flockdoc WebMCP bridge', () => {
         listFlockdocs: vi.fn(),
         createFlockdoc: vi.fn(),
         renameFlockdoc: vi.fn(),
-        createFolder: vi.fn(),
         moveFlockdoc: vi.fn(),
         deleteFlockdoc: vi.fn(),
       },
@@ -20,7 +19,6 @@ describe('Flockdoc WebMCP bridge', () => {
       'flockdoc.list',
       'flockdoc.create',
       'flockdoc.rename',
-      'flockdoc.create_folder',
       'flockdoc.move',
       'flockdoc.delete',
     ]);
@@ -35,7 +33,6 @@ describe('Flockdoc WebMCP bridge', () => {
         listFlockdocs: vi.fn(),
         createFlockdoc: vi.fn(),
         renameFlockdoc: vi.fn(),
-        createFolder: vi.fn(),
         moveFlockdoc: vi.fn(),
         deleteFlockdoc: vi.fn(),
         shareFlockdoc: vi.fn(),
@@ -47,9 +44,19 @@ describe('Flockdoc WebMCP bridge', () => {
       'flockdoc.list',
       'flockdoc.create',
       'flockdoc.rename',
-      'flockdoc.create_folder',
       'flockdoc.move',
       'flockdoc.delete',
     ]);
+  });
+
+  it('uses prefix fields for create and move tool inputs', () => {
+    const registerTool = vi.fn();
+    registerFlockdocWebMCP({ modelContext: { registerTool }, actions: {
+      listFlockdocs: vi.fn(), createFlockdoc: vi.fn(), renameFlockdoc: vi.fn(), moveFlockdoc: vi.fn(), deleteFlockdoc: vi.fn(),
+    } });
+    const tools = Object.fromEntries(registerTool.mock.calls.map(([tool]) => [tool.name, tool]));
+    expect(tools['flockdoc.create'].inputSchema.properties).toHaveProperty('prefix');
+    expect(tools['flockdoc.move'].inputSchema.properties).toEqual(expect.objectContaining({ prefix: { type: 'string' } }));
+    expect(tools['flockdoc.move'].inputSchema.required).toEqual(['id', 'prefix']);
   });
 });
