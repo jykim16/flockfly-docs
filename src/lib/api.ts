@@ -1,4 +1,4 @@
-import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocLinkRole, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType } from '../types';
+import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocInvitation, FlockdocLinkRole, FlockdocMember, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType, FlockdocVisibility } from '../types';
 
 const TOKEN_KEY = 'flockfly.token';
 const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? '';
@@ -21,6 +21,7 @@ interface BackendFlockdoc {
   headRevision?: number;
   role?: FlockdocRole;
   permissions?: FlockdocPermissions;
+  visibility?: FlockdocVisibility;
 }
 
 export interface FlockdocState {
@@ -78,6 +79,7 @@ function mapFlockdoc(flockdoc: BackendFlockdoc): Flockdoc {
     type: flockdoc.type,
     modifiedAt: flockdoc.updatedAt ?? 'Just now',
     prefix: flockdoc.prefix ?? '',
+    visibility: flockdoc.visibility ?? 'private',
     collaborators: [],
     headRevision: flockdoc.headRevision ?? 0,
     role: flockdoc.role,
@@ -187,5 +189,40 @@ export class FlockdocApi {
   async claimShareLink(token: string): Promise<{ flockdoc: Flockdoc }> {
     const response = await this.request<{ flockdoc: BackendFlockdoc }>(`/v1/flockdoc-links/${encodeURIComponent(token)}/claim`, { method: 'POST' });
     return { flockdoc: mapFlockdoc(response.flockdoc) };
+  }
+
+  async listMembers(id: string): Promise<{ flockdoc: Flockdoc; members: FlockdocMember[]; invitations: FlockdocInvitation[] }> {
+    const response = await this.request<{ flockdoc: BackendFlockdoc; members: FlockdocMember[]; invitations: FlockdocInvitation[] }>(`/v1/flockdocs/${id}/members`);
+    return { ...response, flockdoc: mapFlockdoc(response.flockdoc) };
+  }
+
+  inviteMember(id: string, email: string, role: FlockdocAssignableRole) {
+    return this.request<{ invitation?: FlockdocInvitation; member?: FlockdocMember }>(`/v1/flockdocs/${id}/members`, { method: 'POST', body: JSON.stringify({ email, role }) });
+  }
+
+  changeMemberRole(id: string, email: string, role: FlockdocAssignableRole) {
+    return this.request<{ member: FlockdocMember }>(`/v1/flockdocs/${id}/members/${encodeURIComponent(email)}`, { method: 'PATCH', body: JSON.stringify({ role }) });
+  }
+
+  removeMember(id: string, email: string) {
+    return this.request<void>(`/v1/flockdocs/${id}/members/${encodeURIComponent(email)}`, { method: 'DELETE' });
+  }
+
+  async setVisibility(id: string, visibility: FlockdocVisibility): Promise<{ flockdoc: Flockdoc }> {
+    const response = await this.request<{ flockdoc: BackendFlockdoc }>(`/v1/flockdocs/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ visibility }) });
+    return { flockdoc: mapFlockdoc(response.flockdoc) };
+  }
+
+  async joinPublic(id: string): Promise<{ flockdoc: Flockdoc }> {
+    const response = await this.request<{ flockdoc: BackendFlockdoc }>(`/v1/flockdocs/${id}/membership`, { method: 'POST' });
+    return { flockdoc: mapFlockdoc(response.flockdoc) };
+  }
+
+  listInvitations() {
+    return this.request<{ invitations: FlockdocInvitation[] }>('/v1/flockdoc-invitations');
+  }
+
+  respondToInvitation(id: string, response: 'accept' | 'decline') {
+    return this.request<void>(`/v1/flockdoc-invitations/${encodeURIComponent(id)}/${response}`, { method: 'POST' });
   }
 }

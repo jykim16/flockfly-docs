@@ -75,36 +75,42 @@ describe('Flockdoc API client', () => {
       .rejects.toEqual(expect.objectContaining<Partial<RevisionConflictError>>({ currentRevision: 4 }));
   });
 
-  it('manages document collaborators, invite links, and link claims', async () => {
-    const grant = { principalType: 'user', principalId: 'user_2', email: 'teammate@example.com', role: 'editor', status: 'active' };
-    const link = { id: 'link_1', flockdocId: 'flockdoc_1', role: 'viewer', expiresAt: null, revokedAt: null, createdAt: '2026-08-30T00:00:00Z' };
+  it('uses Router-shaped document members, invitations, and general access', async () => {
+    const member = { email: 'teammate@example.com', userId: 'user_2', username: 'Teammate', role: 'manager', status: 'active', accessTypes: ['read', 'edit'] };
+    const invitation = { id: 'finv_1', flockdocId: 'flockdoc_1', flockdocName: 'Plan', flockdocType: 'paper', email: 'pending@example.com', role: 'commenter' };
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify({ grants: [grant] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ flockdoc: { id: 'flockdoc_1' }, members: [member], invitations: [invitation] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ invitation }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ member: { ...member, role: 'viewer' } }), { status: 200 }))
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ flockdoc: { id: 'flockdoc_1', visibility: 'public' } }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ flockdoc: { id: 'flockdoc_1', role: 'viewer' } }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ invitations: [invitation] }), { status: 200 }))
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ shareLinks: [link] }), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ shareLink: { ...link, token: 'secret-token' } }), { status: 201 }))
-      .mockResolvedValueOnce(new Response(null, { status: 204 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ flockdoc: { id: 'flockdoc_1', type: 'paper', name: 'Plan', role: 'viewer' } }), { status: 200 }));
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
     vi.stubGlobal('fetch', fetchMock);
     const api = new FlockdocApi('token');
 
-    await expect(api.listAccess('flockdoc_1')).resolves.toEqual({ grants: [grant] });
-    await api.grantUserRole('flockdoc_1', 'teammate@example.com', 'editor');
-    await api.removeAccess('flockdoc_1', 'user', 'user_2');
-    await expect(api.listShareLinks('flockdoc_1')).resolves.toEqual({ shareLinks: [link] });
-    await expect(api.createShareLink('flockdoc_1', 'viewer')).resolves.toMatchObject({ shareLink: { token: 'secret-token' } });
-    await api.revokeShareLink('flockdoc_1', 'link_1');
-    await expect(api.claimShareLink('secret-token')).resolves.toMatchObject({ flockdoc: { id: 'flockdoc_1', role: 'viewer' } });
+    await api.listMembers('flockdoc_1');
+    await api.inviteMember('flockdoc_1', 'pending@example.com', 'commenter');
+    await api.changeMemberRole('flockdoc_1', 'teammate@example.com', 'viewer');
+    await api.removeMember('flockdoc_1', 'teammate@example.com');
+    await api.setVisibility('flockdoc_1', 'public');
+    await api.joinPublic('flockdoc_1');
+    await api.listInvitations();
+    await api.respondToInvitation('finv_1', 'accept');
+    await api.respondToInvitation('finv_1', 'decline');
 
     expect(fetchMock.mock.calls.map(([url, init]) => [url, init.method ?? 'GET', init.body ? JSON.parse(init.body) : null])).toEqual([
-      ['/v1/flockdocs/flockdoc_1/access', 'GET', null],
-      ['/v1/flockdocs/flockdoc_1/access', 'POST', { principalType: 'user', principalEmail: 'teammate@example.com', role: 'editor' }],
-      ['/v1/flockdocs/flockdoc_1/access/user/user_2', 'DELETE', null],
-      ['/v1/flockdocs/flockdoc_1/share-links', 'GET', null],
-      ['/v1/flockdocs/flockdoc_1/share-links', 'POST', { role: 'viewer' }],
-      ['/v1/flockdocs/flockdoc_1/share-links/link_1', 'DELETE', null],
-      ['/v1/flockdoc-links/secret-token/claim', 'POST', null],
+      ['/v1/flockdocs/flockdoc_1/members', 'GET', null],
+      ['/v1/flockdocs/flockdoc_1/members', 'POST', { email: 'pending@example.com', role: 'commenter' }],
+      ['/v1/flockdocs/flockdoc_1/members/teammate%40example.com', 'PATCH', { role: 'viewer' }],
+      ['/v1/flockdocs/flockdoc_1/members/teammate%40example.com', 'DELETE', null],
+      ['/v1/flockdocs/flockdoc_1/visibility', 'PATCH', { visibility: 'public' }],
+      ['/v1/flockdocs/flockdoc_1/membership', 'POST', null],
+      ['/v1/flockdoc-invitations', 'GET', null],
+      ['/v1/flockdoc-invitations/finv_1/accept', 'POST', null],
+      ['/v1/flockdoc-invitations/finv_1/decline', 'POST', null],
     ]);
   });
 });

@@ -5,54 +5,45 @@ import type { FlockdocApi } from '../lib/api';
 
 function apiMock() {
   return {
-    listAccess: vi.fn().mockResolvedValue({ grants: [
-      { principalType: 'user', principalId: 'user_2', email: 'alex@example.com', username: 'Alex', role: 'editor', status: 'active' },
-      { principalType: 'agent', principalId: 'agent_research', role: 'viewer' },
-    ] }),
-    grantUserRole: vi.fn().mockResolvedValue(undefined),
-    grantRole: vi.fn().mockResolvedValue(undefined),
-    removeAccess: vi.fn().mockResolvedValue(undefined),
-    listShareLinks: vi.fn().mockResolvedValue({ shareLinks: [] }),
-    createShareLink: vi.fn().mockResolvedValue({ shareLink: { id: 'link_1', role: 'viewer', token: 'secret-token', revokedAt: null, expiresAt: null, createdAt: '2026-08-30T00:00:00Z' } }),
-    revokeShareLink: vi.fn().mockResolvedValue(undefined),
+    listMembers: vi.fn().mockResolvedValue({ flockdoc: { visibility: 'private', permissions: { canShare: true, canDelete: true } }, members: [
+      { email: 'owner@example.com', username: 'Owner', role: 'owner', status: 'active' },
+      { email: 'alex@example.com', username: 'Alex', role: 'manager', status: 'active' },
+    ], invitations: [{ id: 'finv_1', email: 'pending@example.com', role: 'commenter' }] }),
+    inviteMember: vi.fn().mockResolvedValue({ invitation: { id: 'finv_2', email: 'new@example.com', role: 'commenter' } }),
+    changeMemberRole: vi.fn().mockResolvedValue({ member: { email: 'alex@example.com', role: 'viewer' } }),
+    removeMember: vi.fn().mockResolvedValue(undefined),
+    setVisibility: vi.fn().mockResolvedValue({ flockdoc: { visibility: 'public' } }),
   };
 }
 
 describe('document sharing', () => {
-  it('loads collaborators and lets a manager add a teammate by email', async () => {
+  it('matches the Router sharing roles and invitation structure', async () => {
     const api = apiMock();
-    render(<DocumentShareDialog api={api as unknown as FlockdocApi} flockdocId="flockdoc_1" name="Launch plan" onClose={() => {}} />);
-
-    expect(await screen.findByRole('dialog', { name: 'Share Launch plan' })).toBeInTheDocument();
-    expect(await screen.findByText('alex@example.com')).toBeInTheDocument();
-    expect(screen.getByText('agent_research')).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText('Email or agent ID'), { target: { value: 'teammate@example.com' } });
-    fireEvent.change(screen.getByLabelText('Access role'), { target: { value: 'editor' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add collaborator' }));
-    await waitFor(() => expect(api.grantUserRole).toHaveBeenCalledWith('flockdoc_1', 'teammate@example.com', 'editor'));
+    render(<DocumentShareDialog api={api as unknown as FlockdocApi} flockdocId="flockdoc_1" flockdocType="paper" name="Launch plan" currentUserEmail="owner@example.com" onClose={() => {}} />);
+    expect(await screen.findByRole('dialog', { name: 'Share “Launch plan”' })).toBeInTheDocument();
+    expect(screen.getAllByRole('option', { name: 'Can manage' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('option', { name: 'Can comment' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('option', { name: 'Can view' }).length).toBeGreaterThan(0);
+    expect(screen.queryByText('Editor')).not.toBeInTheDocument();
+    expect(await screen.findByText('pending@example.com')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Invite by email'), { target: { value: 'new@example.com' } });
+    fireEvent.change(screen.getByLabelText('Invite role'), { target: { value: 'commenter' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send invite' }));
+    await waitFor(() => expect(api.inviteMember).toHaveBeenCalledWith('flockdoc_1', 'new@example.com', 'commenter'));
   });
 
-  it('changes and removes collaborator access', async () => {
-    const api = apiMock();
-    render(<DocumentShareDialog api={api as unknown as FlockdocApi} flockdocId="flockdoc_1" name="Launch plan" onClose={() => {}} />);
-    const row = await screen.findByRole('listitem', { name: /alex@example.com/i });
-
-    fireEvent.change(within(row).getByLabelText('Role for alex@example.com'), { target: { value: 'viewer' } });
-    await waitFor(() => expect(api.grantRole).toHaveBeenCalledWith('flockdoc_1', 'user', 'user_2', 'viewer'));
-    fireEvent.click(within(row).getByRole('button', { name: 'Remove alex@example.com' }));
-    await waitFor(() => expect(api.removeAccess).toHaveBeenCalledWith('flockdoc_1', 'user', 'user_2'));
-  });
-
-  it('creates a recipient invite link and copies the document URL', async () => {
+  it('uses the Router role menu and general access controls', async () => {
     const api = apiMock();
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
-    render(<DocumentShareDialog api={api as unknown as FlockdocApi} flockdocId="flockdoc_1" name="Launch plan" onClose={() => {}} />);
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Create and copy invite link' }));
-    await waitFor(() => expect(api.createShareLink).toHaveBeenCalledWith('flockdoc_1', 'viewer'));
-    expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/flockdoc\/paper\/flockdoc_1\?share=secret-token$/));
-    expect(screen.getByText('Invite link copied')).toBeInTheDocument();
+    render(<DocumentShareDialog api={api as unknown as FlockdocApi} flockdocId="flockdoc_1" flockdocType="paper" name="Launch plan" currentUserEmail="owner@example.com" onClose={() => {}} />);
+    const alex = await screen.findByRole('listitem', { name: /alex@example.com/i });
+    fireEvent.click(within(alex).getByRole('button', { name: 'Manage access for alex@example.com' }));
+    fireEvent.click(within(alex).getByRole('button', { name: 'Can view' }));
+    await waitFor(() => expect(api.changeMemberRole).toHaveBeenCalledWith('flockdoc_1', 'alex@example.com', 'viewer'));
+    fireEvent.click(screen.getByLabelText('Public'));
+    await waitFor(() => expect(api.setVisibility).toHaveBeenCalledWith('flockdoc_1', 'public'));
+    fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
+    expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/flockdoc\/paper\/flockdoc_1$/));
   });
 });

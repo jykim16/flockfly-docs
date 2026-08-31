@@ -248,6 +248,67 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
 .share-status svg { width: 15px; }
 .share-dialog .form-error { margin-top: 14px; }
 
+/* Router-compatible sharing component */
+.share-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1.75rem; overflow: hidden; background: rgba(16,32,51,.48); backdrop-filter: blur(2px); }
+.share-backdrop .share-dialog { width: min(42rem,100%); max-height: calc(100vh - 3.5rem); overflow: auto; border: 1px solid var(--line); border-radius: 1.25rem; background: var(--foam); box-shadow: 0 28px 90px rgba(16,32,51,.24); }
+.share-dialog-main { padding: 1.7rem 1.9rem 1.5rem; }
+.share-dialog-head, .share-section-title, .share-dialog-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.share-dialog-head { align-items: flex-start; }
+.share-dialog-head h2 { margin: 0; font-size: 1.4rem; letter-spacing: -.025em; }
+.share-dialog-head p { margin: .35rem 0 0; color: var(--slate); font-size: .82rem; }
+.share-dialog button.share-icon-button { width: 2.25rem; height: 2.25rem; display: grid; place-items: center; flex: none; padding: 0; border: 0; border-radius: 999px; color: var(--slate); background: transparent; }
+.share-dialog button.share-icon-button:hover { color: var(--reef); background: rgba(217,236,239,.48); }
+.share-dialog svg { width: 17px; height: 17px; }
+.share-invite { display: grid; grid-template-columns: minmax(0,1fr) 8.75rem auto; gap: .55rem; margin-top: 1.35rem; padding: .75rem; border: 1px solid var(--line); border-radius: .9rem; background: rgba(247,251,250,.72); }
+.share-invite input, .share-invite select { width: 100%; height: 2.5rem; }
+.share-invite button, .share-dialog-footer button { min-height: 2.4rem; display: inline-flex; align-items: center; justify-content: center; gap: .45rem; padding: .42rem .95rem; border: 0; border-radius: 999px; color: #fff; background: var(--navy); font-size: .8rem; font-weight: 600; }
+.share-section { margin-top: 1.5rem; }
+.share-section-title { margin-bottom: .5rem; }
+.share-section-title h3 { margin: 0; font-size: .96rem; }
+.share-section-title > span { color: var(--slate); font-size: .75rem; }
+.share-people { max-height: 15rem; overflow-y: auto; list-style: none; margin: 0; padding: 0 .2rem 0 0; }
+.share-person { position: relative; min-height: 3.8rem; display: grid; grid-template-columns: 2.4rem minmax(0,1fr) auto; align-items: center; gap: .75rem; border-bottom: 1px solid rgba(215,231,232,.72); }
+.share-person:last-child { border-bottom: 0; }
+.share-avatar { width: 2.35rem; height: 2.35rem; display: grid; place-items: center; border-radius: 999px; color: var(--reef); background: var(--mist); font-size: .76rem; font-weight: 700; }
+.share-avatar.owner { background: rgba(67,198,164,.18); }
+.share-avatar.pending { color: var(--navy-light); background: var(--sand); }
+.share-identity { min-width: 0; }
+.share-identity > strong, .share-identity > span:not(.tag) { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.share-identity > strong { color: var(--navy); font-size: .82rem; font-weight: 600; }
+.share-identity > span:not(.tag) { color: var(--slate); font-size: .75rem; }
+.share-fixed-role { padding: .45rem .65rem; color: var(--slate); font-size: .76rem; font-weight: 600; }
+.share-pending-control, .share-confirm-remove { display: flex; align-items: center; justify-content: flex-end; gap: .35rem; }
+.share-role-control { position: relative; }
+.share-dialog button.share-role-button { min-height: 2.1rem; display: inline-flex; align-items: center; gap: .35rem; padding: .38rem .65rem; border: 1px solid transparent; color: var(--navy-light); background: transparent; font-size: .75rem; }
+.share-dialog button.share-role-button:hover, .share-dialog button.share-role-button[aria-expanded=true] { border-color: var(--line); background: rgba(217,236,239,.34); }
+.share-role-menu { position: absolute; top: 2.45rem; right: 0; z-index: 2; width: 11.5rem; padding: .4rem; border: 1px solid var(--line); border-radius: .75rem; background: var(--foam); box-shadow: 0 16px 38px rgba(16,32,51,.15); }
+.share-role-menu button { width: 100%; min-height: 2.1rem; padding: .45rem .55rem; border: 0; border-radius: .5rem; color: var(--navy); background: transparent; text-align: left; font-size: .75rem; }
+.share-role-menu button:hover { background: rgba(217,236,239,.42); }
+.share-role-menu button.remove { margin-top: .3rem; border-top: 1px solid var(--line); color: var(--coral); }
+.share-confirm-remove button { padding: .4rem .6rem; border: 1px solid var(--line); border-radius: .5rem; background: #fff; font-size: .7rem; }
+.share-confirm-remove button.danger { color: #fff; border-color: var(--coral); background: var(--coral); }
+.share-access-options { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; }
+.share-access-option { position: relative; display: grid; grid-template-columns: 2.25rem minmax(0,1fr) 1.1rem; align-items: start; gap: .65rem; padding: .8rem; border: 1px solid var(--line); border-radius: .82rem; background: var(--foam); cursor: pointer; }
+.share-access-option.selected { border-color: var(--seafoam); background: rgba(67,198,164,.1); box-shadow: 0 0 0 3px rgba(67,198,164,.1); }
+.share-access-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.share-access-icon { width: 2.25rem; height: 2.25rem; display: grid; place-items: center; border-radius: .65rem; color: var(--reef); background: var(--mist); }
+.share-access-copy strong, .share-access-copy span { display: block; }
+.share-access-copy strong { font-size: .78rem; }
+.share-access-copy span { margin-top: .12rem; color: var(--slate); font-size: .7rem; line-height: 1.4; }
+.share-radio-mark { width: 1.05rem; height: 1.05rem; margin-top: .12rem; border: 1.5px solid rgba(95,114,132,.45); border-radius: 999px; }
+.share-access-option.selected .share-radio-mark { border: .31rem solid var(--ocean); background: #fff; }
+.share-access-note, .share-success { display: flex; align-items: center; gap: .4rem; margin: .55rem 0 0; color: var(--slate); font-size: .72rem; }
+.share-success { color: var(--reef); }
+.share-dialog-footer { padding: 1rem 1.9rem; border-top: 1px solid var(--line); background: rgba(247,251,250,.74); }
+.share-dialog-footer button.secondary { color: var(--reef); border: 1px solid var(--line); background: #fff; }
+.share-dialog-footer .share-copy.copied { border-color: var(--seafoam); background: rgba(67,198,164,.12); }
+.flockdoc-invitations { margin-bottom: 20px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.flockdoc-invitations > strong { display: block; margin-bottom: 8px; }
+.flockdoc-invitations > div { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-top: 1px solid var(--line); }
+.flockdoc-invitations > div span { margin-right: auto; color: var(--slate); font-size: .78rem; }
+.flockdoc-invitations button { padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: #fff; }
+.flockdoc-invitations button.primary { color: #fff; background: var(--navy); }
+
 @media (max-width: 760px) {
   .app-shell { display: grid; grid-template-columns: 1fr; grid-template-rows: auto 60px minmax(0,1fr); }
   .platform-header { grid-row: 1; height: auto; min-height: 64px; padding: .7rem 1rem; gap: .65rem 1rem; flex-wrap: wrap; }

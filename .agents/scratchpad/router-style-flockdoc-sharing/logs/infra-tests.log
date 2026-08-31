@@ -1,0 +1,17 @@
+
+> flockfly-docs@0.1.0 infra:test
+> npm --prefix infra test
+
+
+> @flockfly/flockdoc-infra@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs/infra
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  06:35:32
+   Duration  1.10s (transform 25ms, setup 0ms, import 306ms, tests 678ms, environment 0ms)
+

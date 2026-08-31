@@ -147,8 +147,9 @@ describe('Flockdoc workspace', () => {
       }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ flockdocs: [{
         id: 'cloud-1', name: 'Cloud plan', type: 'spreadsheet', updatedAt: '2026-08-29T00:00:00Z',
-        headRevision: 3, role: 'editor', permissions: { canRead: true, canComment: true, canEdit: true, canShare: false, canDelete: false },
-      }] }), { status: 200 }));
+        headRevision: 3, role: 'manager', permissions: { canRead: true, canComment: true, canEdit: true, canShare: true, canDelete: false },
+      }] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ invitations: [] }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
 
     render(<App />);

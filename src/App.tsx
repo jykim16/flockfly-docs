@@ -12,7 +12,7 @@ import { registerFlockdocWebMCP } from './lib/webmcp';
 import { currentFlockdocPath, migrateLegacyFlockdocPath, navigateFlockdoc } from './lib/navigation';
 import { loadWorkspace, saveWorkspace } from './lib/workspace-storage';
 import { allPrefixes, immediatePrefixes, normalizePrefix, prefixName } from './lib/prefixes';
-import type { Flockdoc, FlockdocType, WorkspaceFilter } from './types';
+import type { Flockdoc, FlockdocInvitation, FlockdocType, WorkspaceFilter } from './types';
 import './styles.css';
 
 function routeFor(item: Flockdoc) { return `/flockdoc/${item.type}/${item.id}`; }
@@ -33,6 +33,7 @@ export default function App() {
   const [syncStatus, setSyncStatus] = useState<'browser' | 'loading' | 'synced' | 'error'>('loading');
   const [authenticated, setAuthenticated] = useState(false);
   const [account, setAccount] = useState<{ email: string; entitled: boolean } | null>(null);
+  const [invitations, setInvitations] = useState<FlockdocInvitation[]>([]);
   const api = useMemo(() => new FlockdocApi(token ?? undefined), [token]);
   const cloudApi = authenticated ? api : null;
   const itemsRef = useRef(items);
@@ -58,14 +59,21 @@ export default function App() {
     void api.session().then(session => {
       if (active) setAccount({ email: session.user.email, entitled: session.billing?.entitled === true });
       const shareToken = new URLSearchParams(location.search).get('share');
-      return shareToken ? api.claimShareLink(shareToken).then(() => {
+      const claim = shareToken ? api.claimShareLink(shareToken).then(() => {
         history.replaceState(null, '', location.pathname);
-        return api.list();
-      }) : api.list();
-    }).then(({ flockdocs }) => {
+      }) : Promise.resolve();
+      return claim.then(() => Promise.all([api.list(), api.listInvitations()]));
+    }).then(async ([listed, pending]) => {
+      const requestedId = currentFlockdocPath().match(/^\/flockdoc\/(?:paper|spreadsheet)\/([^/]+)/)?.[1];
+      if (requestedId && !listed.flockdocs.some(item => item.id === requestedId)) {
+        try { await api.joinPublic(requestedId); listed = await api.list(); } catch { /* Restricted documents remain hidden. */ }
+      }
+      return { flockdocs: listed.flockdocs, invitations: pending.invitations };
+    }).then(({ flockdocs, invitations: pending }) => {
       if (!active) return;
       setAuthenticated(true);
       setItems(flockdocs);
+      setInvitations(pending);
       setSyncStatus('synced');
     }).catch(error => {
       if (!active) return;
@@ -118,7 +126,7 @@ export default function App() {
     if (item) return <div className="editor-app">
       <PlatformHeader account={account} />
       {cloudApi
-        ? <RemoteEditor api={cloudApi} item={item} onBack={() => navigateFlockdoc('/flockdoc/')} onUpdate={updateItem} />
+        ? <RemoteEditor api={cloudApi} item={item} currentUserEmail={account?.email} onBack={() => navigateFlockdoc('/flockdoc/')} onUpdate={updateItem} />
         : item.type === 'paper'
           ? <PaperEditor key={item.id} item={item} onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
           : <SpreadsheetEditor key={item.id} item={item} onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />}
@@ -153,6 +161,7 @@ export default function App() {
         {syncStatus === 'browser' ? <aside className="sync-banner"><div><strong>Keep your flockdocs on every device</strong><span>Sign in once on Flockfly to store Paper and Spreadsheet revisions securely.</span></div><a href={googleSignInUrl()}>Sign in to sync</a></aside> : null}
         {syncStatus === 'loading' ? <p className="sync-note">Loading your cloud workspace…</p> : null}
         {syncStatus === 'error' ? <p className="sync-note error">Cloud sync is unavailable. Your browser copy has not been removed.</p> : null}
+        {cloudApi && invitations.length ? <aside className="flockdoc-invitations"><strong>Document invitations</strong>{invitations.map(invitation => <div key={invitation.id}><span><b>{invitation.flockdocName}</b> · {invitation.role === 'manager' ? 'Can manage' : invitation.role === 'commenter' ? 'Can comment' : 'Can view'}</span><button onClick={() => void cloudApi.respondToInvitation(invitation.id, 'decline').then(() => setInvitations(current => current.filter(item => item.id !== invitation.id)))}>Decline</button><button className="primary" onClick={() => void cloudApi.respondToInvitation(invitation.id, 'accept').then(() => Promise.all([cloudApi.list(), cloudApi.listInvitations()])).then(([listed, pending]) => { setItems(listed.flockdocs); setInvitations(pending.invitations); })}>Accept</button></div>)}</aside> : null}
         <div className="title-row"><h1>My workspace</h1></div>
         <FolderBreadcrumb prefix={currentPrefix} onNavigate={setCurrentPrefix} />
         <div className="filters">{([['all', 'All'], ['paper', 'Papers'], ['spreadsheet', 'Spreadsheets']] as const).map(([value, label]) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div>
