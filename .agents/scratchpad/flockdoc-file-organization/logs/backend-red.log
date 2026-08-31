@@ -1,0 +1,79 @@
+
+> @flockfly/context-api@0.1.0 test
+> vitest run --run test/flockdoc-collaboration-foundation.test.ts
+
+
+ RUN  v3.2.7 /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+
+stderr | test/flockdoc-collaboration-foundation.test.ts > flockdoc collaboration foundation > rejects nonexistent and foreign folder targets when creating or moving flockdocs
+[req_4CVFHWHC6S0S] unhandled error: error: insert or update on table "flockdocs" violates foreign key constraint "flockdocs_parent_folder_id_fkey"
+    at ye.Ve (file:///Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/node_modules/@electric-sql/pg-protocol/src/parser.ts:432:11)
+    at ye.nt (file:///Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/node_modules/@electric-sql/pg-protocol/src/parser.ts:210:16)
+    at ye.parse (file:///Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/node_modules/@electric-sql/pg-protocol/src/parser.ts:102:25)
+    at pe.execProtocol (file:///Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/node_modules/@electric-sql/pglite/src/pglite.ts:631:26)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at pe.l (file:///Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/node_modules/@electric-sql/pglite/src/base.ts:130:12)
+    at file:///Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/node_modules/@electric-sql/pglite/src/base.ts:267:13 {
+  length: 309,
+  severity: 'ERROR',
+  code: '23503',
+  detail: 'Key (parent_folder_id)=(folder_missing) is not present in table "flockdoc_folders".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'flockdocs',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'flockdocs_parent_folder_id_fkey',
+  file: 'ri_triggers.c',
+  line: '2619',
+  routine: 'ri_ReportViolation'
+}
+
+ ❯ test/flockdoc-collaboration-foundation.test.ts (7 tests | 1 failed) 2314ms
+   ✓ flockdoc collaboration foundation > persists snapshot state idempotently and rejects stale revisions  516ms
+   ✓ flockdoc collaboration foundation > allows viewers to read state but only editors to save it  312ms
+   ✓ flockdoc collaboration foundation > rejects malformed snapshot state requests 277ms
+   ✓ flockdoc collaboration foundation > journals updates idempotently and creates version checkpoints 287ms
+   ✓ flockdoc collaboration foundation > creates threaded comments for commenters and resolves a thread  331ms
+   ✓ flockdoc collaboration foundation > creates nested folders and moves flockdocs between them 278ms
+   × flockdoc collaboration foundation > rejects nonexistent and foreign folder targets when creating or moving flockdocs 311ms
+     → expected 500 to be 404 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/flockdoc-collaboration-foundation.test.ts > flockdoc collaboration foundation > rejects nonexistent and foreign folder targets when creating or moving flockdocs
+AssertionError: expected 500 to be 404 // Object.is equality
+
+- Expected
++ Received
+
+- 404
++ 500
+
+ ❯ test/flockdoc-collaboration-foundation.test.ts:204:37
+    202|         body: JSON.stringify({ name: "Invalid target", type: "paper", …
+    203|       }));
+    204|       expect(createResponse.status).toBe(parentFolderId === "folder_mi…
+       |                                     ^
+    205| 
+    206|       const moveResponse = await app.request(`/v1/flockdocs/${flockdoc…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  16:23:18
+   Duration  2.74s (transform 142ms, setup 0ms, collect 237ms, tests 2.31s, environment 0ms, prepare 73ms)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+npm error workspace @flockfly/context-api@0.1.0
+npm error location /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+npm error command failed
+npm error command sh -c vitest run --run test/flockdoc-collaboration-foundation.test.ts

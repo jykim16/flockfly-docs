@@ -1,0 +1,21 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/api.test.ts src/__tests__/workspace-storage.test.ts src/__tests__/webmcp.test.ts src/__tests__/workspace.test.ts
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:37625) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37624) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37627) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37626) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  4 passed (4)
+      Tests  21 passed (21)
+   Start at  20:08:12
+   Duration  767ms (transform 315ms, setup 251ms, import 204ms, tests 251ms, environment 654ms)
+

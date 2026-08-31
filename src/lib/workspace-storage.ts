@@ -1,10 +1,16 @@
-import type { Flockdoc } from '../types';
+import type { Flockdoc, FlockdocFolder } from '../types';
 
 export const WORKSPACE_STORAGE_KEY = 'flockfly.flockdoc.workspace.v1';
+export const FOLDER_STORAGE_KEY = 'flockfly.flockdoc.folders.v1';
 
 interface WorkspaceRecord {
   version: 1;
   flockdocs: Flockdoc[];
+}
+
+interface FolderRecord {
+  version: 1;
+  folders: FlockdocFolder[];
 }
 
 function isFlockdoc(value: unknown): value is Flockdoc {
@@ -15,6 +21,15 @@ function isFlockdoc(value: unknown): value is Flockdoc {
     && (item.type === 'paper' || item.type === 'spreadsheet')
     && typeof item.modifiedAt === 'string'
     && Array.isArray(item.collaborators);
+}
+
+function isFolder(value: unknown): value is FlockdocFolder {
+  if (!value || typeof value !== 'object') return false;
+  const folder = value as Partial<FlockdocFolder>;
+  return typeof folder.id === 'string'
+    && typeof folder.name === 'string'
+    && (folder.parentFolderId === null || typeof folder.parentFolderId === 'string')
+    && typeof folder.modifiedAt === 'string';
 }
 
 export function loadWorkspace(storage: Storage): Flockdoc[] {
@@ -32,4 +47,21 @@ export function loadWorkspace(storage: Storage): Flockdoc[] {
 export function saveWorkspace(flockdocs: Flockdoc[], storage: Storage): void {
   const record: WorkspaceRecord = { version: 1, flockdocs };
   storage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(record));
+}
+
+export function loadFolders(storage: Storage): FlockdocFolder[] {
+  try {
+    const raw = storage.getItem(FOLDER_STORAGE_KEY);
+    if (!raw) return [];
+    const record = JSON.parse(raw) as Partial<FolderRecord>;
+    if (record.version !== 1 || !Array.isArray(record.folders) || !record.folders.every(isFolder)) return [];
+    return record.folders;
+  } catch {
+    return [];
+  }
+}
+
+export function saveFolders(folders: FlockdocFolder[], storage: Storage): void {
+  const record: FolderRecord = { version: 1, folders };
+  storage.setItem(FOLDER_STORAGE_KEY, JSON.stringify(record));
 }

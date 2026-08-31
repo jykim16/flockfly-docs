@@ -14,11 +14,19 @@ export interface Flockdoc {
   name: string;
   type: FlockdocType;
   modifiedAt: string;
+  parentFolderId?: string | null;
   collaborators: Collaborator[];
   snapshot?: unknown;
   headRevision?: number;
   role?: FlockdocRole;
   permissions?: FlockdocPermissions;
+}
+
+export interface FlockdocFolder {
+  id: string;
+  name: string;
+  parentFolderId: string | null;
+  modifiedAt: string;
 }
 
 export type FlockdocRole = 'owner' | 'manager' | 'editor' | 'commenter' | 'viewer';

@@ -1,0 +1,1120 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/api.test.ts src/__tests__/workspace-storage.test.ts src/__tests__/webmcp.test.ts src/__tests__/workspace.test.tsx
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:65775) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65772) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65774) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65773) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/webmcp.test.ts (2 tests | 2 failed) 10ms
+     × exposes only workspace operations backed by real local state 9ms
+     × does not expose sharing or comments before a specific document is open 1ms
+ ❯ src/__tests__/workspace-storage.test.ts (6 tests | 1 failed) 8ms
+     × round-trips local folders independently of legacy flockdoc storage 1ms
+ ❯ src/__tests__/api.test.ts (4 tests | 2 failed) 12ms
+     × maps backend metadata and loads native snapshot state 5ms
+     × creates and lists folders, creates and moves files in folders, and soft-deletes files 1ms
+ ❯ src/__tests__/workspace.test.tsx (9 tests | 2 failed) 204ms
+     × creates and browses persisted local folders 47ms
+     × moves a local file into a folder and deletes it after confirmation 32ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/api.test.ts > Flockdoc API client > maps backend metadata and loads native snapshot state
+AssertionError: expected { Object (id, name, ...) } to match object { id: 'flockdoc_1', …(3) }
+(10 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "headRevision": 2,
+    "id": "flockdoc_1",
+    "modifiedAt": "2026-08-29T00:00:00Z",
+-   "parentFolderId": "folder_1",
+  }
+
+ ❯ src/__tests__/api.test.ts:32:33
+     30|     const api = new FlockdocApi();
+     31|     const listed = await api.list();
+     32|     expect(listed.flockdocs[0]).toMatchObject({ id: 'flockdoc_1', pare…
+       |                                 ^
+     33|     const state = await api.getState('flockdoc_1');
+     34|     expect(state).toMatchObject({ revision: 2, snapshot: { id: 'flockd…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  src/__tests__/api.test.ts > Flockdoc API client > creates and lists folders, creates and moves files in folders, and soft-deletes files
+TypeError: api.listFolders is not a function
+ ❯ src/__tests__/api.test.ts:52:22
+     50|     const api = new FlockdocApi('token');
+     51|
+     52|     await expect(api.listFolders()).resolves.toEqual({ folders: [folde…
+       |                      ^
+     53|     await api.createFolder('Planning', null);
+     54|     await api.create('Plan', 'paper', 'folder_1');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  src/__tests__/webmcp.test.ts > Flockdoc WebMCP bridge > exposes only workspace operations backed by real local state
+AssertionError: expected [ 'flockdoc.list', …(2) ] to deeply equal [ 'flockdoc.list', …(5) ]
+
+- Expected
++ Received
+
+  [
+    "flockdoc.list",
+    "flockdoc.create",
+    "flockdoc.rename",
+-   "flockdoc.create_folder",
+-   "flockdoc.move",
+-   "flockdoc.delete",
+  ]
+
+ ❯ src/__tests__/webmcp.test.ts:19:64
+     17|     });
+     18|
+     19|     expect(registerTool.mock.calls.map(([tool]) => tool.name)).toEqual…
+       |                                                                ^
+     20|       'flockdoc.list',
+     21|       'flockdoc.create',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  src/__tests__/webmcp.test.ts > Flockdoc WebMCP bridge > does not expose sharing or comments before a specific document is open
+AssertionError: expected [ 'flockdoc.list', …(2) ] to deeply equal [ 'flockdoc.list', …(5) ]
+
+- Expected
++ Received
+
+  [
+    "flockdoc.list",
+    "flockdoc.create",
+    "flockdoc.rename",
+-   "flockdoc.create_folder",
+-   "flockdoc.move",
+-   "flockdoc.delete",
+  ]
+
+ ❯ src/__tests__/webmcp.test.ts:46:64
+     44|     });
+     45|
+     46|     expect(registerTool.mock.calls.map(([tool]) => tool.name)).toEqual…
+       |                                                                ^
+     47|       'flockdoc.list',
+     48|       'flockdoc.create',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  src/__tests__/workspace-storage.test.ts > workspace storage > round-trips local folders independently of legacy flockdoc storage
+TypeError: saveFolders is not a function
+ ❯ src/__tests__/workspace-storage.test.ts:35:5
+     33|   it('round-trips local folders independently of legacy flockdoc stora…
+     34|     saveWorkspace([paper], localStorage);
+     35|     saveFolders([folder], localStorage);
+       |     ^
+     36|
+     37|     expect(loadFolders(localStorage)).toEqual([folder]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  src/__tests__/workspace.test.tsx > Flockdoc workspace > creates and browses persisted local folders
+TestingLibraryElementError: Unable to find an accessible element with the role "dialog" and name "Create folder"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "Flockfly platform navigation":
+  [36m<header[39m
+    [33maria-label[39m=[32m"Flockfly platform navigation"[39m
+    [33mclass[39m=[32m"platform-header"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"topbar"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Flockfly Platform":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Flockfly Platform"[39m
+    [33mclass[39m=[32m"brand"[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/"[39m
+  [36m/>[39m
+
+  Name "Skills":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/skills"[39m
+  [36m/>[39m
+
+  Name "Routers":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/routers"[39m
+  [36m/>[39m
+
+  Name "Sessions":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/sessions"[39m
+  [36m/>[39m
+
+  Name "Flockdoc":
+  [36m<a[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mhref[39m=[32m"/flockdoc/"[39m
+  [36m/>[39m
+
+  Name "Getting started":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/getting-started"[39m
+  [36m/>[39m
+
+  Name "My workspace":
+  [36m<a[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mclass[39m=[32m"active"[39m
+    [33mhref[39m=[32m"/flockdoc/"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  presentation:
+
+  Name "":
+  [36m<img[39m
+    [33malt[39m=[32m""[39m
+    [33mclass[39m=[32m"brand-mark"[39m
+    [33msrc[39m=[32m"/icon.png"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  navigation:
+
+  Name "Platform":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"Platform"[39m
+  [36m/>[39m
+
+  Name "Workspace navigation":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"Workspace navigation"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  complementary:
+
+  Name "":
+  [36m<aside[39m
+    [33mclass[39m=[32m"sidebar"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "New":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33mclass[39m=[32m"new-button"[39m
+  [36m/>[39m
+
+  Name "Help":
+  [36m<button[39m
+    [33maria-label[39m=[32m"Help"[39m
+  [36m/>[39m
+
+  Name "All":
+  [36m<button[39m
+    [33mclass[39m=[32m"active"[39m
+  [36m/>[39m
+
+  Name "Papers":
+  [36m<button[39m
+    [33mclass[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Spreadsheets":
+  [36m<button[39m
+    [33mclass[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  main:
+
+  Name "":
+  [36m<main[39m
+    [33mclass[39m=[32m"workspace"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "":
+  [36m<input[39m
+    [33mplaceholder[39m=[32m"Search papers and spreadsheets"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"sync-note"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "My workspace":
+  [36m<h1 />[39m
+
+  --------------------------------------------------
+  table:
+
+  Name "Flockdocs":
+  [36m<div[39m
+    [33maria-label[39m=[32m"Flockdocs"[39m
+    [33mclass[39m=[32m"file-table"[39m
+    [33mrole[39m=[32m"table"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "Name ↑ Type People & agents Modified ↓":
+  [36m<div[39m
+    [33mclass[39m=[32m"file-row table-head"[39m
+    [33mrole[39m=[32m"row"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong />[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"app-shell"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33maria-label[39m=[32m"Flockfly platform navigation"[39m
+        [33mclass[39m=[32m"platform-header"[39m
+      [36m>[39m
+        [36m<a[39m
+          [33maria-label[39m=[32m"Flockfly Platform"[39m
+          [33mclass[39m=[32m"brand"[39m
+          [33mhref[39m=[32m"https://platform.flockfly.ai/"[39m
+        [36m>[39m
+          [36m<img[39m
+            [33malt[39m=[32m""[39m
+            [33mclass[39m=[32m"brand-mark"[39m
+            [33msrc[39m=[32m"/icon.png"[39m
+          [36m/>[39m
+          [36m<span>[39m
+            [0mFlockfly [0m
+            [36m<span[39m
+              [33mclass[39m=[32m"platform"[39m
+            [36m>[39m
+              [0mPlatform[0m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</a>[39m
+        [36m<nav[39m
+          [33maria-label[39m=[32m"Platform"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/skills"[39m
+          [36m>[39m
+            [0mSkills[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/routers"[39m
+          [36m>[39m
+            [0mRouters[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/sessions"[39m
+          [36m>[39m
+            [0mSessions[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33maria-current[39m=[32m"page"[39m
+            [33mhref[39m=[32m"/flockdoc/"[39m
+          [36m>[39m
+            [0mFlockdoc[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/getting-started"[39m
+          [36m>[39m
+            [0mGetting started[0m
+          [36m</a>[39m
+        [36m</nav>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spacer"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"user-chip"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [0mPreview workspace[0m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<aside[39m
+        [33mclass[39m=[32m"sidebar"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"new-wrap"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33mclass[39m=[32m"new-button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-plus"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"20"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"20"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M5 12h14"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 5v14"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0m New[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<nav[39m
+          [33maria-label[39m=[32m"Workspace navigation"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33maria-current[39m=[32m"page"[39m
+            [33mclass[39m=[32m"active"[39m
+            [33mhref[39m=[32m"/flockdoc/"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-folder-open"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mMy workspace[0m
+          [36m</a>[39m
+        [36m</nav>[39m
+      [36m</aside>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"workspace"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"topbar"[39m
+        [36m>[39m
+          [36m<label>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-search"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"11"[39m
+                [33mcy[39m=[32m"11"[39m
+                [33mr[39m=[32m"8"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m21 21-4.3-4.3"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<input[39m
+              [33mplaceholder[39m=[32m"Search papers and spreadsheets"[39m
+              [33mvalue[39m=[32m""[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33maria-label[39m=[32m"Help"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-circle-help"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"12"[39m
+                [33mcy[39m=[32m"12"[39m
+                [33mr[39m=[32m"10"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 17h.01"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</button>[39m
+        [36m</header>[39m
+        [36m<section[39m
+          [33mclass[39m=[32m"workspace-content"[39m
+        [36m>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"sync-note"[39m
+          [36m>[39m
+            [0mLoading your cloud workspace…[0m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"title-row"[39m
+          [36m>[39m
+            [36m<h1>[39m
+              [0mMy workspace[0m
+            [36m</h1>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"filters"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"active"[39m
+            [36m>[39m
+              [0mAll[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mPapers[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mSpreadsheets[0m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33maria-label[39m=[32m"Flockdocs"[39m
+            [33mclass[39m=[32m"file-table"[39m
+            [33mrole[39m=[32m"table"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"file-row table-head"[39m
+              [33mrole[39m=[32m"row"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0mName ↑[0m
+              [36m</span>[39m
+              [36m<span>[39m
+                [0mType[0m
+              [36m</span>[39m
+              [36m<span>[39m
+                [0mPeople & agents[0m
+              [36m</span>[39m
+              [36m<span>[39m
+                [0mModified ↓[0m
+              [36m</span>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"empty-state"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-file-text"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M14 2v4a2 2 0 0 0 2 2h4"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M10 9H8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M16 13H8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M16 17H8"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<strong>[39m
+                [0mNo flockdocs yet[0m
+              [36m</strong>[39m
+              [36m<span>[39m
+                [0mCreate a Paper or Spreadsheet to start working.[0m
+              [36m</span>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</section>[39m
+      [36m</main>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/__tests__/workspace.test.tsx:75:27
+     73|     fireEvent.click(screen.getByRole('menuitem', { name: 'Folder' }));
+     74|
+     75|     const dialog = screen.getByRole('dialog', { name: 'Create folder' …
+       |                           ^
+     76|     fireEvent.change(within(dialog).getByRole('textbox', { name: 'Fold…
+     77|     fireEvent.click(within(dialog).getByRole('button', { name: 'Create…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  src/__tests__/workspace.test.tsx > Flockdoc workspace > moves a local file into a folder and deletes it after confirmation
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Move Planning Paper"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "Flockfly platform navigation":
+  [36m<header[39m
+    [33maria-label[39m=[32m"Flockfly platform navigation"[39m
+    [33mclass[39m=[32m"platform-header"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"topbar"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Flockfly Platform":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Flockfly Platform"[39m
+    [33mclass[39m=[32m"brand"[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/"[39m
+  [36m/>[39m
+
+  Name "Skills":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/skills"[39m
+  [36m/>[39m
+
+  Name "Routers":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/routers"[39m
+  [36m/>[39m
+
+  Name "Sessions":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/sessions"[39m
+  [36m/>[39m
+
+  Name "Flockdoc":
+  [36m<a[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mhref[39m=[32m"/flockdoc/"[39m
+  [36m/>[39m
+
+  Name "Getting started":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/getting-started"[39m
+  [36m/>[39m
+
+  Name "My workspace":
+  [36m<a[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mclass[39m=[32m"active"[39m
+    [33mhref[39m=[32m"/flockdoc/"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  presentation:
+
+  Name "":
+  [36m<img[39m
+    [33malt[39m=[32m""[39m
+    [33mclass[39m=[32m"brand-mark"[39m
+    [33msrc[39m=[32m"/icon.png"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  navigation:
+
+  Name "Platform":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"Platform"[39m
+  [36m/>[39m
+
+  Name "Workspace navigation":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"Workspace navigation"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  complementary:
+
+  Name "":
+  [36m<aside[39m
+    [33mclass[39m=[32m"sidebar"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "New":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33mclass[39m=[32m"new-button"[39m
+  [36m/>[39m
+
+  Name "Help":
+  [36m<button[39m
+    [33maria-label[39m=[32m"Help"[39m
+  [36m/>[39m
+
+  Name "All":
+  [36m<button[39m
+    [33mclass[39m=[32m"active"[39m
+  [36m/>[39m
+
+  Name "Papers":
+  [36m<button[39m
+    [33mclass[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Spreadsheets":
+  [36m<button[39m
+    [33mclass[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  main:
+
+  Name "":
+  [36m<main[39m
+    [33mclass[39m=[32m"workspace"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "":
+  [36m<input[39m
+    [33mplaceholder[39m=[32m"Search papers and spreadsheets"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"sync-note"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "My workspace":
+  [36m<h1 />[39m
+
+  --------------------------------------------------
+  table:
+
+  Name "Flockdocs":
+  [36m<div[39m
+    [33maria-label[39m=[32m"Flockdocs"[39m
+    [33mclass[39m=[32m"file-table"[39m
+    [33mrole[39m=[32m"table"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "Name ↑ Type People & agents Modified ↓":
+  [36m<div[39m
+    [33mclass[39m=[32m"file-row table-head"[39m
+    [33mrole[39m=[32m"row"[39m
+  [36m/>[39m
+
+  Name "Planning Paper Paper Just now":
+  [36m<button[39m
+    [33mclass[39m=[32m"file-row"[39m
+    [33mrole[39m=[32m"row"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"app-shell"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33maria-label[39m=[32m"Flockfly platform navigation"[39m
+        [33mclass[39m=[32m"platform-header"[39m
+      [36m>[39m
+        [36m<a[39m
+          [33maria-label[39m=[32m"Flockfly Platform"[39m
+          [33mclass[39m=[32m"brand"[39m
+          [33mhref[39m=[32m"https://platform.flockfly.ai/"[39m
+        [36m>[39m
+          [36m<img[39m
+            [33malt[39m=[32m""[39m
+            [33mclass[39m=[32m"brand-mark"[39m
+            [33msrc[39m=[32m"/icon.png"[39m
+          [36m/>[39m
+          [36m<span>[39m
+            [0mFlockfly [0m
+            [36m<span[39m
+              [33mclass[39m=[32m"platform"[39m
+            [36m>[39m
+              [0mPlatform[0m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</a>[39m
+        [36m<nav[39m
+          [33maria-label[39m=[32m"Platform"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/skills"[39m
+          [36m>[39m
+            [0mSkills[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/routers"[39m
+          [36m>[39m
+            [0mRouters[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/sessions"[39m
+          [36m>[39m
+            [0mSessions[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33maria-current[39m=[32m"page"[39m
+            [33mhref[39m=[32m"/flockdoc/"[39m
+          [36m>[39m
+            [0mFlockdoc[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/getting-started"[39m
+          [36m>[39m
+            [0mGetting started[0m
+          [36m</a>[39m
+        [36m</nav>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spacer"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"user-chip"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [0mPreview workspace[0m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<aside[39m
+        [33mclass[39m=[32m"sidebar"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"new-wrap"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33mclass[39m=[32m"new-button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-plus"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"20"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"20"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M5 12h14"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 5v14"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0m New[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<nav[39m
+          [33maria-label[39m=[32m"Workspace navigation"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33maria-current[39m=[32m"page"[39m
+            [33mclass[39m=[32m"active"[39m
+            [33mhref[39m=[32m"/flockdoc/"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-folder-open"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mMy workspace[0m
+          [36m</a>[39m
+        [36m</nav>[39m
+      [36m</aside>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"workspace"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"topbar"[39m
+        [36m>[39m
+          [36m<label>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-search"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"11"[39m
+                [33mcy[39m=[32m"11"[39m
+                [33mr[39m=[32m"8"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m21 21-4.3-4.3"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<input[39m
+              [33mplaceholder[39m=[32m"Search papers and spreadsheets"[39m
+              [33mvalue[39m=[32m""[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33maria-label[39m=[32m"Help"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-circle-help"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"12"[39m
+                [33mcy[39m=[32m"12"[39m
+                [33mr[39m=[32m"10"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 17h.01"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</button>[39m
+        [36m</header>[39m
+        [36m<section[39m
+          [33mclass[39m=[32m"workspace-content"[39m
+        [36m>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"sync-note"[39m
+          [36m>[39m
+            [0mLoading your cloud workspace…[0m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"title-row"[39m
+          [36m>[39m
+            [36m<h1>[39m
+              [0mMy workspace[0m
+            [36m</h1>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"filters"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"active"[39m
+            [36m>[39m
+              [0mAll[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mPapers[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mSpreadsheets[0m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33maria-label[39m=[32m"Flockdocs"[39m
+            [33mclass[39m=[32m"file-table"[39m
+            [33mrole[39m=[32m"table"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"file-row table-head"[39m
+              [33mrole[39m=[32m"row"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0mName ↑[0m
+              [36m</span>[39m
+              [36m<span>[39m
+                [0mType[0m
+              [36m</span>[39m
+              [36m<span>[39m
+                [0mPeople & agents[0m
+              [36m</span>[39m
+              [36m<span>[39m
+                [0mModified ↓[0m
+              [36m</span>[39m
+            [36m</div>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"file-row"[39m
+              [33mrole[39m=[32m"row"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"file-name"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33mclass[39m=[32m"lucide lucide-file-text type-icon paper"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"24"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"24"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M14 2v4a2 2 0 0 0 2 2h4"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M10 9H8"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M16 13H8"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M16 17H8"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+                [36m<span>[39m
+                  [0mPlanning Paper[0m
+                [36m</span>[39m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"type-label"[39m
+              [36m>[39m
+                [0mPaper[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"avatar-stack"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"modified"[39m
+              [36m>[39m
+                [0mJust now[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</section>[39m
+      [36m</main>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/__tests__/workspace.test.tsx:95:28
+     93|     render(<App />);
+     94|
+     95|     fireEvent.click(screen.getByRole('button', { name: 'Move Planning …
+       |                            ^
+     96|     fireEvent.change(screen.getByRole('combobox', { name: 'Move Planni…
+     97|     fireEvent.click(screen.getByRole('button', { name: 'Confirm move' …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  4 failed (4)
+      Tests  7 failed | 14 passed (21)
+   Start at  16:23:07
+   Duration  701ms (transform 272ms, setup 240ms, import 171ms, tests 234ms, environment 607ms)
+

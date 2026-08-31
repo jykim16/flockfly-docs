@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Flockdoc } from '../types';
-import { loadWorkspace, saveWorkspace, WORKSPACE_STORAGE_KEY } from '../lib/workspace-storage';
+import type { Flockdoc, FlockdocFolder } from '../types';
+import { FOLDER_STORAGE_KEY, loadFolders, loadWorkspace, saveFolders, saveWorkspace, WORKSPACE_STORAGE_KEY } from '../lib/workspace-storage';
 
 const paper: Flockdoc = {
   id: 'paper-1',
@@ -9,6 +9,13 @@ const paper: Flockdoc = {
   modifiedAt: 'Just now',
   collaborators: [],
   snapshot: { id: 'paper-1', body: { dataStream: 'Hello\r\n' } },
+};
+
+const folder: FlockdocFolder = {
+  id: 'folder-1',
+  name: 'Planning',
+  parentFolderId: null,
+  modifiedAt: 'Just now',
 };
 
 describe('workspace storage', () => {
@@ -21,6 +28,15 @@ describe('workspace storage', () => {
 
     expect(loadWorkspace(localStorage)).toEqual([paper]);
     expect(JSON.parse(localStorage.getItem(WORKSPACE_STORAGE_KEY)!)).toMatchObject({ version: 1 });
+  });
+
+  it('round-trips local folders independently of legacy flockdoc storage', () => {
+    saveWorkspace([paper], localStorage);
+    saveFolders([folder], localStorage);
+
+    expect(loadFolders(localStorage)).toEqual([folder]);
+    expect(loadWorkspace(localStorage)).toEqual([paper]);
+    expect(JSON.parse(localStorage.getItem(FOLDER_STORAGE_KEY)!)).toMatchObject({ version: 1 });
   });
 
   it.each([

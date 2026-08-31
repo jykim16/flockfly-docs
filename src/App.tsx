@@ -6,11 +6,13 @@ import { PaperEditor } from './features/editor/PaperEditor';
 import { RemoteEditor } from './features/editor/RemoteEditor';
 import { SpreadsheetEditor } from './features/editor/SpreadsheetEditor';
 import { FlockdocTable } from './features/workspace/FlockdocTable';
+import { CreateFolderDialog } from './features/workspace/CreateFolderDialog';
+import { FolderBreadcrumb } from './features/workspace/FolderBreadcrumb';
 import { consumeAuthTokenFromHash, FlockdocApi, getToken, googleSignInUrl, supportsPlatformSession } from './lib/api';
 import { registerFlockdocWebMCP } from './lib/webmcp';
 import { currentFlockdocPath, migrateLegacyFlockdocPath, navigateFlockdoc } from './lib/navigation';
-import { loadWorkspace, saveWorkspace } from './lib/workspace-storage';
-import type { Flockdoc, FlockdocType, WorkspaceFilter } from './types';
+import { loadFolders, loadWorkspace, saveFolders, saveWorkspace } from './lib/workspace-storage';
+import type { Flockdoc, FlockdocFolder, FlockdocType, WorkspaceFilter } from './types';
 import './styles.css';
 
 function routeFor(item: Flockdoc) { return `/flockdoc/${item.type}/${item.id}`; }
@@ -23,6 +25,9 @@ export default function App() {
     return consumed ?? getToken();
   });
   const [items, setItems] = useState<Flockdoc[]>(() => loadWorkspace(localStorage));
+  const [folders, setFolders] = useState<FlockdocFolder[]>(() => loadFolders(localStorage));
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [filter, setFilter] = useState<WorkspaceFilter>('all');
   const [query, setQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,6 +38,7 @@ export default function App() {
   const api = useMemo(() => new FlockdocApi(token ?? undefined), [token]);
   const cloudApi = authenticated ? api : null;
   const itemsRef = useRef(items);
+  const foldersRef = useRef(folders);
   const apiRef = useRef(cloudApi);
 
   useEffect(() => {
@@ -43,8 +49,10 @@ export default function App() {
     return () => { removeEventListener('popstate', handler); removeEventListener('hashchange', handler); };
   }, []);
   useEffect(() => { itemsRef.current = items; }, [items]);
+  useEffect(() => { foldersRef.current = folders; }, [folders]);
   useEffect(() => { apiRef.current = cloudApi; }, [cloudApi]);
   useEffect(() => { saveWorkspace(items, localStorage); }, [items]);
+  useEffect(() => { saveFolders(folders, localStorage); }, [folders]);
   useEffect(() => {
     let active = true;
     if (!supportsPlatformSession()) {
@@ -54,11 +62,12 @@ export default function App() {
     setSyncStatus('loading');
     void api.session().then(session => {
       if (active) setAccount({ email: session.user.email, entitled: session.billing?.entitled === true });
-      return api.list();
-    }).then(({ flockdocs }) => {
+      return Promise.all([api.list(), api.listFolders()]);
+    }).then(([{ flockdocs }, { folders: cloudFolders }]) => {
       if (!active) return;
       setAuthenticated(true);
       setItems(flockdocs);
+      setFolders(cloudFolders);
       setSyncStatus('synced');
     }).catch(error => {
       if (!active) return;
@@ -69,12 +78,13 @@ export default function App() {
     return () => { active = false; };
   }, [api]);
   useEffect(() => registerFlockdocWebMCP({ modelContext: document.modelContext, actions: {
-    listFlockdocs: () => ({ flockdocs: itemsRef.current }),
-    createFlockdoc: async ({ name, type }) => {
+    listFlockdocs: () => ({ flockdocs: itemsRef.current, folders: foldersRef.current }),
+    createFlockdoc: async ({ name, type, parentFolderId }) => {
       const remoteApi = apiRef.current;
+      const targetFolderId = typeof parentFolderId === 'string' ? parentFolderId : null;
       const next = remoteApi
-        ? (await remoteApi.create(String(name), type as FlockdocType)).flockdoc
-        : { id: crypto.randomUUID(), name: String(name), type: type as FlockdocType, modifiedAt: 'Just now', collaborators: [] };
+        ? (await remoteApi.create(String(name), type as FlockdocType, targetFolderId)).flockdoc
+        : { id: crypto.randomUUID(), name: String(name), type: type as FlockdocType, parentFolderId: targetFolderId, modifiedAt: 'Just now', collaborators: [] };
       setItems(current => [next, ...current]);
       return { flockdoc: next };
     },
@@ -84,9 +94,39 @@ export default function App() {
       setItems(current => current.map(item => item.id === id ? { ...item, name: String(name) } : item));
       return { ok: true };
     },
+    createFolder: async ({ name, parentFolderId }) => {
+      const remoteApi = apiRef.current;
+      const targetFolderId = typeof parentFolderId === 'string' ? parentFolderId : null;
+      const next = remoteApi
+        ? (await remoteApi.createFolder(String(name), targetFolderId)).folder
+        : { id: crypto.randomUUID(), name: String(name), parentFolderId: targetFolderId, modifiedAt: 'Just now' };
+      setFolders(current => [next, ...current]);
+      return { folder: next };
+    },
+    moveFlockdoc: async ({ id, parentFolderId }) => {
+      const remoteApi = apiRef.current;
+      const targetFolderId = typeof parentFolderId === 'string' ? parentFolderId : null;
+      const moved = remoteApi ? (await remoteApi.move(String(id), targetFolderId)).flockdoc : null;
+      setItems(current => current.map(item => item.id === id ? (moved ?? { ...item, parentFolderId: targetFolderId, modifiedAt: 'Just now' }) : item));
+      return { flockdoc: moved ?? itemsRef.current.find(item => item.id === id) };
+    },
+    deleteFlockdoc: async ({ id }) => {
+      const remoteApi = apiRef.current;
+      if (remoteApi) await remoteApi.trash(String(id));
+      setItems(current => current.filter(item => item.id !== id));
+      return { ok: true };
+    },
   }}), []);
 
-  const visibleItems = useMemo(() => items.filter(item => (filter === 'all' || item.type === filter) && item.name.toLowerCase().includes(query.toLowerCase())), [filter, items, query]);
+  const visibleItems = useMemo(() => items.filter(item => (item.parentFolderId ?? null) === currentFolderId && (filter === 'all' || item.type === filter) && item.name.toLowerCase().includes(query.toLowerCase())), [currentFolderId, filter, items, query]);
+  const visibleFolders = useMemo(() => folders.filter(folder => (folder.parentFolderId ?? null) === currentFolderId && folder.name.toLowerCase().includes(query.toLowerCase())), [currentFolderId, folders, query]);
+  const folderPath = useMemo(() => {
+    const path: FlockdocFolder[] = [];
+    const seen = new Set<string>();
+    let id = currentFolderId;
+    while (id && !seen.has(id)) { seen.add(id); const folder = folders.find(entry => entry.id === id); if (!folder) break; path.unshift(folder); id = folder.parentFolderId ?? null; }
+    return path;
+  }, [currentFolderId, folders]);
   const routeMatch = route.match(/^\/flockdoc\/(paper|spreadsheet)\/([^/]+)/);
   if (routeMatch) {
     const item = items.find(entry => entry.id === routeMatch[2]);
@@ -103,12 +143,28 @@ export default function App() {
 
   const create = async (type: 'paper' | 'spreadsheet' | 'folder') => {
     setMenuOpen(false);
-    if (type === 'folder') return;
+    if (type === 'folder') { setFolderDialogOpen(true); return; }
     const name = type === 'paper' ? 'Untitled Paper' : 'Untitled Spreadsheet';
     const item: Flockdoc = cloudApi
-      ? (await cloudApi.create(name, type)).flockdoc
-      : { id: crypto.randomUUID(), name, type, modifiedAt: 'Just now', collaborators: [] };
+      ? (await cloudApi.create(name, type, currentFolderId)).flockdoc
+      : { id: crypto.randomUUID(), name, type, parentFolderId: currentFolderId, modifiedAt: 'Just now', collaborators: [] };
     setItems(current => [item, ...current]); navigateFlockdoc(routeFor(item));
+  };
+
+  const createFolder = async (name: string) => {
+    const folder = cloudApi
+      ? (await cloudApi.createFolder(name, currentFolderId)).folder
+      : { id: crypto.randomUUID(), name, parentFolderId: currentFolderId, modifiedAt: 'Just now' };
+    setFolders(current => [folder, ...current]);
+    setFolderDialogOpen(false);
+  };
+  const moveFlockdoc = async (item: Flockdoc, parentFolderId: string | null) => {
+    const moved = cloudApi ? (await cloudApi.move(item.id, parentFolderId)).flockdoc : { ...item, parentFolderId, modifiedAt: 'Just now' };
+    setItems(current => current.map(entry => entry.id === item.id ? moved : entry));
+  };
+  const deleteFlockdoc = async (item: Flockdoc) => {
+    if (cloudApi) await cloudApi.trash(item.id);
+    setItems(current => current.filter(entry => entry.id !== item.id));
   };
 
   return <div className="app-shell">
@@ -121,9 +177,11 @@ export default function App() {
         {syncStatus === 'loading' ? <p className="sync-note">Loading your cloud workspace…</p> : null}
         {syncStatus === 'error' ? <p className="sync-note error">Cloud sync is unavailable. Your browser copy has not been removed.</p> : null}
         <div className="title-row"><h1>My workspace</h1></div>
+        <FolderBreadcrumb folders={folderPath} onNavigate={setCurrentFolderId} />
         <div className="filters">{([['all', 'All'], ['paper', 'Papers'], ['spreadsheet', 'Spreadsheets']] as const).map(([value, label]) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div>
-        <FlockdocTable items={visibleItems} />
+        <FlockdocTable items={visibleItems} folders={visibleFolders} allFolders={folders} onOpenFolder={setCurrentFolderId} onMove={moveFlockdoc} onDelete={deleteFlockdoc} />
       </section>
     </main>
+    {folderDialogOpen && <CreateFolderDialog onCreate={createFolder} onCancel={() => setFolderDialogOpen(false)} />}
   </div>;
 }

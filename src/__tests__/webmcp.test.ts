@@ -10,6 +10,9 @@ describe('Flockdoc WebMCP bridge', () => {
         listFlockdocs: vi.fn(),
         createFlockdoc: vi.fn(),
         renameFlockdoc: vi.fn(),
+        createFolder: vi.fn(),
+        moveFlockdoc: vi.fn(),
+        deleteFlockdoc: vi.fn(),
       },
     });
 
@@ -17,6 +20,9 @@ describe('Flockdoc WebMCP bridge', () => {
       'flockdoc.list',
       'flockdoc.create',
       'flockdoc.rename',
+      'flockdoc.create_folder',
+      'flockdoc.move',
+      'flockdoc.delete',
     ]);
     dispose();
   });
@@ -29,6 +35,9 @@ describe('Flockdoc WebMCP bridge', () => {
         listFlockdocs: vi.fn(),
         createFlockdoc: vi.fn(),
         renameFlockdoc: vi.fn(),
+        createFolder: vi.fn(),
+        moveFlockdoc: vi.fn(),
+        deleteFlockdoc: vi.fn(),
         shareFlockdoc: vi.fn(),
         commentOnFlockdoc: vi.fn(),
       } as never,
@@ -38,6 +47,9 @@ describe('Flockdoc WebMCP bridge', () => {
       'flockdoc.list',
       'flockdoc.create',
       'flockdoc.rename',
+      'flockdoc.create_folder',
+      'flockdoc.move',
+      'flockdoc.delete',
     ]);
   });
 });

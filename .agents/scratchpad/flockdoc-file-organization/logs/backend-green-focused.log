@@ -1,0 +1,16 @@
+
+> @flockfly/context-api@0.1.0 test
+> vitest run --run test/flockdoc-collaboration-foundation.test.ts
+
+
+ RUN  v3.2.7 /Users/jkim/Documents/vibe/webmcp/flockfly-backend/context-router/api
+
+ ✓ test/flockdoc-collaboration-foundation.test.ts (7 tests) 2223ms
+   ✓ flockdoc collaboration foundation > persists snapshot state idempotently and rejects stale revisions  508ms
+   ✓ flockdoc collaboration foundation > allows viewers to read state but only editors to save it  312ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  16:23:58
+   Duration  2.63s (transform 141ms, setup 0ms, collect 219ms, tests 2.22s, environment 0ms, prepare 70ms)
+

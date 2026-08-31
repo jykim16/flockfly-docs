@@ -1,4 +1,4 @@
-import type { Flockdoc, FlockdocPermissions, FlockdocRole, FlockdocType } from '../types';
+import type { Flockdoc, FlockdocFolder, FlockdocPermissions, FlockdocRole, FlockdocType } from '../types';
 
 const TOKEN_KEY = 'flockfly.token';
 const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? '';
@@ -17,9 +17,17 @@ interface BackendFlockdoc {
   type: FlockdocType;
   name: string;
   updatedAt?: string;
+  parentFolderId?: string | null;
   headRevision?: number;
   role?: FlockdocRole;
   permissions?: FlockdocPermissions;
+}
+
+interface BackendFolder {
+  id: string;
+  name: string;
+  parentFolderId: string | null;
+  updatedAt?: string;
 }
 
 export interface FlockdocState {
@@ -75,10 +83,20 @@ function mapFlockdoc(flockdoc: BackendFlockdoc): Flockdoc {
     name: flockdoc.name,
     type: flockdoc.type,
     modifiedAt: flockdoc.updatedAt ?? 'Just now',
+    parentFolderId: flockdoc.parentFolderId ?? null,
     collaborators: [],
     headRevision: flockdoc.headRevision ?? 0,
     role: flockdoc.role,
     permissions: flockdoc.permissions,
+  };
+}
+
+function mapFolder(folder: BackendFolder): FlockdocFolder {
+  return {
+    id: folder.id,
+    name: folder.name,
+    parentFolderId: folder.parentFolderId,
+    modifiedAt: folder.updatedAt ?? 'Just now',
   };
 }
 
@@ -117,11 +135,34 @@ export class FlockdocApi {
     return { flockdocs: response.flockdocs.map(mapFlockdoc) };
   }
 
-  async create(name: string, type: FlockdocType): Promise<{ flockdoc: Flockdoc }> {
+  async create(name: string, type: FlockdocType, parentFolderId: string | null = null): Promise<{ flockdoc: Flockdoc }> {
     const response = await this.request<{ flockdoc: BackendFlockdoc }>('/v1/flockdocs', {
-      method: 'POST', body: JSON.stringify({ name, type }),
+      method: 'POST', body: JSON.stringify({ name, type, parentFolderId }),
     });
     return { flockdoc: mapFlockdoc(response.flockdoc) };
+  }
+
+  async listFolders(): Promise<{ folders: FlockdocFolder[] }> {
+    const response = await this.request<{ folders: BackendFolder[] }>('/v1/flockdoc-folders', { method: 'GET' });
+    return { folders: response.folders.map(mapFolder) };
+  }
+
+  async createFolder(name: string, parentFolderId: string | null): Promise<{ folder: FlockdocFolder }> {
+    const response = await this.request<{ folder: BackendFolder }>('/v1/flockdoc-folders', {
+      method: 'POST', body: JSON.stringify({ name, parentFolderId }),
+    });
+    return { folder: mapFolder(response.folder) };
+  }
+
+  async move(id: string, parentFolderId: string | null): Promise<{ flockdoc: Flockdoc }> {
+    const response = await this.request<{ flockdoc: BackendFlockdoc }>(`/v1/flockdocs/${id}`, {
+      method: 'PATCH', body: JSON.stringify({ parentFolderId }),
+    });
+    return { flockdoc: mapFlockdoc(response.flockdoc) };
+  }
+
+  async trash(id: string): Promise<void> {
+    await this.request<void>(`/v1/flockdocs/${id}`, { method: 'DELETE' });
   }
 
   async rename(id: string, name: string): Promise<{ flockdoc: Flockdoc }> {
