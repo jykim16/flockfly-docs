@@ -6,4 +6,4 @@
 - [x] RED: the frontend dialog uses Router labels, member/invitation lists, general access, and copy-link behavior.
 - [x] GREEN: implement schema migration, services, routes, frontend API, dialog, and workspace invitation handling.
 - [x] REFACTOR: align focus management, CSS class structure, error handling, and naming with Router sharing.
-- [ ] VERIFY: full tests, typechecks, builds, infrastructure tests, deployment, and read-only browser QA.
+- [x] VERIFY: full tests, typechecks, builds, infrastructure tests, deployment, and read-only browser QA.
