@@ -3,6 +3,7 @@ import type { FlockdocApi, FlockdocState } from '../../lib/api';
 import { SerializedSnapshotSaver } from '../../lib/remote-persistence';
 import { FlockdocRealtimeClient, FlockdocRealtimeRecovery, getFlockdocRealtimeClientId, type FlockdocRealtimeEvent } from '../../lib/flockdoc-realtime';
 import { RemoteSnapshotSynchronizer } from '../../lib/realtime-snapshot-sync';
+import { SnapshotPersistenceGate } from '../../lib/snapshot-persistence-gate';
 import type { Flockdoc } from '../../types';
 import { PaperEditor } from './PaperEditor';
 import { SpreadsheetEditor } from './SpreadsheetEditor';
@@ -23,11 +24,14 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
   const [saver] = useState(() => new SerializedSnapshotSaver(state.revision, (baseRevision, snapshot) =>
     api.saveState(item.id, baseRevision, crypto.randomUUID(), snapshot, clientId),
   ));
+  const [snapshotGate] = useState(() => new SnapshotPersistenceGate(item.snapshot));
   const editVersion = useRef(0);
   const persistedEditVersion = useRef(0);
   const collaborators = useRef(new Map<string, { id: string; name: string; kind: 'person' | 'agent' }>());
   const onUpdateRef = useRef(onUpdate);
+  const currentItemSnapshot = useRef(currentItem.snapshot);
   onUpdateRef.current = onUpdate;
+  currentItemSnapshot.current = currentItem.snapshot;
   const renameTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const latestName = useRef(item.name);
   const [sharing, setSharing] = useState(false);
@@ -44,6 +48,7 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
       load: () => api.getState(item.id),
       apply: next => {
         saver.revision = next.revision;
+        snapshotGate.accept(next.snapshot ?? currentItemSnapshot.current);
         setLiveState(next);
         setNewerRevision(null);
         onUpdateRef.current({ ...next.flockdoc, snapshot: next.snapshot, headRevision: next.revision, modifiedAt: 'Just now' });
@@ -78,7 +83,7 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
     });
     void realtime.start();
     return () => realtime.stop();
-  }, [api, clientId, item.id, saver]);
+  }, [api, clientId, item.id, saver, snapshotGate]);
 
   const onRename = (name: string) => {
     latestName.current = name;
@@ -88,10 +93,12 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
   };
   const onSnapshot = async (snapshot: unknown) => {
     const savingEditVersion = editVersion.current;
-    onUpdate({ snapshot, modifiedAt: 'Just now' });
-    const revision = await saver.save(snapshot);
+    const result = await snapshotGate.persistIfChanged(snapshot, () => {
+      onUpdate({ snapshot, modifiedAt: 'Just now' });
+      return saver.save(snapshot);
+    });
     persistedEditVersion.current = Math.max(persistedEditVersion.current, savingEditVersion);
-    onUpdate({ headRevision: revision });
+    if (result.changed) onUpdate({ headRevision: result.value });
   };
   const onDirty = () => { editVersion.current += 1; };
   const common = {

@@ -1,0 +1,15 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run src/__tests__/snapshot-persistence-gate.test.ts
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:46031) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  21:09:56
+   Duration  313ms (transform 24ms, setup 63ms, import 10ms, tests 8ms, environment 156ms)
+
