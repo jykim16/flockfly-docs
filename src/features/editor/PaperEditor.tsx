@@ -16,9 +16,13 @@ interface PaperEditorProps {
 
 export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, canEdit = true, canShare = true, onShare }: PaperEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const mountedRef = useRef<MountedUniverEditor | undefined>(undefined);
+  const mountedSnapshotRef = useRef(item.snapshot);
+  const latestSnapshotRef = useRef(item.snapshot);
   const onSnapshotRef = useRef(onSnapshot);
   const [status, setStatus] = useState('Loading Univer…');
   onSnapshotRef.current = onSnapshot;
+  latestSnapshotRef.current = item.snapshot;
 
   useEffect(() => {
     let cancelled = false;
@@ -30,7 +34,7 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, canEd
         host: hostRef.current,
         id: item.id,
         name: item.name,
-        snapshot: item.snapshot,
+        snapshot: latestSnapshotRef.current,
         canEdit,
         onDirty,
         onSnapshot: snapshot => {
@@ -42,6 +46,8 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, canEd
               : 'Save failed — changes remain in this browser'));
         },
       });
+      mountedRef.current = mounted;
+      mountedSnapshotRef.current = latestSnapshotRef.current;
       setStatus(canEdit ? 'Saved' : 'View only');
     }).catch(error => {
       console.error('Failed to load Univer Paper', error);
@@ -50,9 +56,16 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, canEd
 
     return () => {
       cancelled = true;
+      if (mountedRef.current === mounted) mountedRef.current = undefined;
       mounted?.dispose();
     };
   }, [canEdit, item.id]);
+
+  useEffect(() => {
+    if (!mountedRef.current || Object.is(mountedSnapshotRef.current, item.snapshot)) return;
+    mountedSnapshotRef.current = item.snapshot;
+    mountedRef.current.applySnapshot(item.snapshot);
+  }, [item.snapshot]);
 
   return <main className="editor-shell univer-shell">
     <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Paper name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>

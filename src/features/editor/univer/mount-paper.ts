@@ -13,11 +13,11 @@ export function mountPaper({ host, id, name, snapshot, canEdit = true, onSnapsho
     presets: [UniverDocsCorePreset({ container: host })],
   });
 
-  const document = univerAPI.createDocument(
+  let document = univerAPI.createDocument(
     (snapshot ?? getDocsEmptySnapshot(id, LocaleType.EN_US, name, DocumentFlavor.TRADITIONAL)) as IDocumentData,
   );
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
-  const commandSubscription = canEdit ? univerAPI.addEvent(univerAPI.Event.CommandExecuted, () => {
+  const subscribeToChanges = () => canEdit ? univerAPI.addEvent(univerAPI.Event.CommandExecuted, () => {
     onDirty?.();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
@@ -25,8 +25,19 @@ export function mountPaper({ host, id, name, snapshot, canEdit = true, onSnapsho
       onSnapshot(document.save());
     }, 350);
   }) : undefined;
+  let commandSubscription = subscribeToChanges();
 
   return {
+    applySnapshot(nextSnapshot) {
+      clearTimeout(saveTimer);
+      saveTimer = undefined;
+      commandSubscription?.dispose();
+      univerAPI.disposeUnit(document.getId());
+      document = univerAPI.createDocument(
+        (nextSnapshot ?? getDocsEmptySnapshot(id, LocaleType.EN_US, name, DocumentFlavor.TRADITIONAL)) as IDocumentData,
+      );
+      commandSubscription = subscribeToChanges();
+    },
     dispose() {
       if (saveTimer) {
         clearTimeout(saveTimer);

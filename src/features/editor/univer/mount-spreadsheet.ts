@@ -14,12 +14,12 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
     presets: [UniverSheetsCorePreset({ container: host })],
   });
 
-  const workbook = univerAPI.createWorkbook(
+  let workbook = univerAPI.createWorkbook(
     (snapshot ?? getSheetsEmptySnapshot(id, LocaleType.EN_US, name)) as IWorkbookData,
   );
   const unregisterWebMCP = registerUniverWebMCP({ ownerDocument: host.ownerDocument, univerAPI, canEdit });
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
-  const commandSubscription = canEdit ? workbook.onCommandExecuted(() => {
+  const subscribeToChanges = () => canEdit ? workbook.onCommandExecuted(() => {
     onDirty?.();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
@@ -27,8 +27,19 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
       onSnapshot(workbook.save());
     }, 350);
   }) : undefined;
+  let commandSubscription = subscribeToChanges();
 
   return {
+    applySnapshot(nextSnapshot) {
+      clearTimeout(saveTimer);
+      saveTimer = undefined;
+      commandSubscription?.dispose();
+      univerAPI.disposeUnit(workbook.getId());
+      workbook = univerAPI.createWorkbook(
+        (nextSnapshot ?? getSheetsEmptySnapshot(id, LocaleType.EN_US, name)) as IWorkbookData,
+      );
+      commandSubscription = subscribeToChanges();
+    },
     dispose() {
       if (saveTimer) {
         clearTimeout(saveTimer);

@@ -1,0 +1,267 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run src/__tests__/editor-refresh.test.tsx
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:38599) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/editor-refresh.test.tsx (2 tests | 2 failed) 2038ms
+     × updates Paper through its mounted adapter without replacing the editor shell 1027ms
+     × updates Spreadsheet through its mounted adapter without replacing the editor shell 1010ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/editor-refresh.test.tsx > remote editor snapshot refresh > updates Paper through its mounted adapter without replacing the editor shell
+AssertionError: expected "vi.fn()" to be called with arguments: [ { revision: 2 } ]
+
+Number of calls: 0
+
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"editor-shell univer-shell"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"editor-header"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-label[39m=[32m"Back to workspace"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-arrow-left"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m12 19-7-7 7-7"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M19 12H5"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</button>[39m
+          [36m<div>[39m
+            [36m<input[39m
+              [33maria-label[39m=[32m"Paper name"[39m
+              [33mclass[39m=[32m"document-title"[39m
+              [33mvalue[39m=[32m"Plan"[39m
+            [36m/>[39m
+            [36m<span>[39m
+              [0mSaved[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"share"[39m
+            [33mdisabled[39m=[32m""[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-share2"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"18"[39m
+                [33mcy[39m=[32m"5"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"6"[39m
+                [33mcy[39m=[32m"12"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"18"[39m
+                [33mcy[39m=[32m"19"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<line[39m
+                [33mx1[39m=[32m"8.59"[39m
+                [33mx2[39m=[32m"15.42"[39m
+                [33my1[39m=[32m"13.51"[39m
+                [33my2[39m=[32m"17.49"[39m
+              [36m/>[39m
+              [36m<line[39m
+                [33mx1[39m=[32m"15.41"[39m
+                [33mx2[39m=[32m"8.59"[39m
+                [33my1[39m=[32m"6.51"[39m
+                [33my2[39m=[32m"10.49"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0m Share[0m
+          [36m</button>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"avatar"[39m
+          [36m>[39m
+            [0mYou[0m
+          [36m</span>[39m
+        [36m</header>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Paper editor"[39m
+          [33mclass[39m=[32m"univer-editor-host"[39m
+        [36m/>[39m
+      [36m</main>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+ ❯ src/__tests__/editor-refresh.test.tsx:38:47
+     36|     view.rerender(<PaperEditor item={{ ...baseItem, snapshot: { revisi…
+     37|
+     38|     await waitFor(() => expect(applySnapshot).toHaveBeenCalledWith({ r…
+       |                                               ^
+     39|     expect(view.getByLabelText('Paper editor')).toBe(host);
+     40|     expect(mountPaper).toHaveBeenCalledOnce();
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/__tests__/editor-refresh.test.tsx > remote editor snapshot refresh > updates Spreadsheet through its mounted adapter without replacing the editor shell
+AssertionError: expected "vi.fn()" to be called with arguments: [ { revision: 2 } ]
+
+Number of calls: 0
+
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"editor-shell univer-shell"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"editor-header"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-label[39m=[32m"Back to workspace"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-arrow-left"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m12 19-7-7 7-7"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M19 12H5"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</button>[39m
+          [36m<div>[39m
+            [36m<input[39m
+              [33maria-label[39m=[32m"Spreadsheet name"[39m
+              [33mclass[39m=[32m"document-title"[39m
+              [33mvalue[39m=[32m"Plan"[39m
+            [36m/>[39m
+            [36m<span>[39m
+              [0mSaved[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"share"[39m
+            [33mdisabled[39m=[32m""[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-share2"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"18"[39m
+                [33mcy[39m=[32m"5"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"6"[39m
+                [33mcy[39m=[32m"12"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"18"[39m
+                [33mcy[39m=[32m"19"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<line[39m
+                [33mx1[39m=[32m"8.59"[39m
+                [33mx2[39m=[32m"15.42"[39m
+                [33my1[39m=[32m"13.51"[39m
+                [33my2[39m=[32m"17.49"[39m
+              [36m/>[39m
+              [36m<line[39m
+                [33mx1[39m=[32m"15.41"[39m
+                [33mx2[39m=[32m"8.59"[39m
+                [33my1[39m=[32m"6.51"[39m
+                [33my2[39m=[32m"10.49"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0m Share[0m
+          [36m</button>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"avatar"[39m
+          [36m>[39m
+            [0mYou[0m
+          [36m</span>[39m
+        [36m</header>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Spreadsheet editor"[39m
+          [33mclass[39m=[32m"univer-editor-host"[39m
+        [36m/>[39m
+      [36m</main>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+ ❯ src/__tests__/editor-refresh.test.tsx:53:47
+     51|     view.rerender(<SpreadsheetEditor item={{ ...item, snapshot: { revi…
+     52|
+     53|     await waitFor(() => expect(applySnapshot).toHaveBeenCalledWith({ r…
+       |                                               ^
+     54|     expect(view.getByLabelText('Spreadsheet editor')).toBe(host);
+     55|     expect(mountSpreadsheet).toHaveBeenCalledOnce();
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  07:01:35
+   Duration  2.46s (transform 35ms, setup 79ms, import 63ms, tests 2.04s, environment 215ms)
+

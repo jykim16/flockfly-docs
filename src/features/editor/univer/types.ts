@@ -1,4 +1,5 @@
 export interface MountedUniverEditor {
+  applySnapshot: (snapshot: unknown) => void;
   dispose: () => void;
 }
 
