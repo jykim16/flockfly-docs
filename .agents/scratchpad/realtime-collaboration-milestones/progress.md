@@ -52,7 +52,26 @@
 
 ## Remaining milestones
 
-- [ ] Milestone 3 — spreadsheet operations.
+- [x] Milestone 3 — spreadsheet operations.
 - [ ] Milestone 4 — structural collaboration.
 - [ ] Milestone 5 — Paper collaboration.
 - [ ] Milestone 6 — snapshot retirement.
+
+## Milestone 3 — spreadsheet operations
+
+- [x] RED: backend operation validation, authorization, idempotency, and publication tests failed for missing behavior.
+- [x] RED: frontend conversion, API submission, recovery cursor, and remote apply tests failed for missing behavior.
+- [x] GREEN: canonical value/formula/clear operations persist in the durable journal and replay through the existing event protocol.
+- [x] GREEN: Univer captures local cell edits and applies remote operations without replacing the editor shell.
+- [x] REFACTOR: submissions are serialized, optimistic echoes are suppressed, unsupported Univer values are ignored, and checkpoint replacement restores event subscriptions.
+- [x] VERIFY: backend focused and full workspace suites pass; backend workspace typechecks; frontend 68 tests and 2 infrastructure tests pass; frontend typecheck and production build pass.
+- [x] COMMIT: one matching milestone commit per affected repository recorded here.
+
+### Milestone 3 commits
+
+- Backend: `b3df51d` — `feat(flockdoc): add spreadsheet cell operations`
+- Frontend: this milestone commit — `feat: add spreadsheet cell operations`
+
+### Capability status
+
+`VITE_FLOCKDOC_SPREADSHEET_OPERATIONS=true` enables the operation path. It remains off by default until Milestone 4 covers structural and formatting changes, preventing partially operation-backed spreadsheets from silently losing unsupported edits.

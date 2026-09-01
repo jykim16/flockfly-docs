@@ -89,6 +89,25 @@ describe('Flockdoc API client', () => {
     expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toMatchObject({ clientId: 'browser_1' });
   });
 
+  it('submits structured spreadsheet operations with client identity', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ revision: 8, duplicate: false }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const api = new FlockdocApi();
+    const operation = {
+      protocolVersion: 1 as const,
+      kind: 'spreadsheet.cells.patch' as const,
+      sheetId: 'sheet-1',
+      changes: [{ row: 0, column: 0, value: 'Plan' }],
+    };
+
+    await expect(api.appendSpreadsheetOperation('flockdoc_1', 'operation-1', 'browser_1', operation))
+      .resolves.toEqual({ revision: 8, duplicate: false });
+    expect(fetchMock.mock.calls[0][0]).toBe('/v1/flockdocs/flockdoc_1/updates');
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      idempotencyKey: 'operation-1', clientId: 'browser_1', operation,
+    });
+  });
+
   it('lists durable updates after an encoded revision cursor', async () => {
     const response = {
       updates: [],

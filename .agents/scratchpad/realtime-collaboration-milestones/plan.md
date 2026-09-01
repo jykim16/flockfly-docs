@@ -54,9 +54,29 @@ Git commits cannot span repositories. Each milestone therefore gets at most one 
 5. Implement frontend recovery pagination and connect it to every WebSocket open.
 6. Refactor, run focused suites, then full tests/typechecks/builds.
 
+## Milestone 3 acceptance tests
+
+- Spreadsheet value, formula, and clear changes are represented as versioned, validated operations.
+- Operations are submitted with stable client identity and idempotency keys and receive a committed revision.
+- Duplicate idempotency keys cannot be reused for different operation content.
+- Realtime and reconnect recovery apply remote operations in durable revision order without reloading the editor.
+- A client's committed echo acknowledges its optimistic edit without applying it twice.
+- Checkpoint recovery recreates the spreadsheet event subscription and resumes operation capture.
+- Existing snapshot behavior remains unchanged while the spreadsheet-operation capability flag is disabled.
+- Full backend/frontend tests, typechecks, infrastructure tests, and production builds remain green.
+
+## Milestone 3 TDD sequence
+
+1. Add failing backend contract, validation, authorization, idempotency, persistence, and event tests.
+2. Add failing frontend conversion, encoding, API, recovery-cursor, and remote-apply tests.
+3. Implement canonical backend spreadsheet cell operations over the durable update journal.
+4. Implement feature-flagged Univer cell capture, serialized submission, acknowledgement, and echo-free remote apply.
+5. Refactor checkpoint recovery subscriptions, run focused suites, then full verification.
+
 ## Risks
 
 - Multiple API tasks require Redis Pub/Sub; an in-memory broker is only for local/test use.
 - WebSocket health must be independent of durable persistence; missed messages are repaired by Milestone 2.
 - Whole-snapshot writes still conflict during Milestone 1. Only clean clients auto-refresh.
-- Structural spreadsheet and Paper concurrency remain deliberately out of scope until their dedicated milestones.
+- Milestone 3 is disabled by default because sheet structure and formatting are not operation-backed until Milestone 4.
+- Paper concurrency remains deliberately out of scope until its dedicated milestone.

@@ -42,7 +42,8 @@ describe('remote editor snapshot refresh', () => {
 
   it('updates Spreadsheet through its mounted adapter without replacing the editor shell', async () => {
     const applySnapshot = vi.fn();
-    vi.mocked(mountSpreadsheet).mockReturnValue({ applySnapshot, dispose: vi.fn() });
+    const applySpreadsheetOperation = vi.fn();
+    vi.mocked(mountSpreadsheet).mockReturnValue({ applySnapshot, applySpreadsheetOperation, dispose: vi.fn() });
     const item = { ...baseItem, type: 'spreadsheet' as const };
     const view = render(<SpreadsheetEditor item={item} {...editorProps} />);
     await waitFor(() => expect(mountSpreadsheet).toHaveBeenCalledOnce());
@@ -51,6 +52,14 @@ describe('remote editor snapshot refresh', () => {
     view.rerender(<SpreadsheetEditor item={{ ...item, snapshot: { revision: 2 } }} {...editorProps} />);
 
     await waitFor(() => expect(applySnapshot).toHaveBeenCalledWith({ revision: 2 }));
+    const operation = {
+      protocolVersion: 1 as const,
+      kind: 'spreadsheet.cells.patch' as const,
+      sheetId: 'sheet-1',
+      changes: [{ row: 0, column: 0, value: 'Remote' }],
+    };
+    view.rerender(<SpreadsheetEditor item={{ ...item, snapshot: { revision: 2 } }} {...editorProps} remoteOperation={{ revision: 3, operation }} />);
+    await waitFor(() => expect(applySpreadsheetOperation).toHaveBeenCalledWith(operation));
     expect(view.getByLabelText('Spreadsheet editor')).toBe(host);
     expect(mountSpreadsheet).toHaveBeenCalledOnce();
   });

@@ -1,5 +1,6 @@
 import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocInvitation, FlockdocLinkRole, FlockdocMember, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType, FlockdocVisibility } from '../types';
 import type { FlockdocCommittedEvent } from './flockdoc-realtime';
+import type { SpreadsheetCellsPatch } from './spreadsheet-operations';
 
 const TOKEN_KEY = 'flockfly.token';
 const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? '';
@@ -175,6 +176,12 @@ export class FlockdocApi {
       requiresSnapshot: boolean;
       page: { limit: number; hasMore: boolean; nextRevision: number };
     }>(`/v1/flockdocs/${id}/updates?${query}`);
+  }
+
+  appendSpreadsheetOperation(id: string, idempotencyKey: string, clientId: string, operation: SpreadsheetCellsPatch) {
+    return this.request<{ revision: number; duplicate: boolean }>(`/v1/flockdocs/${id}/updates`, {
+      method: 'POST', body: JSON.stringify({ idempotencyKey, clientId, operation }),
+    });
   }
 
   grantRole(id: string, principalType: string, principalId: string, role: string) {
