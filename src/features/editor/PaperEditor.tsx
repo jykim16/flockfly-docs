@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Share2 } from 'lucide-react';
 import type { Flockdoc } from '../../types';
 import type { MountedUniverEditor } from './univer/types';
+import type { PaperTextPatch } from '../../lib/paper-collaboration';
 
 interface PaperEditorProps {
   item: Flockdoc;
@@ -9,12 +10,15 @@ interface PaperEditorProps {
   onRename: (name: string) => void;
   onSnapshot: (snapshot: unknown) => void | Promise<void>;
   onDirty?: () => void;
+  onPaperSnapshotChange?: (snapshot: unknown) => void | Promise<void>;
+  remotePatch?: { revision: number; patch: PaperTextPatch } | null;
+  checkpointRevision?: number | null;
   canEdit?: boolean;
   canShare?: boolean;
   onShare?: () => void;
 }
 
-export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, canEdit = true, canShare = true, onShare }: PaperEditorProps) {
+export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPaperSnapshotChange, remotePatch, checkpointRevision, canEdit = true, canShare = true, onShare }: PaperEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef<MountedUniverEditor | undefined>(undefined);
   const mountedSnapshotRef = useRef(item.snapshot);
@@ -37,6 +41,7 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, canEd
         snapshot: latestSnapshotRef.current,
         canEdit,
         onDirty,
+        onPaperSnapshotChange,
         onSnapshot: snapshot => {
           setStatus('Saving…');
           void Promise.resolve(onSnapshotRef.current(snapshot))
@@ -66,6 +71,16 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, canEd
     mountedSnapshotRef.current = item.snapshot;
     mountedRef.current.applySnapshot(item.snapshot);
   }, [item.snapshot]);
+
+  useEffect(() => {
+    if (remotePatch) mountedRef.current?.applyPaperPatch?.(remotePatch.patch);
+  }, [remotePatch]);
+
+  useEffect(() => {
+    if (checkpointRevision === null || checkpointRevision === undefined) return;
+    const snapshot = mountedRef.current?.getSnapshot?.();
+    if (snapshot) void Promise.resolve(onSnapshotRef.current(snapshot));
+  }, [checkpointRevision]);
 
   return <main className="editor-shell univer-shell">
     <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Paper name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>

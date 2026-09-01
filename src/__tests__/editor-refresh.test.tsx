@@ -28,7 +28,8 @@ const editorProps = {
 describe('remote editor snapshot refresh', () => {
   it('updates Paper through its mounted adapter without replacing the editor shell', async () => {
     const applySnapshot = vi.fn();
-    vi.mocked(mountPaper).mockReturnValue({ applySnapshot, dispose: vi.fn() });
+    const applyPaperPatch = vi.fn();
+    vi.mocked(mountPaper).mockReturnValue({ applySnapshot, applyPaperPatch, dispose: vi.fn() });
     const view = render(<PaperEditor item={baseItem} {...editorProps} />);
     await waitFor(() => expect(mountPaper).toHaveBeenCalledOnce());
     const host = view.getByLabelText('Paper editor');
@@ -36,6 +37,9 @@ describe('remote editor snapshot refresh', () => {
     view.rerender(<PaperEditor item={{ ...baseItem, snapshot: { revision: 2 } }} {...editorProps} />);
 
     await waitFor(() => expect(applySnapshot).toHaveBeenCalledWith({ revision: 2 }));
+    const patch = { index: 4, deleteCount: 0, insert: ' together' };
+    view.rerender(<PaperEditor item={{ ...baseItem, snapshot: { revision: 2 } }} {...editorProps} remotePatch={{ revision: 3, patch }} />);
+    await waitFor(() => expect(applyPaperPatch).toHaveBeenCalledWith(patch));
     expect(view.getByLabelText('Paper editor')).toBe(host);
     expect(mountPaper).toHaveBeenCalledOnce();
   });

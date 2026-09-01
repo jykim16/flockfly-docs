@@ -20,7 +20,8 @@
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "yjs": "^13.6.32"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",

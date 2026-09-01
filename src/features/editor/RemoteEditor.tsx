@@ -5,6 +5,7 @@ import { FlockdocRealtimeClient, FlockdocRealtimeRecovery, getFlockdocRealtimeCl
 import { RemoteSnapshotSynchronizer } from '../../lib/realtime-snapshot-sync';
 import { SnapshotPersistenceGate } from '../../lib/snapshot-persistence-gate';
 import { decodeSpreadsheetOperation, initialSpreadsheetRecoveryRevision, shouldCheckpointSpreadsheet, spreadsheetOperationsEnabled, type SpreadsheetOperation } from '../../lib/spreadsheet-operations';
+import { decodePaperOperation, PaperCollaborationDocument, paperSnapshotForEditor, type PaperTextPatch } from '../../lib/paper-collaboration';
 import type { Flockdoc } from '../../types';
 import { PaperEditor } from './PaperEditor';
 import { SpreadsheetEditor } from './SpreadsheetEditor';
@@ -20,8 +21,13 @@ interface RemoteEditorProps {
 
 function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, currentUserEmail }: Omit<RemoteEditorProps, 'item'> & { state: FlockdocState; currentItem: Flockdoc }) {
   const [liveState, setLiveState] = useState(state);
-  const item = { ...liveState.flockdoc, ...currentItem, snapshot: liveState.snapshot ?? currentItem.snapshot, headRevision: liveState.revision };
-  const operationMode = item.type === 'spreadsheet' && spreadsheetOperationsEnabled();
+  const [paperCollaboration] = useState(() => currentItem.type === 'paper'
+    ? new PaperCollaborationDocument(currentItem.id, state.snapshot ?? currentItem.snapshot)
+    : null);
+  const storedSnapshot = liveState.snapshot ?? currentItem.snapshot;
+  const editorSnapshot = paperCollaboration?.snapshot() ?? paperSnapshotForEditor(storedSnapshot);
+  const item = { ...liveState.flockdoc, ...currentItem, snapshot: editorSnapshot, headRevision: liveState.revision };
+  const operationMode = item.type === 'paper' || (item.type === 'spreadsheet' && spreadsheetOperationsEnabled());
   const [clientId] = useState(getFlockdocRealtimeClientId);
   const [saver] = useState(() => new SerializedSnapshotSaver(state.revision, (baseRevision, snapshot) =>
     api.saveState(item.id, baseRevision, crypto.randomUUID(), snapshot, clientId),
@@ -42,6 +48,7 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
   const [sharing, setSharing] = useState(false);
   const [newerRevision, setNewerRevision] = useState<number | null>(null);
   const [remoteOperation, setRemoteOperation] = useState<{ revision: number; operation: SpreadsheetOperation } | null>(null);
+  const [remotePaperPatch, setRemotePaperPatch] = useState<{ revision: number; patch: PaperTextPatch } | null>(null);
   const [checkpointRevision, setCheckpointRevision] = useState<number | null>(null);
   const closeSharing = useCallback(() => setSharing(false), []);
 
@@ -54,13 +61,15 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
       hasUnsavedChanges: () => editVersion.current > persistedEditVersion.current,
       load: () => api.getState(item.id),
       apply: next => {
+        if (paperCollaboration) paperCollaboration.reset(next.snapshot);
+        const normalized = paperCollaboration ? { ...next, snapshot: paperCollaboration.snapshot() } : next;
         saver.revision = next.revision;
         appliedRevision.current = next.revision;
         snapshotRevision.current = next.snapshotRevision;
         snapshotGate.accept(next.snapshot ?? currentItemSnapshot.current);
-        setLiveState(next);
+        setLiveState(normalized);
         setNewerRevision(null);
-        onUpdateRef.current({ ...next.flockdoc, snapshot: next.snapshot, headRevision: next.revision, modifiedAt: 'Just now' });
+        onUpdateRef.current({ ...next.flockdoc, snapshot: normalized.snapshot, headRevision: next.revision, modifiedAt: 'Just now' });
       },
       blocked: revision => setNewerRevision(revision),
     });
@@ -71,11 +80,19 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
       }
       if (event.kind === 'update.committed') {
         if (!operationMode || event.revision <= appliedRevision.current) return;
-        const operation = decodeSpreadsheetOperation(event.updateBase64);
-        if (!operation) return;
+        if (item.type === 'paper') {
+          const operation = decodePaperOperation(event.updateBase64);
+          if (!operation || !paperCollaboration) return;
+          const patch = event.clientId === clientId ? null : paperCollaboration.applyOperation(operation);
+          if (patch) setRemotePaperPatch({ revision: event.revision, patch });
+          onUpdateRef.current({ snapshot: paperCollaboration.snapshot(), headRevision: event.revision, modifiedAt: 'Just now' });
+        } else {
+          const operation = decodeSpreadsheetOperation(event.updateBase64);
+          if (!operation) return;
+          if (event.clientId !== clientId) setRemoteOperation({ revision: event.revision, operation });
+        }
         saver.revision = Math.max(saver.revision, event.revision);
         appliedRevision.current = event.revision;
-        if (event.clientId !== clientId) setRemoteOperation({ revision: event.revision, operation });
         if (shouldCheckpointSpreadsheet(snapshotRevision.current, event.revision)) setCheckpointRevision(current => current ?? event.revision);
         return;
       }
@@ -101,7 +118,7 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
     });
     void realtime.start();
     return () => realtime.stop();
-  }, [api, clientId, item.id, operationMode, saver, snapshotGate]);
+  }, [api, clientId, item.id, item.type, operationMode, paperCollaboration, saver, snapshotGate]);
 
   const onRename = (name: string) => {
     latestName.current = name;
@@ -113,7 +130,7 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
     const savingEditVersion = editVersion.current;
     const result = await snapshotGate.persistIfChanged(snapshot, () => {
       onUpdate({ snapshot, modifiedAt: 'Just now' });
-      return saver.save(snapshot);
+      return saver.save(paperCollaboration ? paperCollaboration.checkpoint() : snapshot);
     });
     persistedEditVersion.current = Math.max(persistedEditVersion.current, savingEditVersion);
     if (result.changed) {
@@ -143,6 +160,23 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
     operationTail.current = submission.then(() => undefined, () => undefined);
     return submission;
   };
+  const onPaperSnapshotChange = (snapshot: unknown) => {
+    if (!paperCollaboration) return Promise.resolve();
+    const operation = paperCollaboration.updateFromSnapshot(snapshot);
+    onUpdate({ snapshot: paperCollaboration.snapshot(), modifiedAt: 'Just now' });
+    if (!operation) return Promise.resolve();
+    const savingEditVersion = ++editVersion.current;
+    const submission = operationTail.current.then(async () => {
+      const result = await api.appendPaperOperation(item.id, crypto.randomUUID(), clientId, operation);
+      saver.revision = Math.max(saver.revision, result.revision);
+      appliedRevision.current = Math.max(appliedRevision.current, result.revision);
+      persistedEditVersion.current = Math.max(persistedEditVersion.current, savingEditVersion);
+      onUpdate({ headRevision: result.revision, modifiedAt: 'Just now' });
+      if (shouldCheckpointSpreadsheet(snapshotRevision.current, result.revision)) setCheckpointRevision(current => current ?? result.revision);
+    });
+    operationTail.current = submission.then(() => undefined, () => undefined);
+    return submission;
+  };
   const common = {
     item,
     onBack,
@@ -153,7 +187,7 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
     canShare: item.permissions?.canShare ?? false,
     onShare: () => setSharing(true),
   };
-  return <>{newerRevision ? <div className="realtime-warning" role="status">Revision {newerRevision} is available. Your unsaved changes are protected; save or reopen to update.</div> : null}{item.type === 'paper' ? <PaperEditor {...common} /> : <SpreadsheetEditor {...common} onSpreadsheetOperation={operationMode ? onSpreadsheetOperation : undefined} getSpreadsheetRevision={() => appliedRevision.current} remoteOperation={remoteOperation} checkpointRevision={checkpointRevision} />}{sharing ? <DocumentShareDialog api={api} flockdocId={item.id} flockdocType={item.type} name={item.name} currentUserEmail={currentUserEmail} onClose={closeSharing} /> : null}</>;
+  return <>{newerRevision ? <div className="realtime-warning" role="status">Revision {newerRevision} is available. Your unsaved changes are protected; save or reopen to update.</div> : null}{item.type === 'paper' ? <PaperEditor {...common} onPaperSnapshotChange={onPaperSnapshotChange} remotePatch={remotePaperPatch} checkpointRevision={checkpointRevision} /> : <SpreadsheetEditor {...common} onSpreadsheetOperation={operationMode ? onSpreadsheetOperation : undefined} getSpreadsheetRevision={() => appliedRevision.current} remoteOperation={remoteOperation} checkpointRevision={checkpointRevision} />}{sharing ? <DocumentShareDialog api={api} flockdocId={item.id} flockdocType={item.type} name={item.name} currentUserEmail={currentUserEmail} onClose={closeSharing} /> : null}</>;
 }
 
 export function RemoteEditor({ api, item, onBack, onUpdate, currentUserEmail }: RemoteEditorProps) {

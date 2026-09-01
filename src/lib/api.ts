@@ -1,6 +1,7 @@
 import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocInvitation, FlockdocLinkRole, FlockdocMember, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType, FlockdocVisibility } from '../types';
 import type { FlockdocCommittedEvent } from './flockdoc-realtime';
 import type { SpreadsheetOperation } from './spreadsheet-operations';
+import type { PaperYjsOperation } from './paper-collaboration';
 
 const TOKEN_KEY = 'flockfly.token';
 const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? '';
@@ -179,6 +180,12 @@ export class FlockdocApi {
   }
 
   appendSpreadsheetOperation(id: string, idempotencyKey: string, clientId: string, operation: SpreadsheetOperation) {
+    return this.request<{ revision: number; duplicate: boolean }>(`/v1/flockdocs/${id}/updates`, {
+      method: 'POST', body: JSON.stringify({ idempotencyKey, clientId, operation }),
+    });
+  }
+
+  appendPaperOperation(id: string, idempotencyKey: string, clientId: string, operation: PaperYjsOperation) {
     return this.request<{ revision: number; duplicate: boolean }>(`/v1/flockdocs/${id}/updates`, {
       method: 'POST', body: JSON.stringify({ idempotencyKey, clientId, operation }),
     });
