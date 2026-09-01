@@ -144,11 +144,3 @@ export function structurePatchFromCommand(command: UniverStructureCommand, baseR
 export function shouldCheckpointSpreadsheet(snapshotRevision: number, headRevision: number, threshold = 100): boolean {
   return headRevision - snapshotRevision >= threshold;
 }
-
-export function spreadsheetOperationsEnabled(): boolean {
-  return import.meta.env.VITE_FLOCKDOC_SPREADSHEET_OPERATIONS === 'true';
-}
-
-export function initialSpreadsheetRecoveryRevision(snapshotRevision: number, headRevision: number, enabled: boolean): number {
-  return enabled ? snapshotRevision : headRevision;
-}

@@ -37,9 +37,12 @@ describe('remote editor snapshot refresh', () => {
     view.rerender(<PaperEditor item={{ ...baseItem, snapshot: { revision: 2 } }} {...editorProps} />);
 
     await waitFor(() => expect(applySnapshot).toHaveBeenCalledWith({ revision: 2 }));
-    const patch = { index: 4, deleteCount: 0, insert: ' together' };
-    view.rerender(<PaperEditor item={{ ...baseItem, snapshot: { revision: 2 } }} {...editorProps} remotePatch={{ revision: 3, patch }} />);
-    await waitFor(() => expect(applyPaperPatch).toHaveBeenCalledWith(patch));
+    const patches = [
+      { revision: 3, patch: { index: 4, deleteCount: 0, insert: ' together' } },
+      { revision: 4, patch: { index: 13, deleteCount: 0, insert: ' now' } },
+    ];
+    view.rerender(<PaperEditor item={{ ...baseItem, snapshot: { revision: 2 } }} {...editorProps} remotePatches={patches} />);
+    await waitFor(() => expect(applyPaperPatch).toHaveBeenNthCalledWith(2, patches[1].patch));
     expect(view.getByLabelText('Paper editor')).toBe(host);
     expect(mountPaper).toHaveBeenCalledOnce();
   });
@@ -62,8 +65,9 @@ describe('remote editor snapshot refresh', () => {
       sheetId: 'sheet-1',
       changes: [{ row: 0, column: 0, value: 'Remote' }],
     };
-    view.rerender(<SpreadsheetEditor item={{ ...item, snapshot: { revision: 2 } }} {...editorProps} remoteOperation={{ revision: 3, operation }} />);
-    await waitFor(() => expect(applySpreadsheetOperation).toHaveBeenCalledWith(operation));
+    const secondOperation = { ...operation, changes: [{ row: 0, column: 1, value: 'Next' }] };
+    view.rerender(<SpreadsheetEditor item={{ ...item, snapshot: { revision: 2 } }} {...editorProps} remoteOperations={[{ revision: 3, operation }, { revision: 4, operation: secondOperation }]} />);
+    await waitFor(() => expect(applySpreadsheetOperation).toHaveBeenNthCalledWith(2, secondOperation));
     expect(view.getByLabelText('Spreadsheet editor')).toBe(host);
     expect(mountSpreadsheet).toHaveBeenCalledOnce();
   });

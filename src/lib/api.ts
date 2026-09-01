@@ -156,9 +156,9 @@ export class FlockdocApi {
     return { ...response, snapshotRevision: response.snapshotRevision ?? response.revision, flockdoc: mapFlockdoc(response.flockdoc) };
   }
 
-  saveState(id: string, baseRevision: number, idempotencyKey: string, snapshot: unknown, clientId?: string) {
-    return this.request<{ revision: number; snapshotKey: string; duplicate: boolean }>(`/v1/flockdocs/${id}/state`, {
-      method: 'PUT', body: JSON.stringify({ baseRevision, idempotencyKey, snapshot, ...(clientId ? { clientId } : {}) }),
+  saveCheckpoint(id: string, baseRevision: number, idempotencyKey: string, snapshot: unknown, clientId?: string) {
+    return this.request<{ revision: number; snapshotKey: string; duplicate: boolean }>(`/v1/flockdocs/${id}/checkpoints`, {
+      method: 'POST', body: JSON.stringify({ baseRevision, idempotencyKey, snapshot, ...(clientId ? { clientId } : {}) }),
     });
   }
 

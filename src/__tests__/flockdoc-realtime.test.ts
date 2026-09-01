@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { FlockdocApi, FlockdocState } from '../lib/api';
+import type { FlockdocApi } from '../lib/api';
 import { FlockdocRealtimeClient, FlockdocRealtimeRecovery, getFlockdocRealtimeClientId, type FlockdocRealtimeEvent, type RealtimeSocket } from '../lib/flockdoc-realtime';
-import { RemoteSnapshotSynchronizer } from '../lib/realtime-snapshot-sync';
 
 class FakeSocket implements RealtimeSocket {
   readonly listeners = new Map<string, Set<(event: Event | MessageEvent) => void>>();
@@ -157,55 +156,5 @@ describe('durable realtime recovery', () => {
     });
     await recovery.recover();
     expect(fallback).toHaveBeenCalledWith(8);
-  });
-});
-
-describe('remote snapshot synchronization', () => {
-  const state = { revision: 4, snapshotRevision: 4, snapshot: { value: 'remote' }, flockdoc: { id: 'flockdoc_1' } } as unknown as FlockdocState;
-
-  it('loads a newer remote snapshot when local state is clean', async () => {
-    const apply = vi.fn();
-    const sync = new RemoteSnapshotSynchronizer({
-      clientId: 'browser_1',
-      currentRevision: () => 3,
-      hasUnsavedChanges: () => false,
-      load: vi.fn().mockResolvedValue(state),
-      apply,
-    });
-    await expect(sync.handle(revisionEvent)).resolves.toBe('applied');
-    expect(apply).toHaveBeenCalledWith(state);
-  });
-
-  it('protects unsaved local state and ignores the local client echo', async () => {
-    const load = vi.fn().mockResolvedValue(state);
-    const blocked = vi.fn();
-    const sync = new RemoteSnapshotSynchronizer({
-      clientId: 'browser_1',
-      currentRevision: () => 3,
-      hasUnsavedChanges: () => true,
-      load,
-      apply: vi.fn(),
-      blocked,
-    });
-    await expect(sync.handle(revisionEvent)).resolves.toBe('blocked');
-    await expect(sync.handle({ ...revisionEvent, clientId: 'browser_1' })).resolves.toBe('ignored');
-    expect(load).not.toHaveBeenCalled();
-    expect(blocked).toHaveBeenCalledWith(4);
-  });
-
-  it('uses the same unsaved-change guard for snapshot recovery', async () => {
-    const apply = vi.fn();
-    const blocked = vi.fn();
-    const sync = new RemoteSnapshotSynchronizer({
-      clientId: 'browser_1',
-      currentRevision: () => 2,
-      hasUnsavedChanges: () => true,
-      load: vi.fn().mockResolvedValue(state),
-      apply,
-      blocked,
-    });
-    await expect(sync.refresh(4)).resolves.toBe('blocked');
-    expect(apply).not.toHaveBeenCalled();
-    expect(blocked).toHaveBeenCalledWith(4);
   });
 });

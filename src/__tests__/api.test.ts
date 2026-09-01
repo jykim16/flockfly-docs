@@ -69,9 +69,11 @@ describe('Flockdoc API client', () => {
     vi.stubGlobal('fetch', fetchMock);
     const api = new FlockdocApi('token');
 
-    await expect(api.saveState('flockdoc_1', 2, 'save-1', { id: 'flockdoc_1' })).resolves.toMatchObject({ revision: 3 });
+    await expect(api.saveCheckpoint('flockdoc_1', 2, 'save-1', { id: 'flockdoc_1' })).resolves.toMatchObject({ revision: 3 });
+    expect(fetchMock.mock.calls[0][0]).toBe('/v1/flockdocs/flockdoc_1/checkpoints');
+    expect(fetchMock.mock.calls[0][1].method).toBe('POST');
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ baseRevision: 2, idempotencyKey: 'save-1' });
-    await expect(api.saveState('flockdoc_1', 3, 'save-2', { id: 'flockdoc_1' }))
+    await expect(api.saveCheckpoint('flockdoc_1', 3, 'save-2', { id: 'flockdoc_1' }))
       .rejects.toEqual(expect.objectContaining<Partial<RevisionConflictError>>({ currentRevision: 4 }));
   });
 
@@ -83,7 +85,7 @@ describe('Flockdoc API client', () => {
     const api = new FlockdocApi('token');
 
     await expect(api.realtimeTicket('flockdoc_1', 'browser_1')).resolves.toMatchObject({ expiresInSeconds: 60 });
-    await api.saveState('flockdoc_1', 2, 'save-1', { id: 'flockdoc_1' }, 'browser_1');
+    await api.saveCheckpoint('flockdoc_1', 2, 'save-1', { id: 'flockdoc_1' }, 'browser_1');
 
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ clientId: 'browser_1' });
     expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toMatchObject({ clientId: 'browser_1' });

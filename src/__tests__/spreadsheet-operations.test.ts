@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeSpreadsheetOperation, encodeSpreadsheetOperation, initialSpreadsheetRecoveryRevision, patchesFromChangedRanges, shouldCheckpointSpreadsheet, structurePatchFromCommand } from '../lib/spreadsheet-operations';
+import { decodeSpreadsheetOperation, encodeSpreadsheetOperation, patchesFromChangedRanges, shouldCheckpointSpreadsheet, structurePatchFromCommand } from '../lib/spreadsheet-operations';
 
 describe('spreadsheet cell operations', () => {
   it('converts changed ranges into value, formula, and clear patches', () => {
@@ -64,10 +64,5 @@ describe('spreadsheet cell operations', () => {
     expect(decodeSpreadsheetOperation(encodeSpreadsheetOperation(operation))).toEqual(operation);
     expect(shouldCheckpointSpreadsheet(10, 109)).toBe(false);
     expect(shouldCheckpointSpreadsheet(10, 110)).toBe(true);
-  });
-
-  it('replays from the checkpoint revision when operations are enabled', () => {
-    expect(initialSpreadsheetRecoveryRevision(4, 9, true)).toBe(4);
-    expect(initialSpreadsheetRecoveryRevision(4, 9, false)).toBe(9);
   });
 });

@@ -101,3 +101,12 @@ This is the same authorization substrate used by skills and routers. Agents and 
 - Comments preserve anchors through ordinary edits and clearly report detached anchors.
 - Every durable update has a principal, idempotency key, revision, and timestamp.
 - A corrupted or partial client cannot overwrite a newer server revision.
+
+## Realtime collaboration delivery
+
+- [x] Milestone 1 — WebSocket gateway, Redis fan-out, scoped tickets, and presence.
+- [x] Milestone 2 — Durable ordered recovery with retention-gap fallback.
+- [x] Milestone 3 — In-place Spreadsheet cell operations.
+- [x] Milestone 4 — Spreadsheet structure operations and checkpoint compaction.
+- [x] Milestone 5 — Paper Yjs CRDT updates, deterministic legacy bootstrap, and CRDT-aware checkpoints.
+- [x] Milestone 6 — Operation-only live synchronization with explicit recovery checkpoints; legacy snapshot refresh and feature-flag paths retired.

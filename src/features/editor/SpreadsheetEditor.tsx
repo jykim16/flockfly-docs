@@ -12,14 +12,15 @@ interface SpreadsheetEditorProps {
   onDirty?: () => void;
   onSpreadsheetOperation?: (operation: SpreadsheetOperation) => void | Promise<void>;
   getSpreadsheetRevision?: () => number;
-  remoteOperation?: { revision: number; operation: SpreadsheetOperation } | null;
+  remoteOperations?: Array<{ revision: number; operation: SpreadsheetOperation }>;
+  onRemoteOperationsApplied?: (revision: number) => void;
   checkpointRevision?: number | null;
   canEdit?: boolean;
   canShare?: boolean;
   onShare?: () => void;
 }
 
-export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty, onSpreadsheetOperation, getSpreadsheetRevision, remoteOperation, checkpointRevision, canEdit = true, canShare = true, onShare }: SpreadsheetEditorProps) {
+export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty, onSpreadsheetOperation, getSpreadsheetRevision, remoteOperations = [], onRemoteOperationsApplied, checkpointRevision, canEdit = true, canShare = true, onShare }: SpreadsheetEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef<MountedUniverEditor | undefined>(undefined);
   const mountedSnapshotRef = useRef(item.snapshot);
@@ -75,8 +76,10 @@ export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty,
   }, [item.snapshot]);
 
   useEffect(() => {
-    if (remoteOperation) mountedRef.current?.applySpreadsheetOperation?.(remoteOperation.operation);
-  }, [remoteOperation]);
+    if (!remoteOperations.length) return;
+    for (const remote of remoteOperations) mountedRef.current?.applySpreadsheetOperation?.(remote.operation);
+    onRemoteOperationsApplied?.(remoteOperations[remoteOperations.length - 1].revision);
+  }, [remoteOperations, onRemoteOperationsApplied]);
 
   useEffect(() => {
     if (checkpointRevision === null || checkpointRevision === undefined) return;

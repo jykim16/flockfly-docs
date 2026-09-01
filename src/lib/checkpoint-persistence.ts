@@ -1,14 +1,14 @@
-export class SerializedSnapshotSaver {
+export class SerializedCheckpointSaver {
   private tail: Promise<void> = Promise.resolve();
 
   constructor(
     public revision: number,
-    private readonly persist: (baseRevision: number, snapshot: unknown) => Promise<{ revision: number }>,
+    private readonly persist: (baseRevision: number, checkpoint: unknown) => Promise<{ revision: number }>,
   ) {}
 
-  save(snapshot: unknown): Promise<number> {
+  save(checkpoint: unknown): Promise<number> {
     const operation = this.tail.then(async () => {
-      const result = await this.persist(this.revision, snapshot);
+      const result = await this.persist(this.revision, checkpoint);
       this.revision = result.revision;
       return result.revision;
     });

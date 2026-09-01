@@ -11,14 +11,15 @@ interface PaperEditorProps {
   onSnapshot: (snapshot: unknown) => void | Promise<void>;
   onDirty?: () => void;
   onPaperSnapshotChange?: (snapshot: unknown) => void | Promise<void>;
-  remotePatch?: { revision: number; patch: PaperTextPatch } | null;
+  remotePatches?: Array<{ revision: number; patch: PaperTextPatch }>;
+  onRemotePatchesApplied?: (revision: number) => void;
   checkpointRevision?: number | null;
   canEdit?: boolean;
   canShare?: boolean;
   onShare?: () => void;
 }
 
-export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPaperSnapshotChange, remotePatch, checkpointRevision, canEdit = true, canShare = true, onShare }: PaperEditorProps) {
+export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPaperSnapshotChange, remotePatches = [], onRemotePatchesApplied, checkpointRevision, canEdit = true, canShare = true, onShare }: PaperEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef<MountedUniverEditor | undefined>(undefined);
   const mountedSnapshotRef = useRef(item.snapshot);
@@ -73,8 +74,10 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPap
   }, [item.snapshot]);
 
   useEffect(() => {
-    if (remotePatch) mountedRef.current?.applyPaperPatch?.(remotePatch.patch);
-  }, [remotePatch]);
+    if (!remotePatches.length) return;
+    for (const remote of remotePatches) mountedRef.current?.applyPaperPatch?.(remote.patch);
+    onRemotePatchesApplied?.(remotePatches[remotePatches.length - 1].revision);
+  }, [remotePatches, onRemotePatchesApplied]);
 
   useEffect(() => {
     if (checkpointRevision === null || checkpointRevision === undefined) return;
