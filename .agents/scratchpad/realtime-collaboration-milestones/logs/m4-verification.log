@@ -1,0 +1,10 @@
+Milestone 4 verification
+
+- Frontend focused structural/cell/API/editor/recovery suite: 25 tests passed.
+- Frontend full suite: 11 files, 71 tests passed.
+- Frontend typecheck: passed.
+- Frontend infrastructure suite: 2 tests passed.
+- Frontend production build: passed; 3,351 modules transformed.
+- Backend focused collaboration suite: 19 tests passed.
+- Backend workspace typecheck: passed after idempotency archive typing correction.
+- Full backend regressions expose pre-existing unrelated failures in CLI onboarding/router expectations and a flaky indexing lease race; no affected Milestone 4 suite fails.

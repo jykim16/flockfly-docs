@@ -13,6 +13,23 @@ export type SpreadsheetCellsPatch = {
   changes: SpreadsheetCellChange[];
 };
 
+export type SpreadsheetStructureChange =
+  | { action: 'sheet.create'; sheetId: string; name: string; index: number }
+  | { action: 'sheet.delete'; sheetId: string }
+  | { action: 'sheet.rename'; sheetId: string; name: string }
+  | { action: 'sheet.move'; sheetId: string; index: number }
+  | { action: 'range.merge' | 'range.unmerge'; sheetId: string; startRow: number; endRow: number; startColumn: number; endColumn: number }
+  | { action: 'rows.insert' | 'rows.delete' | 'columns.insert' | 'columns.delete'; sheetId: string; index: number; count: number };
+
+export type SpreadsheetStructurePatch = {
+  protocolVersion: 1;
+  kind: 'spreadsheet.structure.patch';
+  baseRevision: number;
+  changes: SpreadsheetStructureChange[];
+};
+
+export type SpreadsheetOperation = SpreadsheetCellsPatch | SpreadsheetStructurePatch;
+
 export interface SpreadsheetChangedRange {
   getSheetId(): string;
   getRow(): number;
@@ -52,24 +69,80 @@ export function patchesFromChangedRanges(ranges: SpreadsheetChangedRange[]): Spr
   }));
 }
 
-export function encodeSpreadsheetCellsPatch(operation: SpreadsheetCellsPatch): string {
+export function encodeSpreadsheetOperation(operation: SpreadsheetOperation): string {
   const bytes = new TextEncoder().encode(JSON.stringify(operation));
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary);
 }
 
-export function decodeSpreadsheetCellsPatch(updateBase64: string): SpreadsheetCellsPatch | null {
+export function decodeSpreadsheetOperation(updateBase64: string): SpreadsheetOperation | null {
   try {
     const binary = atob(updateBase64);
     const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
-    const parsed = JSON.parse(new TextDecoder().decode(bytes)) as Partial<SpreadsheetCellsPatch>;
-    if (parsed.protocolVersion !== 1 || parsed.kind !== 'spreadsheet.cells.patch'
-      || typeof parsed.sheetId !== 'string' || !Array.isArray(parsed.changes)) return null;
-    return parsed as SpreadsheetCellsPatch;
+    const parsed = JSON.parse(new TextDecoder().decode(bytes)) as Partial<SpreadsheetOperation>;
+    if (parsed.protocolVersion !== 1 || !Array.isArray(parsed.changes)) return null;
+    if (parsed.kind === 'spreadsheet.cells.patch' && typeof parsed.sheetId === 'string') return parsed as SpreadsheetCellsPatch;
+    if (parsed.kind === 'spreadsheet.structure.patch' && Number.isSafeInteger(parsed.baseRevision)) return parsed as SpreadsheetStructurePatch;
+    return null;
   } catch {
     return null;
   }
+}
+
+export const encodeSpreadsheetCellsPatch = encodeSpreadsheetOperation;
+export const decodeSpreadsheetCellsPatch = decodeSpreadsheetOperation;
+
+type UniverStructureCommand = {
+  id: string;
+  params?: {
+    subUnitId?: unknown;
+    range?: { startRow?: unknown; endRow?: unknown; startColumn?: unknown; endColumn?: unknown };
+    selections?: Array<{ startRow?: unknown; endRow?: unknown; startColumn?: unknown; endColumn?: unknown }>;
+    ranges?: Array<{ startRow?: unknown; endRow?: unknown; startColumn?: unknown; endColumn?: unknown }>;
+  };
+};
+
+export function structurePatchFromCommand(command: UniverStructureCommand, baseRevision: number): SpreadsheetStructurePatch | null {
+  const params = command.params;
+  if (typeof params?.subUnitId === 'string' && (command.id === 'sheet.command.add-worksheet-merge' || command.id === 'sheet.command.remove-worksheet-merge')) {
+    const ranges = command.id === 'sheet.command.add-worksheet-merge' ? params.selections : params.ranges;
+    if (!ranges?.length) return null;
+    const changes: SpreadsheetStructureChange[] = [];
+    for (const range of ranges) {
+      const values = [range.startRow, range.endRow, range.startColumn, range.endColumn];
+      if (!values.every(value => Number.isSafeInteger(value) && Number(value) >= 0)) return null;
+      changes.push({
+        action: command.id === 'sheet.command.add-worksheet-merge' ? 'range.merge' : 'range.unmerge',
+        sheetId: params.subUnitId,
+        startRow: Number(range.startRow), endRow: Number(range.endRow),
+        startColumn: Number(range.startColumn), endColumn: Number(range.endColumn),
+      });
+    }
+    return { protocolVersion: 1, kind: 'spreadsheet.structure.patch', baseRevision, changes };
+  }
+  const range = params?.range;
+  if (typeof params?.subUnitId !== 'string' || !range) return null;
+  const mappings = {
+    'sheet.command.insert-row': ['rows.insert', range.startRow, range.endRow],
+    'sheet.command.remove-row': ['rows.delete', range.startRow, range.endRow],
+    'sheet.command.insert-col': ['columns.insert', range.startColumn, range.endColumn],
+    'sheet.command.remove-col': ['columns.delete', range.startColumn, range.endColumn],
+  } as const;
+  const mapping = mappings[command.id as keyof typeof mappings];
+  if (!mapping) return null;
+  const [action, start, end] = mapping;
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || Number(start) < 0 || Number(end) < Number(start)) return null;
+  return {
+    protocolVersion: 1,
+    kind: 'spreadsheet.structure.patch',
+    baseRevision,
+    changes: [{ action, sheetId: params.subUnitId, index: Number(start), count: Number(end) - Number(start) + 1 }],
+  };
+}
+
+export function shouldCheckpointSpreadsheet(snapshotRevision: number, headRevision: number, threshold = 100): boolean {
+  return headRevision - snapshotRevision >= threshold;
 }
 
 export function spreadsheetOperationsEnabled(): boolean {

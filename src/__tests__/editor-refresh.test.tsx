@@ -63,4 +63,19 @@ describe('remote editor snapshot refresh', () => {
     expect(view.getByLabelText('Spreadsheet editor')).toBe(host);
     expect(mountSpreadsheet).toHaveBeenCalledOnce();
   });
+
+  it('writes an authoritative Univer snapshot when checkpoint compaction is requested', async () => {
+    const snapshot = { id: 'flockdoc_1', sheets: { 'sheet-1': { name: 'Plan' } } };
+    const getSnapshot = vi.fn(() => snapshot);
+    const onSnapshot = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(mountSpreadsheet).mockReturnValue({ applySnapshot: vi.fn(), getSnapshot, dispose: vi.fn() });
+    const item = { ...baseItem, type: 'spreadsheet' as const };
+    const view = render(<SpreadsheetEditor item={item} {...editorProps} onSnapshot={onSnapshot} />);
+    await waitFor(() => expect(mountSpreadsheet).toHaveBeenCalledOnce());
+
+    view.rerender(<SpreadsheetEditor item={item} {...editorProps} onSnapshot={onSnapshot} checkpointRevision={100} />);
+
+    await waitFor(() => expect(onSnapshot).toHaveBeenCalledWith(snapshot));
+    expect(getSnapshot).toHaveBeenCalledOnce();
+  });
 });

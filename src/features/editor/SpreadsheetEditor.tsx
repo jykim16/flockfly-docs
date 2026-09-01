@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Share2 } from 'lucide-react';
 import type { Flockdoc } from '../../types';
 import type { MountedUniverEditor } from './univer/types';
-import type { SpreadsheetCellsPatch } from '../../lib/spreadsheet-operations';
+import type { SpreadsheetOperation } from '../../lib/spreadsheet-operations';
 
 interface SpreadsheetEditorProps {
   item: Flockdoc;
@@ -10,14 +10,16 @@ interface SpreadsheetEditorProps {
   onRename: (name: string) => void;
   onSnapshot: (snapshot: unknown) => void | Promise<void>;
   onDirty?: () => void;
-  onSpreadsheetOperation?: (operation: SpreadsheetCellsPatch) => void | Promise<void>;
-  remoteOperation?: { revision: number; operation: SpreadsheetCellsPatch } | null;
+  onSpreadsheetOperation?: (operation: SpreadsheetOperation) => void | Promise<void>;
+  getSpreadsheetRevision?: () => number;
+  remoteOperation?: { revision: number; operation: SpreadsheetOperation } | null;
+  checkpointRevision?: number | null;
   canEdit?: boolean;
   canShare?: boolean;
   onShare?: () => void;
 }
 
-export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty, onSpreadsheetOperation, remoteOperation, canEdit = true, canShare = true, onShare }: SpreadsheetEditorProps) {
+export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty, onSpreadsheetOperation, getSpreadsheetRevision, remoteOperation, checkpointRevision, canEdit = true, canShare = true, onShare }: SpreadsheetEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef<MountedUniverEditor | undefined>(undefined);
   const mountedSnapshotRef = useRef(item.snapshot);
@@ -41,6 +43,7 @@ export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty,
         canEdit,
         onDirty,
         onSpreadsheetOperation,
+        getSpreadsheetRevision,
         onSnapshot: snapshot => {
           setStatus('Saving…');
           void Promise.resolve(onSnapshotRef.current(snapshot))
@@ -74,6 +77,12 @@ export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty,
   useEffect(() => {
     if (remoteOperation) mountedRef.current?.applySpreadsheetOperation?.(remoteOperation.operation);
   }, [remoteOperation]);
+
+  useEffect(() => {
+    if (checkpointRevision === null || checkpointRevision === undefined) return;
+    const snapshot = mountedRef.current?.getSnapshot?.();
+    if (snapshot) void Promise.resolve(onSnapshotRef.current(snapshot));
+  }, [checkpointRevision]);
 
   return <main className="editor-shell univer-shell">
     <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Spreadsheet name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>

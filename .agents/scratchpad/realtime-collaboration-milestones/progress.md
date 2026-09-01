@@ -53,7 +53,7 @@
 ## Remaining milestones
 
 - [x] Milestone 3 — spreadsheet operations.
-- [ ] Milestone 4 — structural collaboration.
+- [x] Milestone 4 — structural collaboration.
 - [ ] Milestone 5 — Paper collaboration.
 - [ ] Milestone 6 — snapshot retirement.
 
@@ -75,3 +75,22 @@
 ### Capability status
 
 `VITE_FLOCKDOC_SPREADSHEET_OPERATIONS=true` enables the operation path. It remains off by default until Milestone 4 covers structural and formatting changes, preventing partially operation-backed spreadsheets from silently losing unsupported edits.
+
+## Milestone 4 — structural collaboration
+
+- [x] DEFINE: exact-base structural conflict policy and checkpoint compaction boundary.
+- [x] RED: backend structural validation, ordering, conflict, and compaction tests.
+- [x] RED: frontend command conversion, apply, recovery, and checkpoint tests.
+- [x] GREEN: backend structural journal and checkpoint behavior.
+- [x] GREEN: frontend Univer structural capture/apply and checkpoint authoring.
+- [x] VERIFY: frontend 71 tests, 2 infrastructure tests, typecheck, and production build pass; backend focused 19 tests and workspace typechecks pass.
+- [x] COMMIT: this milestone commit — `feat: add structural spreadsheet collaboration`.
+
+### Implementation notes
+
+- Sheet events use stable Univer sheet IDs; row/column and merge commands are converted from their persisted command ranges.
+- Remote operations apply through the mounted Univer facade while a transient guard suppresses local echo capture.
+- Every 100 revisions beyond the last checkpoint requests a live Univer snapshot. The backend archives idempotency keys before pruning covered journal rows.
+- Stale structural writes surface the current revision and preserve the local browser state for explicit recovery rather than silently applying ambiguous indexes.
+
+🤖 Assisted by the code-assist SOP

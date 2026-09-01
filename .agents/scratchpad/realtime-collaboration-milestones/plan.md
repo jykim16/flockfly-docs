@@ -73,6 +73,29 @@ Git commits cannot span repositories. Each milestone therefore gets at most one 
 4. Implement feature-flagged Univer cell capture, serialized submission, acknowledgement, and echo-free remote apply.
 5. Refactor checkpoint recovery subscriptions, run focused suites, then full verification.
 
+## Milestone 4 acceptance tests
+
+- Sheet create, delete, rename, and move operations use stable sheet IDs.
+- Row and column insert/delete operations carry bounded indexes, counts, and the revision they were based on.
+- Structural operations are accepted only at their declared base revision; stale operations return the current revision for recovery and retry.
+- Committed operations apply in server revision order and remote application does not echo back into the journal.
+- Cell operations following structural changes address the post-operation sheet coordinates.
+- An operation-count threshold writes an authoritative checkpoint and subsequent recovery starts from that checkpoint revision.
+- Recovery across a compacted prefix loads the checkpoint and resumes ordered operation replay.
+- Full backend/frontend tests, typechecks, infrastructure tests, and production builds remain green.
+
+## Milestone 4 conflict policy
+
+The backend remains the sequencer. Cell patches use last committed revision order. Structural operations additionally require an exact `baseRevision`, because transforming stale index-based row and column intent is ambiguous. A conflict returns `currentRevision`; the client first recovers the missing operations and then lets the user retry against visible current structure.
+
+## Milestone 4 TDD sequence
+
+1. Add failing backend tests for structural schemas, stale-revision rejection, stable ordering, and checkpoint eligibility.
+2. Add failing frontend tests for Univer command conversion, remote apply/echo suppression, conflict recovery, and checkpoint thresholds.
+3. Implement structural operation validation and exact-base sequencing in the existing update journal.
+4. Implement Univer sheet/row/column capture and remote application through the existing serialized operation queue.
+5. Add periodic authoritative checkpoints, reconnect coverage, refactor, and run full verification.
+
 ## Risks
 
 - Multiple API tasks require Redis Pub/Sub; an in-memory broker is only for local/test use.

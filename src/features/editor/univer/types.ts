@@ -1,8 +1,9 @@
-import type { SpreadsheetCellsPatch } from '../../../lib/spreadsheet-operations';
+import type { SpreadsheetOperation } from '../../../lib/spreadsheet-operations';
 
 export interface MountedUniverEditor {
   applySnapshot: (snapshot: unknown) => void;
-  applySpreadsheetOperation?: (operation: SpreadsheetCellsPatch) => void;
+  applySpreadsheetOperation?: (operation: SpreadsheetOperation) => void;
+  getSnapshot?: () => unknown;
   dispose: () => void;
 }
 
@@ -14,5 +15,6 @@ export interface MountUniverEditorOptions {
   canEdit?: boolean;
   onSnapshot: (snapshot: unknown) => void;
   onDirty?: () => void;
-  onSpreadsheetOperation?: (operation: SpreadsheetCellsPatch) => void | Promise<void>;
+  onSpreadsheetOperation?: (operation: SpreadsheetOperation) => void | Promise<void>;
+  getSpreadsheetRevision?: () => number;
 }

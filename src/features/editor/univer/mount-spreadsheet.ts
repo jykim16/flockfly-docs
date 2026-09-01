@@ -4,11 +4,11 @@ import { UniverSheetsCorePreset } from '@univerjs/preset-sheets-core';
 import sheetsLocale from '@univerjs/preset-sheets-core/locales/en-US';
 import { createUniver } from '@univerjs/presets';
 import { registerUniverWebMCP } from '../../../lib/univer-webmcp';
-import { patchesFromChangedRanges } from '../../../lib/spreadsheet-operations';
+import { patchesFromChangedRanges, structurePatchFromCommand, type SpreadsheetStructureChange, type SpreadsheetStructurePatch } from '../../../lib/spreadsheet-operations';
 import type { MountedUniverEditor, MountUniverEditorOptions } from './types';
 import '@univerjs/preset-sheets-core/lib/index.css';
 
-export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onSnapshot, onDirty, onSpreadsheetOperation }: MountUniverEditorOptions): MountedUniverEditor {
+export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onSnapshot, onDirty, onSpreadsheetOperation, getSpreadsheetRevision }: MountUniverEditorOptions): MountedUniverEditor {
   const { univer, univerAPI } = createUniver({
     locale: LocaleType.EN_US,
     locales: { [LocaleType.EN_US]: mergeLocales(sheetsLocale) },
@@ -21,6 +21,16 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
   const unregisterWebMCP = registerUniverWebMCP({ ownerDocument: host.ownerDocument, univerAPI, canEdit });
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   let applyingRemoteOperation = false;
+  const submitStructureChange = (change: SpreadsheetStructureChange) => {
+    if (applyingRemoteOperation || !onSpreadsheetOperation) return;
+    const operation: SpreadsheetStructurePatch = {
+      protocolVersion: 1,
+      kind: 'spreadsheet.structure.patch',
+      baseRevision: getSpreadsheetRevision?.() ?? 0,
+      changes: [change],
+    };
+    void Promise.resolve(onSpreadsheetOperation(operation)).catch(() => undefined);
+  };
   const subscribeToChanges = () => canEdit && !onSpreadsheetOperation ? workbook.onCommandExecuted(() => {
     onDirty?.();
     clearTimeout(saveTimer);
@@ -39,27 +49,65 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
     })
     : undefined;
   let valueSubscription = subscribeToValueChanges();
+  const subscribeToStructureCommands = () => canEdit && onSpreadsheetOperation
+    ? workbook.onCommandExecuted(command => {
+      if (applyingRemoteOperation) return;
+      const operation = structurePatchFromCommand(command, getSpreadsheetRevision?.() ?? 0);
+      if (operation) void Promise.resolve(onSpreadsheetOperation(operation)).catch(() => undefined);
+    })
+    : undefined;
+  let structureCommandSubscription = subscribeToStructureCommands();
+  const sheetSubscriptions = canEdit && onSpreadsheetOperation ? [
+    univerAPI.addEvent(univerAPI.Event.SheetCreated, ({ worksheet }) => submitStructureChange({ action: 'sheet.create', sheetId: worksheet.getSheetId(), name: worksheet.getSheetName(), index: worksheet.getIndex() })),
+    univerAPI.addEvent(univerAPI.Event.SheetDeleted, ({ sheetId }) => submitStructureChange({ action: 'sheet.delete', sheetId })),
+    univerAPI.addEvent(univerAPI.Event.SheetNameChanged, ({ worksheet, newName }) => submitStructureChange({ action: 'sheet.rename', sheetId: worksheet.getSheetId(), name: newName })),
+    univerAPI.addEvent(univerAPI.Event.SheetMoved, ({ worksheet, newIndex }) => submitStructureChange({ action: 'sheet.move', sheetId: worksheet.getSheetId(), index: newIndex })),
+  ] : [];
 
   return {
     applySpreadsheetOperation(operation) {
-      const sheet = workbook.getSheetBySheetId(operation.sheetId);
-      if (!sheet) return;
       applyingRemoteOperation = true;
       try {
-        for (const change of operation.changes) {
-          const range = sheet.getRange(change.row, change.column);
-          if ('formula' in change) range.setFormula(change.formula);
-          else if ('value' in change) range.setValue(change.value);
-          else range.clearContent();
+        if (operation.kind === 'spreadsheet.cells.patch') {
+          const sheet = workbook.getSheetBySheetId(operation.sheetId);
+          if (!sheet) return;
+          for (const change of operation.changes) {
+            const range = sheet.getRange(change.row, change.column);
+            if ('formula' in change) range.setFormula(change.formula);
+            else if ('value' in change) range.setValue(change.value);
+            else range.clearContent();
+          }
+        } else {
+          for (const change of operation.changes) {
+            if (change.action === 'sheet.create') workbook.insertSheet(change.name, { index: change.index, sheet: { id: change.sheetId } });
+            else if (change.action === 'sheet.delete') workbook.deleteSheet(change.sheetId);
+            else {
+              const sheet = workbook.getSheetBySheetId(change.sheetId);
+              if (!sheet) continue;
+              if (change.action === 'sheet.rename') sheet.setName(change.name);
+              else if (change.action === 'sheet.move') workbook.moveSheet(sheet, change.index);
+              else if (change.action === 'rows.insert') sheet.insertRows(change.index, change.count);
+              else if (change.action === 'rows.delete') sheet.deleteRows(change.index, change.count);
+              else if (change.action === 'columns.insert') sheet.insertColumns(change.index, change.count);
+              else if (change.action === 'columns.delete') sheet.deleteColumns(change.index, change.count);
+              else if ('startRow' in change) {
+                const range = sheet.getRange(change.startRow, change.startColumn, change.endRow - change.startRow + 1, change.endColumn - change.startColumn + 1);
+                if (change.action === 'range.merge') range.merge({ isForceMerge: true });
+                else range.breakApart();
+              }
+            }
+          }
         }
       } finally {
         applyingRemoteOperation = false;
       }
     },
+    getSnapshot() { return workbook.save(); },
     applySnapshot(nextSnapshot) {
       clearTimeout(saveTimer);
       saveTimer = undefined;
       commandSubscription?.dispose();
+      structureCommandSubscription?.dispose();
       valueSubscription?.dispose();
       univerAPI.disposeUnit(workbook.getId());
       workbook = univerAPI.createWorkbook(
@@ -67,6 +115,7 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
       );
       commandSubscription = subscribeToChanges();
       valueSubscription = subscribeToValueChanges();
+      structureCommandSubscription = subscribeToStructureCommands();
     },
     dispose() {
       if (saveTimer) {
@@ -74,6 +123,9 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
         onSnapshot(workbook.save());
       }
       commandSubscription?.dispose();
+      structureCommandSubscription?.dispose();
+      valueSubscription?.dispose();
+      for (const subscription of sheetSubscriptions) subscription.dispose();
       unregisterWebMCP();
       // Univer owns a nested React root. Dispose it after Flockdoc's outer
       // React commit finishes to avoid nested synchronous unmounts.
