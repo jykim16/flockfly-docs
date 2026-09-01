@@ -54,13 +54,11 @@ function isRealtimeEvent(value: unknown): value is FlockdocRealtimeEvent {
     && (event.kind === 'revision.committed' || event.kind === 'update.committed' || event.kind === 'presence.updated');
 }
 
+let pageRealtimeClientId: string | undefined;
+
 export function getFlockdocRealtimeClientId(): string {
-  const key = 'flockdoc.realtime.client-id';
-  const existing = sessionStorage.getItem(key);
-  if (existing) return existing;
-  const created = `browser_${crypto.randomUUID()}`;
-  sessionStorage.setItem(key, created);
-  return created;
+  pageRealtimeClientId ??= `browser_${crypto.randomUUID()}`;
+  return pageRealtimeClientId;
 }
 
 export class FlockdocRealtimeClient {

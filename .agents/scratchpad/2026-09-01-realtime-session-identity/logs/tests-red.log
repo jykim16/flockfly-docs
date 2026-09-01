@@ -1,0 +1,32 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run src/__tests__/flockdoc-realtime.test.ts
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:8604) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/flockdoc-realtime.test.ts (9 tests | 1 failed) 16ms
+     × uses a page-scoped identity instead of a sessionStorage value copied from another tab 10ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/flockdoc-realtime.test.ts > flockdoc realtime client > uses a page-scoped identity instead of a sessionStorage value copied from another tab
+AssertionError: expected 'browser_copied_from_opener' not to be 'browser_copied_from_opener' // Object.is equality
+ ❯ src/__tests__/flockdoc-realtime.test.ts:39:23
+     37|
+     38|     expect(first).toMatch(/^browser_/);
+     39|     expect(first).not.toBe('browser_copied_from_opener');
+       |                       ^
+     40|     expect(getFlockdocRealtimeClientId()).toBe(first);
+     41|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Start at  05:30:52
+   Duration  498ms (transform 36ms, setup 99ms, import 21ms, tests 16ms, environment 276ms)
+

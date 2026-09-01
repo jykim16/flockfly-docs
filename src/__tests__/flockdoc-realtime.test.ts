@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FlockdocApi, FlockdocState } from '../lib/api';
-import { FlockdocRealtimeClient, FlockdocRealtimeRecovery, type FlockdocRealtimeEvent, type RealtimeSocket } from '../lib/flockdoc-realtime';
+import { FlockdocRealtimeClient, FlockdocRealtimeRecovery, getFlockdocRealtimeClientId, type FlockdocRealtimeEvent, type RealtimeSocket } from '../lib/flockdoc-realtime';
 import { RemoteSnapshotSynchronizer } from '../lib/realtime-snapshot-sync';
 
 class FakeSocket implements RealtimeSocket {
@@ -30,6 +30,16 @@ const revisionEvent: FlockdocRealtimeEvent = {
 };
 
 describe('flockdoc realtime client', () => {
+  it('uses a page-scoped identity instead of a sessionStorage value copied from another tab', () => {
+    sessionStorage.setItem('flockdoc.realtime.client-id', 'browser_copied_from_opener');
+
+    const first = getFlockdocRealtimeClientId();
+
+    expect(first).toMatch(/^browser_/);
+    expect(first).not.toBe('browser_copied_from_opener');
+    expect(getFlockdocRealtimeClientId()).toBe(first);
+  });
+
   it('connects with a scoped ticket and delivers typed events', async () => {
     const socket = new FakeSocket();
     const api = { realtimeTicket: vi.fn().mockResolvedValue({ url: 'wss://api.example/realtime?ticket=abc', expiresInSeconds: 60 }) } as unknown as FlockdocApi;
