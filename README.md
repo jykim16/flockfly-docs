@@ -2,6 +2,8 @@
 
 Flockdoc is the collaborative document workspace for Flockfly. A saved object is a **flockdoc** and has one of two types:
 
+**Live app:** [https://platform.flockfly.ai/flockdoc/](https://platform.flockfly.ai/flockdoc/)
+
 - **Paper** — a rich-text document.
 - **Spreadsheet** — a workbook.
 
