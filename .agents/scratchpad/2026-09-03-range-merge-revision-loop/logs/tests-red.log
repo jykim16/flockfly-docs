@@ -1,0 +1,12 @@
+> flockfly-docs@0.1.0 test
+> vitest run src/__tests__/mount-spreadsheet.test.ts
+
+FAIL src/__tests__/mount-spreadsheet.test.ts > mounted spreadsheet collaboration > does not echo a remotely applied merge when Univer reports its command asynchronously
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received operation:
+{"protocolVersion":1,"kind":"spreadsheet.structure.patch","baseRevision":7688,"changes":[{"action":"range.merge","sheetId":"sheet-1","startRow":26,"endRow":26,"startColumn":5,"endColumn":9}]}
+
+Test Files  1 failed (1)
+Tests       1 failed (1)
+

@@ -21,6 +21,7 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
   const unregisterWebMCP = registerUniverWebMCP({ ownerDocument: host.ownerDocument, univerAPI, canEdit });
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   let applyingRemoteOperation = false;
+  let remoteOperationReleaseTimer: ReturnType<typeof setTimeout> | undefined;
   const submitStructureChange = (change: SpreadsheetStructureChange) => {
     if (applyingRemoteOperation || !onSpreadsheetOperation) return;
     const operation: SpreadsheetStructurePatch = {
@@ -99,7 +100,12 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
           }
         }
       } finally {
-        applyingRemoteOperation = false;
+        // Univer reports merge commands in a microtask after its facade returns.
+        clearTimeout(remoteOperationReleaseTimer);
+        remoteOperationReleaseTimer = setTimeout(() => {
+          applyingRemoteOperation = false;
+          remoteOperationReleaseTimer = undefined;
+        }, 0);
       }
     },
     getSnapshot() { return workbook.save(); },
@@ -118,6 +124,7 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
       structureCommandSubscription = subscribeToStructureCommands();
     },
     dispose() {
+      clearTimeout(remoteOperationReleaseTimer);
       if (saveTimer) {
         clearTimeout(saveTimer);
         onSnapshot(workbook.save());

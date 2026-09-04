@@ -1,0 +1,7 @@
+> flockfly-docs@0.1.0 test
+> vitest run
+
+Test Files  13 passed (13)
+Tests       70 passed (70)
+Duration    1.04s
+
