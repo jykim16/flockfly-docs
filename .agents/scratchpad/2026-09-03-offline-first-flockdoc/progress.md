@@ -7,7 +7,7 @@
 - [x] Authenticated outbox implemented.
 - [x] React integration completed.
 - [x] Full verification completed.
-- [ ] Changes committed locally.
+- [x] Changes committed locally.
 
 ## Decisions
 
@@ -30,3 +30,10 @@
 - TypeScript typecheck passed.
 - Production build passed with the existing large-chunk advisory.
 - Browser flow passed for anonymous Spreadsheet creation, editing, reload persistence, selection stability, save labeling, and console health.
+
+## Commit
+
+- `fa8e4b6 feat(flockdoc): add offline-first account persistence`
+- Not pushed or deployed.
+
+🤖 Assisted by the code-assist SOP
