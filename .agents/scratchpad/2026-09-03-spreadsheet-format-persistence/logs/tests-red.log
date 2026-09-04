@@ -1,0 +1,8 @@
+> vitest run src/__tests__/univer-webmcp.test.ts src/__tests__/mount-spreadsheet.test.ts
+
+FAIL mount-spreadsheet: expected onSnapshot to receive the workbook snapshot; calls: 0.
+FAIL univer-webmcp: expected [format, activate, persist]; received [format, activate].
+
+Test Files  2 failed (2)
+Tests       2 failed | 20 passed (22)
+

@@ -3,6 +3,7 @@ import { mountSpreadsheet } from '../features/editor/univer/mount-spreadsheet';
 
 const univerState = vi.hoisted(() => ({
   commandListener: undefined as ((command: { id: string; params?: unknown }) => void) | undefined,
+  webMcpOptions: undefined as { onPresentationChange?: () => void | Promise<void> } | undefined,
 }));
 
 vi.mock('@univerjs/core', () => ({
@@ -13,7 +14,12 @@ vi.mock('@univerjs/core', () => ({
 
 vi.mock('@univerjs/preset-sheets-core', () => ({ UniverSheetsCorePreset: vi.fn(() => ({})) }));
 vi.mock('@univerjs/preset-sheets-core/locales/en-US', () => ({ default: {} }));
-vi.mock('../lib/univer-webmcp', () => ({ registerUniverWebMCP: vi.fn(() => vi.fn()) }));
+vi.mock('../lib/univer-webmcp', () => ({
+  registerUniverWebMCP: vi.fn((options) => {
+    univerState.webMcpOptions = options;
+    return vi.fn();
+  }),
+}));
 
 vi.mock('@univerjs/presets', () => ({
   createUniver: vi.fn(() => {
@@ -57,6 +63,7 @@ vi.mock('@univerjs/presets', () => ({
 describe('mounted spreadsheet collaboration', () => {
   afterEach(() => {
     univerState.commandListener = undefined;
+    univerState.webMcpOptions = undefined;
     vi.clearAllMocks();
   });
 
@@ -103,6 +110,23 @@ describe('mounted spreadsheet collaboration', () => {
       baseRevision: 7688,
       changes: [{ action: 'range.merge', sheetId: 'sheet-1' }],
     });
+    mounted.dispose();
+  });
+
+  it('checkpoints the current workbook after WebMCP presentation changes', async () => {
+    const onSnapshot = vi.fn().mockResolvedValue(undefined);
+    const mounted = mountSpreadsheet({
+      host: document.createElement('div'),
+      id: 'flockdoc-1',
+      name: 'Plan',
+      snapshot: {},
+      onSnapshot,
+      onSpreadsheetOperation: vi.fn(),
+    });
+
+    await univerState.webMcpOptions?.onPresentationChange?.();
+
+    expect(onSnapshot).toHaveBeenCalledWith({});
     mounted.dispose();
   });
 });

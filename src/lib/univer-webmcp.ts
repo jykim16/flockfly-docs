@@ -46,6 +46,7 @@ interface IRegisterUniverWebMCPOptions {
     ownerDocument: Document;
     univerAPI: FUniver;
     canEdit?: boolean;
+    onPresentationChange?: () => void | Promise<void>;
 }
 
 const textResult = (
@@ -333,7 +334,7 @@ function createWriteRangeTool(univerAPI: FUniver): IWebMCPTool {
     };
 }
 
-function createFormatRangeTool(univerAPI: FUniver): IWebMCPTool {
+function createFormatRangeTool(univerAPI: FUniver, onPresentationChange?: () => void | Promise<void>): IWebMCPTool {
     return {
         name: 'format_range',
         title: 'Format Spreadsheet Range',
@@ -486,6 +487,7 @@ function createFormatRangeTool(univerAPI: FUniver): IWebMCPTool {
                     if (nonEmptyString(input.number_format)) range.setNumberFormat(input.number_format);
                     range.activate();
                 }
+                await onPresentationChange?.();
                 const data = { sheet: sheet.getSheetName(), ranges: parsedRanges.ranges };
                 return textResult(`Formatted ${parsedRanges.ranges.length} range(s) in ${data.sheet}.`, { structuredContent: data });
             } catch (error) {
@@ -655,13 +657,13 @@ function createSheetTool(univerAPI: FUniver): IWebMCPTool {
     };
 }
 
-function createSpreadsheetTools(univerAPI: FUniver): IWebMCPTool[] {
+function createSpreadsheetTools(univerAPI: FUniver, onPresentationChange?: () => void | Promise<void>): IWebMCPTool[] {
     return [
         createReadMeTool(),
         createInspectWorkbookTool(univerAPI),
         createReadRangeTool(univerAPI),
         createWriteRangeTool(univerAPI),
-        createFormatRangeTool(univerAPI),
+        createFormatRangeTool(univerAPI, onPresentationChange),
         createMergeCellsTool(univerAPI),
         createModifyGridTool(univerAPI),
         createManageSheetTool(univerAPI),
@@ -669,13 +671,13 @@ function createSpreadsheetTools(univerAPI: FUniver): IWebMCPTool[] {
     ];
 }
 
-export function registerUniverWebMCP({ ownerDocument, univerAPI, canEdit = true }: IRegisterUniverWebMCPOptions): () => void {
+export function registerUniverWebMCP({ ownerDocument, univerAPI, canEdit = true, onPresentationChange }: IRegisterUniverWebMCPOptions): () => void {
     const modelContext = (ownerDocument as WebMCPDocument).modelContext;
     const ownerWindow = ownerDocument.defaultView;
     if (!modelContext || !ownerWindow) return () => {};
 
     const controller = new ownerWindow.AbortController();
-    const tools = createSpreadsheetTools(univerAPI).filter((tool) => canEdit || tool.annotations?.readOnlyHint === true);
+    const tools = createSpreadsheetTools(univerAPI, onPresentationChange).filter((tool) => canEdit || tool.annotations?.readOnlyHint === true);
 
     for (const tool of tools) {
         try {

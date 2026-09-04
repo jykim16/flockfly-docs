@@ -131,6 +131,7 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
   const onSnapshot = async (snapshot: unknown) => {
     const savingEditVersion = editVersion.current;
     onUpdate({ snapshot, modifiedAt: 'Just now' });
+    await operationTail.current;
     const revision = await saver.save(paperCollaboration ? paperCollaboration.checkpoint() : snapshot);
     persistedEditVersion.current = Math.max(persistedEditVersion.current, savingEditVersion);
     snapshotRevision.current = revision;

@@ -18,7 +18,12 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
   let workbook = univerAPI.createWorkbook(
     (snapshot ?? getSheetsEmptySnapshot(id, LocaleType.EN_US, name)) as IWorkbookData,
   );
-  const unregisterWebMCP = registerUniverWebMCP({ ownerDocument: host.ownerDocument, univerAPI, canEdit });
+  const unregisterWebMCP = registerUniverWebMCP({
+    ownerDocument: host.ownerDocument,
+    univerAPI,
+    canEdit,
+    onPresentationChange: () => onSnapshot(workbook.save()),
+  });
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   let applyingRemoteOperation = false;
   let remoteOperationReleaseTimer: ReturnType<typeof setTimeout> | undefined;

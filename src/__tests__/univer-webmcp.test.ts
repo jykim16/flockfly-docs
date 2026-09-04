@@ -12,7 +12,7 @@ class FakeModelContext {
     }
 }
 
-function createHarness(canEdit = true) {
+function createHarness(canEdit = true, onPresentationChange?: () => void | Promise<void>) {
     const range = {
         activate: vi.fn(),
         breakApart: vi.fn(),
@@ -99,7 +99,7 @@ function createHarness(canEdit = true) {
         defaultView: { AbortController },
         modelContext,
     } as unknown as Document;
-    const cleanup = registerUniverWebMCP({ ownerDocument, univerAPI: univerAPI as never, canEdit });
+    const cleanup = registerUniverWebMCP({ ownerDocument, univerAPI: univerAPI as never, canEdit, onPresentationChange });
 
     async function execute(name: string, input: Record<string, unknown> = {}) {
         const tool = modelContext.tools.get(name);
@@ -260,6 +260,17 @@ describe('Univer WebMCP', () => {
         expect(range.setFontWeight).toHaveBeenCalledWith('bold');
         expect(range.setNumberFormat).toHaveBeenCalledWith('$#,##0.00');
         expect(range.activate).toHaveBeenCalledOnce();
+    });
+
+    it('requests persistence after a formatting tool finishes changing the workbook', async () => {
+        const calls: string[] = [];
+        const { execute, range } = createHarness(true, () => { calls.push('persist'); });
+        range.setBackground.mockImplementation(() => { calls.push('format'); });
+        range.activate.mockImplementation(() => { calls.push('activate'); });
+
+        await execute('format_range', { range: 'A1:B1', background_color: '#d8d8d8' });
+
+        expect(calls).toEqual(['format', 'activate', 'persist']);
     });
 
     it('applies layout formatting using the range dimensions', async () => {
