@@ -1,0 +1,4 @@
+Command: npm test -- --run src/__tests__/editor-refresh.test.tsx
+Result: FAIL as expected.
+Regression: self-originated snapshot called applySnapshot once with { revision: 2 }.
+

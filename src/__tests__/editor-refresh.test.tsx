@@ -1,5 +1,5 @@
 import { render, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Flockdoc } from '../types';
 import { PaperEditor } from '../features/editor/PaperEditor';
 import { SpreadsheetEditor } from '../features/editor/SpreadsheetEditor';
@@ -24,6 +24,8 @@ const editorProps = {
   onRename: vi.fn(),
   onSnapshot: vi.fn(),
 };
+
+beforeEach(() => vi.clearAllMocks());
 
 describe('remote editor snapshot refresh', () => {
   it('updates Paper through its mounted adapter without replacing the editor shell', async () => {
@@ -70,6 +72,23 @@ describe('remote editor snapshot refresh', () => {
     await waitFor(() => expect(applySpreadsheetOperation).toHaveBeenNthCalledWith(2, secondOperation));
     expect(view.getByLabelText('Spreadsheet editor')).toBe(host);
     expect(mountSpreadsheet).toHaveBeenCalledOnce();
+  });
+
+  it('does not reapply a Spreadsheet snapshot produced by the mounted editor', async () => {
+    const applySnapshot = vi.fn();
+    vi.mocked(mountSpreadsheet).mockReturnValue({ applySnapshot, dispose: vi.fn() });
+    const item = { ...baseItem, type: 'spreadsheet' as const };
+    const onSnapshot = vi.fn();
+    const view = render(<SpreadsheetEditor item={item} {...editorProps} onSnapshot={onSnapshot} />);
+    await waitFor(() => expect(mountSpreadsheet).toHaveBeenCalledOnce());
+    const mountedOptions = vi.mocked(mountSpreadsheet).mock.lastCall![0];
+    const localSnapshot = { revision: 2 };
+
+    await mountedOptions.onSnapshot(localSnapshot);
+    view.rerender(<SpreadsheetEditor item={{ ...item, snapshot: localSnapshot }} {...editorProps} onSnapshot={onSnapshot} />);
+
+    await waitFor(() => expect(onSnapshot).toHaveBeenCalledWith(localSnapshot));
+    expect(applySnapshot).not.toHaveBeenCalled();
   });
 
   it('writes an authoritative Univer snapshot when checkpoint compaction is requested', async () => {

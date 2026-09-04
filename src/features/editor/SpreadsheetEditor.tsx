@@ -46,6 +46,10 @@ export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty,
         onSpreadsheetOperation,
         getSpreadsheetRevision,
         onSnapshot: snapshot => {
+          // The parent stores local snapshots on `item`. Mark this snapshot as
+          // already mounted so that prop echo is not mistaken for a remote
+          // refresh, which would recreate the workbook and reset selection.
+          mountedSnapshotRef.current = snapshot;
           setStatus('Saving…');
           return Promise.resolve(onSnapshotRef.current(snapshot))
             .then(() => setStatus('Saved to Flockfly'))

@@ -1,0 +1,3 @@
+Command: npm test -- --run src/__tests__/editor-refresh.test.tsx
+Result: PASS — 1 file, 4 tests.
+
