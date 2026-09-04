@@ -6,9 +6,10 @@ describe('operation-only recovery', () => {
     expect(initialOperationRecoveryRevision(4)).toBe(4);
   });
 
-  it('advances through contiguous checkpoints without reloading the editor', () => {
+  it('advances local checkpoints but reloads checkpoints committed by another client', () => {
     expect(checkpointDisposition(8, 8)).toBe('ignore');
     expect(checkpointDisposition(8, 9)).toBe('advance');
+    expect(checkpointDisposition(8, 9, true)).toBe('reload');
     expect(checkpointDisposition(8, 11)).toBe('reload');
   });
 });

@@ -47,7 +47,7 @@ export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty,
         getSpreadsheetRevision,
         onSnapshot: snapshot => {
           setStatus('Saving…');
-          void Promise.resolve(onSnapshotRef.current(snapshot))
+          return Promise.resolve(onSnapshotRef.current(snapshot))
             .then(() => setStatus('Saved to Flockfly'))
             .catch(error => setStatus(error instanceof Error && error.name === 'RevisionConflictError'
               ? 'Newer revision available — reopen to refresh'

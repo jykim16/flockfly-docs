@@ -4,7 +4,8 @@ export function initialOperationRecoveryRevision(snapshotRevision: number): numb
   return snapshotRevision;
 }
 
-export function checkpointDisposition(currentRevision: number, checkpointRevision: number): CheckpointDisposition {
+export function checkpointDisposition(currentRevision: number, checkpointRevision: number, authoredRemotely = false): CheckpointDisposition {
   if (checkpointRevision <= currentRevision) return 'ignore';
+  if (authoredRemotely) return 'reload';
   return checkpointRevision === currentRevision + 1 ? 'advance' : 'reload';
 }

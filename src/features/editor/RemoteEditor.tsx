@@ -69,7 +69,7 @@ function LoadedRemoteEditor({ api, state, currentItem, onBack, onUpdate, current
     };
     const onRealtimeEvent = async (event: FlockdocRealtimeEvent) => {
       if (event.kind === 'revision.committed') {
-        const disposition = checkpointDisposition(appliedRevision.current, event.revision);
+        const disposition = checkpointDisposition(appliedRevision.current, event.revision, event.clientId !== clientId);
         if (disposition === 'advance') {
           saver.revision = event.revision;
           appliedRevision.current = event.revision;

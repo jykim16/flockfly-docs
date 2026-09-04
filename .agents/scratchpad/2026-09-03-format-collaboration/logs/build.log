@@ -1,0 +1,6 @@
+> flockfly-docs@0.1.0 build
+> tsc -b && vite build
+
+✓ built in 5.32s
+
+Existing warning: some generated Univer chunks exceed 500 kB after minification.

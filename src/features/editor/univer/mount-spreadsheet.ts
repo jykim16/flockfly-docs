@@ -4,7 +4,7 @@ import { UniverSheetsCorePreset } from '@univerjs/preset-sheets-core';
 import sheetsLocale from '@univerjs/preset-sheets-core/locales/en-US';
 import { createUniver } from '@univerjs/presets';
 import { registerUniverWebMCP } from '../../../lib/univer-webmcp';
-import { patchesFromChangedRanges, structurePatchFromCommand, type SpreadsheetStructureChange, type SpreadsheetStructurePatch } from '../../../lib/spreadsheet-operations';
+import { isSpreadsheetPresentationCommand, patchesFromChangedRanges, structurePatchFromCommand, type SpreadsheetStructureChange, type SpreadsheetStructurePatch } from '../../../lib/spreadsheet-operations';
 import type { MountedUniverEditor, MountUniverEditorOptions } from './types';
 import '@univerjs/preset-sheets-core/lib/index.css';
 
@@ -18,15 +18,29 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
   let workbook = univerAPI.createWorkbook(
     (snapshot ?? getSheetsEmptySnapshot(id, LocaleType.EN_US, name)) as IWorkbookData,
   );
+  let saveTimer: ReturnType<typeof setTimeout> | undefined;
+  let presentationSaveTimer: ReturnType<typeof setTimeout> | undefined;
+  let applyingRemoteOperation = false;
+  let remoteOperationReleaseTimer: ReturnType<typeof setTimeout> | undefined;
+  const savePresentation = () => {
+    clearTimeout(presentationSaveTimer);
+    presentationSaveTimer = undefined;
+    return Promise.resolve(onSnapshot(workbook.save()));
+  };
+  const schedulePresentationSave = () => {
+    if (applyingRemoteOperation) return;
+    onDirty?.();
+    clearTimeout(presentationSaveTimer);
+    presentationSaveTimer = setTimeout(() => {
+      void savePresentation().catch(() => undefined);
+    }, 100);
+  };
   const unregisterWebMCP = registerUniverWebMCP({
     ownerDocument: host.ownerDocument,
     univerAPI,
     canEdit,
-    onPresentationChange: () => onSnapshot(workbook.save()),
+    onPresentationChange: savePresentation,
   });
-  let saveTimer: ReturnType<typeof setTimeout> | undefined;
-  let applyingRemoteOperation = false;
-  let remoteOperationReleaseTimer: ReturnType<typeof setTimeout> | undefined;
   const submitStructureChange = (change: SpreadsheetStructureChange) => {
     if (applyingRemoteOperation || !onSpreadsheetOperation) return;
     const operation: SpreadsheetStructurePatch = {
@@ -63,6 +77,12 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
     })
     : undefined;
   let structureCommandSubscription = subscribeToStructureCommands();
+  const subscribeToPresentationCommands = () => canEdit && onSpreadsheetOperation
+    ? workbook.onCommandExecuted(command => {
+      if (isSpreadsheetPresentationCommand(command)) schedulePresentationSave();
+    })
+    : undefined;
+  let presentationCommandSubscription = subscribeToPresentationCommands();
   const sheetSubscriptions = canEdit && onSpreadsheetOperation ? [
     univerAPI.addEvent(univerAPI.Event.SheetCreated, ({ worksheet }) => submitStructureChange({ action: 'sheet.create', sheetId: worksheet.getSheetId(), name: worksheet.getSheetName(), index: worksheet.getIndex() })),
     univerAPI.addEvent(univerAPI.Event.SheetDeleted, ({ sheetId }) => submitStructureChange({ action: 'sheet.delete', sheetId })),
@@ -117,8 +137,11 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
     applySnapshot(nextSnapshot) {
       clearTimeout(saveTimer);
       saveTimer = undefined;
+      clearTimeout(presentationSaveTimer);
+      presentationSaveTimer = undefined;
       commandSubscription?.dispose();
       structureCommandSubscription?.dispose();
+      presentationCommandSubscription?.dispose();
       valueSubscription?.dispose();
       univerAPI.disposeUnit(workbook.getId());
       workbook = univerAPI.createWorkbook(
@@ -127,15 +150,18 @@ export function mountSpreadsheet({ host, id, name, snapshot, canEdit = true, onS
       commandSubscription = subscribeToChanges();
       valueSubscription = subscribeToValueChanges();
       structureCommandSubscription = subscribeToStructureCommands();
+      presentationCommandSubscription = subscribeToPresentationCommands();
     },
     dispose() {
       clearTimeout(remoteOperationReleaseTimer);
-      if (saveTimer) {
+      if (saveTimer || presentationSaveTimer) {
         clearTimeout(saveTimer);
-        onSnapshot(workbook.save());
+        clearTimeout(presentationSaveTimer);
+        void Promise.resolve(onSnapshot(workbook.save())).catch(() => undefined);
       }
       commandSubscription?.dispose();
       structureCommandSubscription?.dispose();
+      presentationCommandSubscription?.dispose();
       valueSubscription?.dispose();
       for (const subscription of sheetSubscriptions) subscription.dispose();
       unregisterWebMCP();

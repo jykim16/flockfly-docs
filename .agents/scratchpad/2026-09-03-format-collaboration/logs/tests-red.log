@@ -1,0 +1,5 @@
+Targeted RED run:
+
+- Manual style command test failed: expected one presentation checkpoint, received zero.
+- Remote contiguous checkpoint test failed: expected reload, received advance.
+- 2 failed, 5 passed.

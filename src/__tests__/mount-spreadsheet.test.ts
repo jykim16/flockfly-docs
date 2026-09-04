@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mountSpreadsheet } from '../features/editor/univer/mount-spreadsheet';
 
 const univerState = vi.hoisted(() => ({
-  commandListener: undefined as ((command: { id: string; params?: unknown }) => void) | undefined,
+  commandListeners: [] as Array<(command: { id: string; params?: unknown }) => void>,
   webMcpOptions: undefined as { onPresentationChange?: () => void | Promise<void> } | undefined,
 }));
 
@@ -26,10 +26,10 @@ vi.mock('@univerjs/presets', () => ({
     const rangeCoordinates = { startRow: 26, endRow: 26, startColumn: 5, endColumn: 9 };
     const range = {
       merge: vi.fn(() => {
-        queueMicrotask(() => univerState.commandListener?.({
+        queueMicrotask(() => univerState.commandListeners.forEach(listener => listener({
           id: 'sheet.command.add-worksheet-merge',
           params: { subUnitId: 'sheet-1', selections: [rangeCoordinates] },
-        }));
+        })));
         return range;
       }),
       breakApart: vi.fn(() => range),
@@ -38,9 +38,11 @@ vi.mock('@univerjs/presets', () => ({
     const workbook = {
       getId: vi.fn(() => 'flockdoc-1'),
       getSheetBySheetId: vi.fn(() => sheet),
-      onCommandExecuted: vi.fn((listener: typeof univerState.commandListener) => {
-        univerState.commandListener = listener;
-        return { dispose: vi.fn() };
+      onCommandExecuted: vi.fn((listener: (command: { id: string; params?: unknown }) => void) => {
+        univerState.commandListeners.push(listener);
+        return { dispose: vi.fn(() => {
+          univerState.commandListeners = univerState.commandListeners.filter(current => current !== listener);
+        }) };
       }),
       save: vi.fn(() => ({})),
     };
@@ -62,8 +64,9 @@ vi.mock('@univerjs/presets', () => ({
 
 describe('mounted spreadsheet collaboration', () => {
   afterEach(() => {
-    univerState.commandListener = undefined;
+    univerState.commandListeners = [];
     univerState.webMcpOptions = undefined;
+    vi.useRealTimers();
     vi.clearAllMocks();
   });
 
@@ -96,13 +99,13 @@ describe('mounted spreadsheet collaboration', () => {
 
     expect(onSpreadsheetOperation).not.toHaveBeenCalled();
 
-    univerState.commandListener?.({
+    univerState.commandListeners.forEach(listener => listener({
       id: 'sheet.command.add-worksheet-merge',
       params: {
         subUnitId: 'sheet-1',
         selections: [{ startRow: 26, endRow: 26, startColumn: 5, endColumn: 9 }],
       },
-    });
+    }));
 
     expect(onSpreadsheetOperation).toHaveBeenCalledOnce();
     expect(onSpreadsheetOperation.mock.calls[0][0]).toMatchObject({
@@ -127,6 +130,74 @@ describe('mounted spreadsheet collaboration', () => {
     await univerState.webMcpOptions?.onPresentationChange?.();
 
     expect(onSnapshot).toHaveBeenCalledWith({});
+    mounted.dispose();
+  });
+
+  it('coalesces manual style commands into a realtime presentation checkpoint', async () => {
+    vi.useFakeTimers();
+    const onSnapshot = vi.fn().mockResolvedValue(undefined);
+    const mounted = mountSpreadsheet({
+      host: document.createElement('div'),
+      id: 'flockdoc-1',
+      name: 'Plan',
+      snapshot: {},
+      onSnapshot,
+      onSpreadsheetOperation: vi.fn(),
+    });
+
+    const styleMutation = {
+      id: 'sheet.mutation.set-range-values',
+      params: { subUnitId: 'sheet-1', cellValue: { 2: { 3: { s: { bg: { rgb: '#d8d8d8' } } } } } },
+    };
+    univerState.commandListeners.forEach(listener => listener(styleMutation));
+    univerState.commandListeners.forEach(listener => listener({ id: 'sheet.command.set-style' }));
+
+    await vi.runAllTimersAsync();
+
+    expect(onSnapshot).toHaveBeenCalledOnce();
+    expect(onSnapshot).toHaveBeenCalledWith({});
+    mounted.dispose();
+  });
+
+  it('does not checkpoint value-only mutations as presentation changes', async () => {
+    vi.useFakeTimers();
+    const onSnapshot = vi.fn().mockResolvedValue(undefined);
+    const mounted = mountSpreadsheet({
+      host: document.createElement('div'),
+      id: 'flockdoc-1',
+      name: 'Plan',
+      snapshot: {},
+      onSnapshot,
+      onSpreadsheetOperation: vi.fn(),
+    });
+
+    univerState.commandListeners.forEach(listener => listener({
+      id: 'sheet.mutation.set-range-values',
+      params: { subUnitId: 'sheet-1', cellValue: { 2: { 3: { v: 'Forecast' } } } },
+    }));
+    await vi.runAllTimersAsync();
+
+    expect(onSnapshot).not.toHaveBeenCalled();
+    mounted.dispose();
+  });
+
+  it('uses the same checkpoint flush for WebMCP and cancels a queued toolbar save', async () => {
+    vi.useFakeTimers();
+    const onSnapshot = vi.fn().mockResolvedValue(undefined);
+    const mounted = mountSpreadsheet({
+      host: document.createElement('div'),
+      id: 'flockdoc-1',
+      name: 'Plan',
+      snapshot: {},
+      onSnapshot,
+      onSpreadsheetOperation: vi.fn(),
+    });
+
+    univerState.commandListeners.forEach(listener => listener({ id: 'sheet.command.set-border' }));
+    await univerState.webMcpOptions?.onPresentationChange?.();
+    await vi.runAllTimersAsync();
+
+    expect(onSnapshot).toHaveBeenCalledOnce();
     mounted.dispose();
   });
 });

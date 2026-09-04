@@ -103,6 +103,40 @@ type UniverStructureCommand = {
   };
 };
 
+type UniverPresentationCommand = {
+  id: string;
+  params?: { cellValue?: unknown };
+};
+
+const PRESENTATION_COMMAND_IDS = new Set([
+  'sheet.command.set-style',
+  'sheet.command.set-border',
+  'sheet.command.set-border-basic',
+  'sheet.command.set-worksheet-range-theme-style',
+  'sheet.command.set-worksheet-default-style',
+  'sheet.command.set-gridlines-color',
+  'sheet.command.set-tab-color',
+  'sheet.command.delta-column-width',
+  'sheet.command.set-worksheet-col-width',
+  'sheet.command.set-col-is-auto-width',
+  'sheet.command.set-col-auto-width',
+  'sheet.command.delta-row-height',
+  'sheet.command.set-row-height',
+  'sheet.command.set-row-is-auto-height',
+]);
+
+function containsCellStyle(cellValue: unknown): boolean {
+  if (!cellValue || typeof cellValue !== 'object' || Array.isArray(cellValue)) return false;
+  return Object.values(cellValue).some(row => row && typeof row === 'object' && !Array.isArray(row)
+    && Object.values(row).some(cell => cell && typeof cell === 'object' && !Array.isArray(cell) && Object.hasOwn(cell, 's')));
+}
+
+export function isSpreadsheetPresentationCommand(command: UniverPresentationCommand): boolean {
+  if (PRESENTATION_COMMAND_IDS.has(command.id)) return true;
+  if (command.id === 'sheet.mutation.set-row-data' || command.id === 'sheet.mutation.set-col-data') return true;
+  return command.id === 'sheet.mutation.set-range-values' && containsCellStyle(command.params?.cellValue);
+}
+
 export function structurePatchFromCommand(command: UniverStructureCommand, baseRevision: number): SpreadsheetStructurePatch | null {
   const params = command.params;
   if (typeof params?.subUnitId === 'string' && (command.id === 'sheet.command.add-worksheet-merge' || command.id === 'sheet.command.remove-worksheet-merge')) {
