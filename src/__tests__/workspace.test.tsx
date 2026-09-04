@@ -118,6 +118,18 @@ describe('Flockdoc workspace', () => {
     ]));
   });
 
+  it('lets a signed-out user create a local Spreadsheet', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /new/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Spreadsheet' }));
+
+    expect(window.location.pathname).toMatch(/^\/flockdoc\/spreadsheet\//);
+    expect(screen.getByLabelText('Spreadsheet editor')).toBeInTheDocument();
+    expect(screen.getByText('Saved in this browser')).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('flockfly.flockdoc.workspace.v1')!).flockdocs)
+      .toEqual([expect.objectContaining({ name: 'Untitled Spreadsheet', type: 'spreadsheet' })]);
+  });
+
   it('moves a local file to a new path prefix and deletes it after confirmation', () => {
     localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, flockdocs: [{
       id: 'paper-1', name: 'Planning Paper', type: 'paper', modifiedAt: 'Just now', prefix: '', collaborators: [],
@@ -160,25 +172,43 @@ describe('Flockdoc workspace', () => {
     expect(screen.queryByText('Storage data unavailable')).not.toBeInTheDocument();
   });
 
-  it('replaces browser state with the authenticated cloud workspace', async () => {
-    localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, items: [{
-      id: 'browser-only', name: 'Browser only', type: 'paper', modifiedAt: 'Just now', collaborators: [],
+  it('migrates browser documents into the authenticated cloud workspace', async () => {
+    localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, flockdocs: [{
+      id: 'browser-only', name: 'Browser only', type: 'paper', prefix: '', modifiedAt: 'Just now', collaborators: [],
+      snapshot: { id: 'browser-only', body: { dataStream: 'Draft\r\n' } },
     }] }));
-    const fetchMock = vi.fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify({
+    const cloudPermissions = { canRead: true, canComment: true, canEdit: true, canShare: true, canDelete: false };
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/v1/me') return new Response(JSON.stringify({
         user: { id: 'user-1', email: 'planner@flockfly.ai' }, billing: { entitled: true },
-      }), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ flockdocs: [{
+      }), { status: 200 });
+      if (url === '/v1/flockdocs' && init?.method === 'POST') return new Response(JSON.stringify({ flockdoc: {
+        id: 'cloud-browser', name: 'Browser only', type: 'paper', updatedAt: '2026-09-03T00:00:00Z', headRevision: 0,
+        role: 'owner', permissions: cloudPermissions,
+      } }), { status: 200 });
+      if (url === '/v1/flockdocs/cloud-browser/state') return new Response(JSON.stringify({
+        flockdoc: { id: 'cloud-browser', name: 'Browser only', type: 'paper' }, revision: 0, snapshotRevision: 0, snapshot: null,
+      }), { status: 200 });
+      if (url === '/v1/flockdocs/cloud-browser/checkpoints') return new Response(JSON.stringify({ revision: 1, snapshotKey: 'snapshot-1', duplicate: false }), { status: 200 });
+      if (url === '/v1/flockdocs') return new Response(JSON.stringify({ flockdocs: [{
         id: 'cloud-1', name: 'Cloud plan', type: 'spreadsheet', updatedAt: '2026-08-29T00:00:00Z',
-        headRevision: 3, role: 'manager', permissions: { canRead: true, canComment: true, canEdit: true, canShare: true, canDelete: false },
-      }] }), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ invitations: [] }), { status: 200 }));
+        headRevision: 3, role: 'manager', permissions: cloudPermissions,
+      }, {
+        id: 'cloud-browser', name: 'Browser only', type: 'paper', updatedAt: '2026-09-03T00:00:00Z',
+        headRevision: 1, role: 'owner', permissions: cloudPermissions,
+      }] }), { status: 200 });
+      if (url === '/v1/flockdoc-invitations') return new Response(JSON.stringify({ invitations: [] }), { status: 200 });
+      throw new Error(`Unexpected request: ${init?.method ?? 'GET'} ${url}`);
+    });
     vi.stubGlobal('fetch', fetchMock);
 
     render(<App />);
 
     expect(await screen.findByText('Cloud plan')).toBeInTheDocument();
-    expect(screen.queryByText('Browser only')).not.toBeInTheDocument();
+    expect(screen.getByText('Browser only')).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('flockfly.flockdoc.workspace.v1')!).flockdocs).toEqual([]);
+    const checkpointCall = fetchMock.mock.calls.find(([url]) => url === '/v1/flockdocs/cloud-browser/checkpoints');
+    expect(JSON.parse(String(checkpointCall?.[1]?.body))).toMatchObject({ snapshot: { id: 'cloud-browser', body: { dataStream: 'Draft\r\n' } } });
     const account = screen.getByRole('link', { name: /planner@flockfly.ai/i });
     expect(account).toHaveAttribute('href', 'https://platform.flockfly.ai/account');
     expect(within(account).getByText('Pro')).toBeInTheDocument();

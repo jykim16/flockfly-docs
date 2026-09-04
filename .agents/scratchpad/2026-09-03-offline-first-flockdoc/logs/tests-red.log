@@ -1,0 +1,10 @@
+Command: npm test -- --run src/__tests__/anonymous-migration.test.ts src/__tests__/offline-outbox.test.ts src/__tests__/workspace.test.tsx
+Result: expected RED.
+- Anonymous migration and outbox modules did not exist.
+- Authenticated startup persisted cloud metadata over the anonymous workspace instead of migrating it.
+
+Command: npm test -- --run src/__tests__/remote-editor-offline.test.tsx src/__tests__/workspace.test.tsx
+Result: expected RED.
+- A failed spreadsheet request rejected immediately and no durable entry was retained.
+- Anonymous documents were not uploaded during authentication.
+

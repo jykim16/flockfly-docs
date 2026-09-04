@@ -17,9 +17,10 @@ interface PaperEditorProps {
   canEdit?: boolean;
   canShare?: boolean;
   onShare?: () => void;
+  persistenceStatus?: string;
 }
 
-export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPaperSnapshotChange, remotePatches = [], onRemotePatchesApplied, checkpointRevision, canEdit = true, canShare = true, onShare }: PaperEditorProps) {
+export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPaperSnapshotChange, remotePatches = [], onRemotePatchesApplied, checkpointRevision, canEdit = true, canShare = true, onShare, persistenceStatus }: PaperEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef<MountedUniverEditor | undefined>(undefined);
   const mountedSnapshotRef = useRef(item.snapshot);
@@ -44,6 +45,7 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPap
         onDirty,
         onPaperSnapshotChange,
         onSnapshot: snapshot => {
+          mountedSnapshotRef.current = snapshot;
           setStatus('Saving…');
           void Promise.resolve(onSnapshotRef.current(snapshot))
             .then(() => setStatus('Saved to Flockfly'))
@@ -86,7 +88,7 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPap
   }, [checkpointRevision]);
 
   return <main className="editor-shell univer-shell">
-    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Paper name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>
+    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Paper name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>
     <div ref={hostRef} className="univer-editor-host" aria-label="Paper editor" />
   </main>;
 }

@@ -49,6 +49,22 @@ describe('remote editor snapshot refresh', () => {
     expect(mountPaper).toHaveBeenCalledOnce();
   });
 
+  it('does not reapply a Paper snapshot produced by the mounted editor', async () => {
+    const applySnapshot = vi.fn();
+    vi.mocked(mountPaper).mockReturnValue({ applySnapshot, dispose: vi.fn() });
+    const onSnapshot = vi.fn();
+    const view = render(<PaperEditor item={baseItem} {...editorProps} onSnapshot={onSnapshot} />);
+    await waitFor(() => expect(mountPaper).toHaveBeenCalledOnce());
+    const mountedOptions = vi.mocked(mountPaper).mock.lastCall![0];
+    const localSnapshot = { revision: 2 };
+
+    mountedOptions.onSnapshot(localSnapshot);
+    view.rerender(<PaperEditor item={{ ...baseItem, snapshot: localSnapshot }} {...editorProps} onSnapshot={onSnapshot} />);
+
+    await waitFor(() => expect(onSnapshot).toHaveBeenCalledWith(localSnapshot));
+    expect(applySnapshot).not.toHaveBeenCalled();
+  });
+
   it('updates Spreadsheet through its mounted adapter without replacing the editor shell', async () => {
     const applySnapshot = vi.fn();
     const applySpreadsheetOperation = vi.fn();

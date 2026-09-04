@@ -18,9 +18,10 @@ interface SpreadsheetEditorProps {
   canEdit?: boolean;
   canShare?: boolean;
   onShare?: () => void;
+  persistenceStatus?: string;
 }
 
-export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty, onSpreadsheetOperation, getSpreadsheetRevision, remoteOperations = [], onRemoteOperationsApplied, checkpointRevision, canEdit = true, canShare = true, onShare }: SpreadsheetEditorProps) {
+export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty, onSpreadsheetOperation, getSpreadsheetRevision, remoteOperations = [], onRemoteOperationsApplied, checkpointRevision, canEdit = true, canShare = true, onShare, persistenceStatus }: SpreadsheetEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef<MountedUniverEditor | undefined>(undefined);
   const mountedSnapshotRef = useRef(item.snapshot);
@@ -92,7 +93,7 @@ export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty,
   }, [checkpointRevision]);
 
   return <main className="editor-shell univer-shell">
-    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Spreadsheet name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>
+    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Spreadsheet name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>
     <div ref={hostRef} className="univer-editor-host" aria-label="Spreadsheet editor" />
   </main>;
 }

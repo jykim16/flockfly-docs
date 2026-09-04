@@ -1,0 +1,11 @@
+Environment: http://127.0.0.1:5203/flockdoc/
+Browser: Codex in-app browser
+Result: PASS.
+- Signed-out workspace rendered without an error overlay.
+- Created an anonymous Spreadsheet through the UI.
+- Wrote "anonymous offline draft" to E5 through WebMCP.
+- Reloaded and read the same value from E5.
+- Selected E5 and confirmed it remained E5 after the autosave window.
+- "Saved in this browser" was visible.
+- No browser console errors or warnings were reported.
+

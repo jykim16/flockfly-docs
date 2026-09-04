@@ -8,7 +8,9 @@ import { SpreadsheetEditor } from './features/editor/SpreadsheetEditor';
 import { FlockdocTable } from './features/workspace/FlockdocTable';
 import { FolderBreadcrumb } from './features/workspace/FolderBreadcrumb';
 import { consumeAuthTokenFromHash, FlockdocApi, getToken, googleSignInUrl, supportsPlatformSession } from './lib/api';
+import { migrateAnonymousWorkspace } from './lib/anonymous-migration';
 import { flockdocRoleLabel } from './lib/flockdoc-roles';
+import { FlockdocOutbox } from './lib/flockdoc-outbox';
 import { registerFlockdocWebMCP } from './lib/webmcp';
 import { currentFlockdocPath, migrateLegacyFlockdocPath, navigateFlockdoc } from './lib/navigation';
 import { loadWorkspace, saveWorkspace } from './lib/workspace-storage';
@@ -32,6 +34,7 @@ export default function App() {
   const [route, setRoute] = useState(currentFlockdocPath);
   const [syncStatus, setSyncStatus] = useState<'browser' | 'loading' | 'synced' | 'error'>('loading');
   const [authenticated, setAuthenticated] = useState(false);
+  const [outbox, setOutbox] = useState<FlockdocOutbox | null>(null);
   const [account, setAccount] = useState<{ email: string; entitled: boolean } | null>(null);
   const [invitations, setInvitations] = useState<FlockdocInvitation[]>([]);
   const api = useMemo(() => new FlockdocApi(token ?? undefined), [token]);
@@ -48,7 +51,7 @@ export default function App() {
   }, []);
   useEffect(() => { itemsRef.current = items; }, [items]);
   useEffect(() => { apiRef.current = cloudApi; }, [cloudApi]);
-  useEffect(() => { saveWorkspace(items, localStorage); }, [items]);
+  useEffect(() => { if (!authenticated) saveWorkspace(items, localStorage); }, [authenticated, items]);
   useEffect(() => {
     let active = true;
     if (!supportsPlatformSession()) {
@@ -56,33 +59,45 @@ export default function App() {
       return () => { active = false; };
     }
     setSyncStatus('loading');
-    void api.session().then(session => {
+    void api.session().then(async session => {
       if (active) setAccount({ email: session.user.email, entitled: session.billing?.entitled === true });
+      await migrateAnonymousWorkspace(api, localStorage, session.user.email);
       const shareToken = new URLSearchParams(location.search).get('share');
       const claim = shareToken ? api.claimShareLink(shareToken).then(() => {
         history.replaceState(null, '', location.pathname);
       }) : Promise.resolve();
-      return claim.then(() => Promise.all([api.list(), api.listInvitations()]));
-    }).then(async ([listed, pending]) => {
+      const [listed, pending] = await claim.then(() => Promise.all([api.list(), api.listInvitations()]));
+      return { accountId: session.user.email, listed, pending };
+    }).then(async ({ accountId, listed, pending }) => {
       const requestedId = currentFlockdocPath().match(/^\/flockdoc\/(?:paper|spreadsheet)\/([^/]+)/)?.[1];
       if (requestedId && !listed.flockdocs.some(item => item.id === requestedId)) {
         try { await api.joinPublic(requestedId); listed = await api.list(); } catch { /* Restricted documents remain hidden. */ }
       }
-      return { flockdocs: listed.flockdocs, invitations: pending.invitations };
-    }).then(({ flockdocs, invitations: pending }) => {
+      return { accountId, flockdocs: listed.flockdocs, invitations: pending.invitations };
+    }).then(({ accountId, flockdocs, invitations: pending }) => {
       if (!active) return;
       setAuthenticated(true);
+      setOutbox(new FlockdocOutbox(localStorage, accountId));
       setItems(flockdocs);
       setInvitations(pending);
       setSyncStatus('synced');
     }).catch(error => {
       if (!active) return;
       setAuthenticated(false);
+      setOutbox(null);
       setAccount(null);
+      setItems(loadWorkspace(localStorage));
       setSyncStatus(error instanceof Error && 'status' in error && [401, 403, 404].includes(Number(error.status)) ? 'browser' : 'error');
     });
     return () => { active = false; };
   }, [api]);
+  useEffect(() => {
+    if (!cloudApi || !outbox) return;
+    const flush = () => { void outbox.flush(cloudApi).catch(() => undefined); };
+    flush();
+    addEventListener('online', flush);
+    return () => removeEventListener('online', flush);
+  }, [cloudApi, outbox]);
   useEffect(() => registerFlockdocWebMCP({ modelContext: document.modelContext, actions: {
     listFlockdocs: () => ({ flockdocs: itemsRef.current, prefixes: allPrefixes(itemsRef.current) }),
     openFlockdoc: ({ id }) => {
@@ -132,11 +147,11 @@ export default function App() {
     const updateItem = (updates: Partial<Flockdoc>) => setItems(current => current.map(entry => entry.id === item?.id ? { ...entry, ...updates } : entry));
     if (item) return <div className="editor-app">
       <PlatformHeader account={account} />
-      {cloudApi
-        ? <RemoteEditor api={cloudApi} item={item} currentUserEmail={account?.email} onBack={() => navigateFlockdoc('/flockdoc/')} onUpdate={updateItem} />
+      {cloudApi && outbox
+        ? <RemoteEditor api={cloudApi} outbox={outbox} item={item} currentUserEmail={account?.email} onBack={() => navigateFlockdoc('/flockdoc/')} onUpdate={updateItem} />
         : item.type === 'paper'
-          ? <PaperEditor key={item.id} item={item} onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
-          : <SpreadsheetEditor key={item.id} item={item} onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />}
+          ? <PaperEditor key={item.id} item={item} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
+          : <SpreadsheetEditor key={item.id} item={item} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />}
     </div>;
   }
 
