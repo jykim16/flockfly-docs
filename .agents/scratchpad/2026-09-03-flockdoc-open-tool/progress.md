@@ -8,7 +8,7 @@
 - [x] Update public tool documentation
 - [x] Run targeted and full validation
 - [x] Review and refactor
-- [ ] Commit verified changes
+- [x] Commit verified changes
 
 ## Setup
 
@@ -28,3 +28,8 @@
 - Typecheck: passed.
 - Production build: passed with the existing large-chunk warning.
 - React review: the registration effect remains stable and reads current workspace state through `itemsRef`, avoiding stale closures or effect churn.
+
+## Commit
+
+- Implementation commit: `967cc30` (`feat(webmcp): add flockdoc open tool`).
+- Push and production deployment remain pending explicit approval for this change.
