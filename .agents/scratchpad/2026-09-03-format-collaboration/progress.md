@@ -8,7 +8,7 @@
 - [x] Implement remote checkpoint refresh behavior
 - [x] Run targeted and full validation
 - [x] Review and refactor
-- [ ] Commit verified changes
+- [x] Commit verified changes
 
 ## Setup
 
@@ -29,3 +29,8 @@
 - Typecheck: passed.
 - Production build: passed with the existing large-chunk warning.
 - React review: the editor mount effect remains stable; the snapshot callback now returns its existing save promise without adding renders or remount dependencies.
+
+## Commit
+
+- Implementation commit: `85e006e` (`fix(spreadsheet): sync formatting across sessions`).
+- Remote push and production deployment intentionally remain pending explicit approval for this new change.
