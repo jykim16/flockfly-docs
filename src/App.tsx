@@ -85,6 +85,13 @@ export default function App() {
   }, [api]);
   useEffect(() => registerFlockdocWebMCP({ modelContext: document.modelContext, actions: {
     listFlockdocs: () => ({ flockdocs: itemsRef.current, prefixes: allPrefixes(itemsRef.current) }),
+    openFlockdoc: ({ id }) => {
+      const item = itemsRef.current.find(entry => entry.id === String(id));
+      if (!item) throw new Error(`Flockdoc "${String(id)}" is not available in this workspace.`);
+      const path = routeFor(item);
+      navigateFlockdoc(path);
+      return { opened: true, path };
+    },
     createFlockdoc: async ({ name, type, prefix }) => {
       const remoteApi = apiRef.current;
       const targetPrefix = normalizePrefix(typeof prefix === 'string' ? prefix : '');

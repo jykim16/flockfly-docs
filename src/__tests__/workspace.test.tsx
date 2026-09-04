@@ -1,8 +1,11 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from '../App';
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  document.modelContext = undefined;
+  vi.unstubAllGlobals();
+});
 
 describe('Flockdoc workspace', () => {
   it('uses the shared Flockfly platform shell and coastal branding', () => {
@@ -55,6 +58,26 @@ describe('Flockdoc workspace', () => {
     expect(window.location.pathname).toBe('/flockdoc/paper/paper-1');
     expect(window.location.hash).toBe('');
     expect(screen.getByLabelText('Paper editor')).toBeInTheDocument();
+  });
+
+  it('opens a listed flockdoc through WebMCP and rejects unknown ids', async () => {
+    history.replaceState(null, '', '/flockdoc/');
+    localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, flockdocs: [{
+      id: 'sheet-1', name: 'Forecast', type: 'spreadsheet', modifiedAt: 'Just now', collaborators: [],
+    }] }));
+    const tools = new Map<string, { execute: (input: Record<string, unknown>) => unknown }>();
+    document.modelContext = { registerTool: tool => { tools.set(tool.name, tool); } };
+    render(<App />);
+    await waitFor(() => expect(tools.has('flockdoc.open')).toBe(true));
+
+    await act(async () => {
+      await tools.get('flockdoc.open')?.execute({ id: 'sheet-1' });
+    });
+    expect(window.location.pathname).toBe('/flockdoc/spreadsheet/sheet-1');
+
+    await expect(Promise.resolve().then(() => tools.get('flockdoc.open')?.execute({ id: 'missing' })))
+      .rejects.toThrow('Flockdoc "missing" is not available in this workspace.');
+    expect(window.location.pathname).toBe('/flockdoc/spreadsheet/sheet-1');
   });
 
   it('uses the agreed Paper, Spreadsheet, and Flockdoc terminology', () => {

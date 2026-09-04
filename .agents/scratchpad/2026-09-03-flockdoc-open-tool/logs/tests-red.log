@@ -1,0 +1,6 @@
+Targeted RED run:
+
+- Tool registration and order tests failed because `flockdoc.open` was absent.
+- Schema and delegation tests failed because no open tool was registered.
+- App navigation test failed because the tool was unavailable.
+- 5 failed, 10 passed.

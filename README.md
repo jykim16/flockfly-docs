@@ -66,6 +66,7 @@ No additional public hostname, DNS record, or ACM certificate is required.
 When the host browser exposes `document.modelContext`, the app registers:
 
 - `flockdoc.list`
+- `flockdoc.open`
 - `flockdoc.create`
 - `flockdoc.rename`
 - `flockdoc.move`

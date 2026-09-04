@@ -11,6 +11,7 @@ export interface WebMCPModelContext {
 
 export interface FlockdocActions {
   listFlockdocs: () => unknown;
+  openFlockdoc: (input: Record<string, unknown>) => unknown;
   createFlockdoc: (input: Record<string, unknown>) => unknown;
   renameFlockdoc: (input: Record<string, unknown>) => unknown;
   moveFlockdoc: (input: Record<string, unknown>) => unknown;
@@ -27,6 +28,7 @@ export function registerFlockdocWebMCP({ modelContext, actions }: { modelContext
 
   const tools: WebMCPTool[] = [
     { name: 'flockdoc.list', description: 'List the flockdocs visible in the current workspace.', inputSchema: objectSchema({}), execute: actions.listFlockdocs },
+    { name: 'flockdoc.open', description: 'Open a flockdoc from the current workspace in this page.', inputSchema: objectSchema({ id: { type: 'string' } }, ['id']), execute: actions.openFlockdoc },
     { name: 'flockdoc.create', description: 'Create a Paper or Spreadsheet at an optional folder path prefix.', inputSchema: objectSchema({ type: { enum: ['paper', 'spreadsheet'] }, name: { type: 'string' }, prefix: { type: 'string' } }, ['type', 'name']), execute: actions.createFlockdoc },
     { name: 'flockdoc.rename', description: 'Rename a flockdoc.', inputSchema: objectSchema({ id: { type: 'string' }, name: { type: 'string' } }, ['id', 'name']), execute: actions.renameFlockdoc },
     { name: 'flockdoc.move', description: 'Move a Paper or Spreadsheet to a folder path prefix, or use an empty prefix for the workspace root.', inputSchema: objectSchema({ id: { type: 'string' }, prefix: { type: 'string' } }, ['id', 'prefix']), execute: actions.moveFlockdoc },
