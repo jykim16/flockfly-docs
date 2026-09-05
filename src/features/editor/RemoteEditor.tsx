@@ -5,9 +5,11 @@ import { FlockdocRealtimeClient, FlockdocRealtimeRecovery, getFlockdocRealtimeCl
 import { checkpointDisposition, initialOperationRecoveryRevision, isPairedPaperCheckpoint } from '../../lib/operation-recovery';
 import { decodeSpreadsheetOperation, shouldCheckpointSpreadsheet, type SpreadsheetOperation } from '../../lib/spreadsheet-operations';
 import { decodePaperOperation, PaperCollaborationDocument, paperSnapshotForEditor, type PaperTextPatch } from '../../lib/paper-collaboration';
+import { decodeDiagramOperation, diagramOperation, type DiagramScene } from '../../lib/diagram-operations';
 import type { Flockdoc } from '../../types';
 import { PaperEditor } from './PaperEditor';
 import { SpreadsheetEditor } from './SpreadsheetEditor';
+import { DiagramEditor } from './DiagramEditor';
 import { DocumentShareDialog } from '../sharing/DocumentShareDialog';
 import type { FlockdocOutbox } from '../../lib/flockdoc-outbox';
 
@@ -57,6 +59,7 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
   const [newerRevision, setNewerRevision] = useState<number | null>(null);
   const [remoteOperations, setRemoteOperations] = useState<Array<{ revision: number; operation: SpreadsheetOperation }>>([]);
   const [remotePaperPatches, setRemotePaperPatches] = useState<Array<{ revision: number; patch: PaperTextPatch }>>([]);
+  const [remoteDiagramScenes, setRemoteDiagramScenes] = useState<Array<{ revision: number; scene: DiagramScene }>>([]);
   const lastRemotePaperOperation = useRef<{ revision: number; clientId: string } | null>(null);
   const [checkpointRevision, setCheckpointRevision] = useState<number | null>(null);
   const closeSharing = useCallback(() => setSharing(false), []);
@@ -156,17 +159,22 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
           if (patch) setRemotePaperPatches(current => [...current, { revision: event.revision, patch }]);
           else if (event.clientId !== clientId) setPaperEditorSnapshot(paperCollaboration.snapshot());
           onUpdateRef.current({ snapshot: paperCollaboration.snapshot(), headRevision: event.revision, modifiedAt: 'Just now' });
-        } else {
+        } else if (item.type === 'spreadsheet') {
           const operation = decodeSpreadsheetOperation(event.updateBase64);
           if (!operation) return;
           if (event.clientId !== clientId) setRemoteOperations(current => [...current, { revision: event.revision, operation }]);
+        } else {
+          const operation = decodeDiagramOperation(event.updateBase64);
+          if (!operation) return;
+          if (event.clientId !== clientId) setRemoteDiagramScenes(current => [...current, { revision: event.revision, scene: operation.scene }]);
+          onUpdateRef.current({ snapshot: operation.scene, headRevision: event.revision, modifiedAt: 'Just now' });
         }
         saver.revision = Math.max(saver.revision, event.revision);
         appliedRevision.current = event.revision;
         if (event.clientId === clientId && !outbox.pending().some(entry => entry.flockdocId === item.id)) {
           persistedEditVersion.current = editVersion.current;
         }
-        if (shouldCheckpointSpreadsheet(snapshotRevision.current, event.revision)) setCheckpointRevision(current => current ?? event.revision);
+        if (item.type === 'spreadsheet' && shouldCheckpointSpreadsheet(snapshotRevision.current, event.revision)) setCheckpointRevision(current => current ?? event.revision);
         return;
       }
       if (event.clientId === clientId) return;
@@ -254,6 +262,23 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
     operationTail.current = submission.then(() => undefined, () => undefined);
     return submission;
   };
+  const onDiagramSceneChange = (scene: DiagramScene) => {
+    const operation = diagramOperation(scene);
+    const savingEditVersion = ++editVersion.current;
+    onUpdate({ snapshot: operation.scene, modifiedAt: 'Just now' });
+    outbox.enqueueDiagram(item.id, clientId, operation);
+    outbox.enqueueCheckpoint(item.id, clientId, operation.scene);
+    setOfflineQueued(true);
+    const submission = operationTail.current.then(async () => {
+      const revision = await flushQueued();
+      if (revision === undefined) return;
+      persistedEditVersion.current = Math.max(persistedEditVersion.current, savingEditVersion);
+      snapshotRevision.current = revision;
+      appliedRevision.current = revision;
+    });
+    operationTail.current = submission.then(() => undefined, () => undefined);
+    return submission;
+  };
   const common = {
     item,
     onBack,
@@ -266,7 +291,12 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
   };
   const clearPaperPatches = useCallback((revision: number) => setRemotePaperPatches(current => current.filter(entry => entry.revision > revision)), []);
   const clearSpreadsheetOperations = useCallback((revision: number) => setRemoteOperations(current => current.filter(entry => entry.revision > revision)), []);
-  return <>{newerRevision ? <div className="realtime-warning" role="status">Revision {newerRevision} is available. Your unsaved changes are protected; save or reopen to update.</div> : null}{item.type === 'paper' ? <PaperEditor {...common} onPaperSnapshotChange={onPaperSnapshotChange} remotePatches={remotePaperPatches} onRemotePatchesApplied={clearPaperPatches} checkpointRevision={checkpointRevision} /> : <SpreadsheetEditor {...common} onSpreadsheetOperation={onSpreadsheetOperation} getSpreadsheetRevision={() => appliedRevision.current} remoteOperations={remoteOperations} onRemoteOperationsApplied={clearSpreadsheetOperations} checkpointRevision={checkpointRevision} />}{sharing ? <DocumentShareDialog api={api} flockdocId={item.id} flockdocType={item.type} name={item.name} currentUserEmail={currentUserEmail} onClose={closeSharing} /> : null}</>;
+  const clearDiagramScenes = useCallback((revision: number) => setRemoteDiagramScenes(current => current.filter(entry => entry.revision > revision)), []);
+  return <>{newerRevision ? <div className="realtime-warning" role="status">Revision {newerRevision} is available. Your unsaved changes are protected; save or reopen to update.</div> : null}{item.type === 'paper'
+    ? <PaperEditor {...common} onPaperSnapshotChange={onPaperSnapshotChange} remotePatches={remotePaperPatches} onRemotePatchesApplied={clearPaperPatches} checkpointRevision={checkpointRevision} />
+    : item.type === 'spreadsheet'
+      ? <SpreadsheetEditor {...common} onSpreadsheetOperation={onSpreadsheetOperation} getSpreadsheetRevision={() => appliedRevision.current} remoteOperations={remoteOperations} onRemoteOperationsApplied={clearSpreadsheetOperations} checkpointRevision={checkpointRevision} />
+      : <DiagramEditor {...common} onDiagramSceneChange={onDiagramSceneChange} remoteScenes={remoteDiagramScenes} onRemoteScenesApplied={clearDiagramScenes} checkpointRevision={checkpointRevision} />}{sharing ? <DocumentShareDialog api={api} flockdocId={item.id} flockdocType={item.type} name={item.name} currentUserEmail={currentUserEmail} onClose={closeSharing} /> : null}</>;
 }
 
 export function RemoteEditor({ api, outbox, item, onBack, onUpdate, currentUserEmail }: RemoteEditorProps) {

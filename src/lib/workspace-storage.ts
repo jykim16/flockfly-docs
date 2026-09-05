@@ -17,7 +17,7 @@ function isFlockdoc(value: unknown): value is LegacyFlockdoc {
   const item = value as Partial<Flockdoc>;
   return typeof item.id === 'string'
     && typeof item.name === 'string'
-    && (item.type === 'paper' || item.type === 'spreadsheet')
+    && (item.type === 'paper' || item.type === 'spreadsheet' || item.type === 'diagram')
     && typeof item.modifiedAt === 'string'
     && Array.isArray(item.collaborators);
 }

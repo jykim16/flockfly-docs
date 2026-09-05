@@ -8,6 +8,8 @@ import { RemoteEditor } from '../features/editor/RemoteEditor';
 import { mountSpreadsheet } from '../features/editor/univer/mount-spreadsheet';
 import { mountPaper } from '../features/editor/univer/mount-paper';
 import { encodePaperOperation, PaperCollaborationDocument } from '../lib/paper-collaboration';
+import { DiagramEditor } from '../features/editor/DiagramEditor';
+import { encodeDiagramOperation, type DiagramOperation } from '../lib/diagram-operations';
 
 const realtimeState = vi.hoisted(() => ({
   handlers: [] as Array<(event: unknown) => void | Promise<void>>,
@@ -15,6 +17,7 @@ const realtimeState = vi.hoisted(() => ({
 
 vi.mock('../features/editor/univer/mount-spreadsheet', () => ({ mountSpreadsheet: vi.fn() }));
 vi.mock('../features/editor/univer/mount-paper', () => ({ mountPaper: vi.fn() }));
+vi.mock('../features/editor/DiagramEditor', () => ({ DiagramEditor: vi.fn(() => <div aria-label="Diagram editor" />) }));
 vi.mock('../lib/flockdoc-realtime', () => ({
   getFlockdocRealtimeClientId: () => 'browser-1',
   FlockdocRealtimeRecovery: class { recover() { return Promise.resolve(); } },
@@ -38,6 +41,7 @@ const item: Flockdoc = {
 };
 
 const paperItem: Flockdoc = { ...item, id: 'paper-1', name: 'Plan', type: 'paper' };
+const diagramItem: Flockdoc = { ...item, id: 'diagram-1', name: 'Architecture', type: 'diagram' };
 
 beforeEach(() => {
   realtimeState.handlers = [];
@@ -177,5 +181,57 @@ describe('remote editor offline persistence', () => {
     }));
     expect(applySnapshot).not.toHaveBeenCalled();
     expect(api.getState).toHaveBeenCalledOnce();
+  });
+
+  it('journals and checkpoints a Diagram scene through the durable outbox', async () => {
+    const api = {
+      getState: vi.fn().mockResolvedValue({ flockdoc: diagramItem, revision: 0, snapshotRevision: 0, snapshot: { elements: [] } }),
+      appendDiagramOperation: vi.fn().mockResolvedValue({ revision: 1, duplicate: false }),
+      saveCheckpoint: vi.fn().mockResolvedValue({ revision: 2, duplicate: false, snapshotKey: 'diagram-snapshot-2' }),
+    } as unknown as FlockdocApi;
+    const outbox = new FlockdocOutbox(localStorage, 'diagram-user@flockfly.ai');
+
+    render(<RemoteEditor api={api} outbox={outbox} item={diagramItem} onBack={vi.fn()} onUpdate={vi.fn()} />);
+    await waitFor(() => expect(DiagramEditor).toHaveBeenCalled());
+    const editor = vi.mocked(DiagramEditor).mock.lastCall![0];
+    const scene = { elements: [{ id: 'box-1', type: 'rectangle' }] };
+    await act(async () => { await editor.onDiagramSceneChange?.(scene); });
+
+    expect(api.appendDiagramOperation).toHaveBeenCalledWith('diagram-1', expect.any(String), 'browser-1', {
+      protocolVersion: 1,
+      kind: 'diagram.excalidraw.update',
+      scene,
+    });
+    expect(api.saveCheckpoint).toHaveBeenCalledWith('diagram-1', 1, expect.any(String), scene, 'browser-1');
+    expect(outbox.pending()).toEqual([]);
+  });
+
+  it('delivers a remote Diagram scene without replacing the editor', async () => {
+    const api = {
+      getState: vi.fn().mockResolvedValue({ flockdoc: diagramItem, revision: 0, snapshotRevision: 0, snapshot: { elements: [] } }),
+    } as unknown as FlockdocApi;
+    render(<RemoteEditor api={api} outbox={new FlockdocOutbox(localStorage, 'diagram-receiver@flockfly.ai')} item={diagramItem} onBack={vi.fn()} onUpdate={vi.fn()} />);
+    await waitFor(() => expect(DiagramEditor).toHaveBeenCalled());
+    const operation: DiagramOperation = {
+      protocolVersion: 1,
+      kind: 'diagram.excalidraw.update',
+      scene: { elements: [{ id: 'arrow-1', type: 'arrow' }] },
+    };
+    await act(async () => realtimeState.handlers[0]({
+      protocolVersion: 1,
+      kind: 'update.committed',
+      eventId: 'diagram-update-1',
+      flockdocId: 'diagram-1',
+      clientId: 'remote-author',
+      actor: { type: 'user', id: 'user-2', displayName: 'Architect' },
+      occurredAt: new Date().toISOString(),
+      revision: 1,
+      idempotencyKey: 'diagram-operation-1',
+      updateBase64: encodeDiagramOperation(operation),
+    }));
+
+    await waitFor(() => expect(vi.mocked(DiagramEditor).mock.lastCall![0].remoteScenes).toEqual([
+      { revision: 1, scene: operation.scene },
+    ]));
   });
 });

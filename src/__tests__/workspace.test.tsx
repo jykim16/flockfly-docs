@@ -80,14 +80,27 @@ describe('Flockdoc workspace', () => {
     expect(window.location.pathname).toBe('/flockdoc/spreadsheet/sheet-1');
   });
 
-  it('uses the agreed Paper, Spreadsheet, and Flockdoc terminology', () => {
+  it('uses the agreed Paper, Spreadsheet, Diagram, and Flockdoc terminology', () => {
     render(<App />);
     expect(screen.getByRole('heading', { name: 'My workspace' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /new/i }));
     const menu = screen.getByRole('menu', { name: 'Create' });
     expect(within(menu).getByRole('menuitem', { name: 'Paper' })).toBeInTheDocument();
     expect(within(menu).getByRole('menuitem', { name: 'Spreadsheet' })).toBeInTheDocument();
+    expect(within(menu).getByRole('menuitem', { name: 'Diagram' })).toBeInTheDocument();
     expect(within(menu).queryByRole('menuitem', { name: 'Folder' })).not.toBeInTheDocument();
+  });
+
+  it('lets a signed-out user create a local Diagram', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /new/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Diagram' }));
+
+    expect(window.location.pathname).toMatch(/^\/flockdoc\/diagram\//);
+    expect(screen.getByLabelText('Diagram editor')).toBeInTheDocument();
+    expect(screen.getByText('Saved in this browser')).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('flockfly.flockdoc.workspace.v1')!).flockdocs)
+      .toEqual([expect.objectContaining({ name: 'Untitled Diagram', type: 'diagram' })]);
   });
 
   it('derives and browses virtual folders from flockdoc prefixes', () => {

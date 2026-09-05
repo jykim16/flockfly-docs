@@ -1,6 +1,7 @@
 import { FlockdocApiError, type FlockdocApi } from './api';
 import type { PaperYjsOperation } from './paper-collaboration';
 import type { SpreadsheetOperation } from './spreadsheet-operations';
+import type { DiagramOperation } from './diagram-operations';
 
 type OutboxBase = {
   id: string;
@@ -12,6 +13,7 @@ type OutboxBase = {
 export type FlockdocOutboxEntry = OutboxBase & (
   | { kind: 'spreadsheet'; operation: SpreadsheetOperation }
   | { kind: 'paper'; operation: PaperYjsOperation }
+  | { kind: 'diagram'; operation: DiagramOperation }
   | { kind: 'checkpoint'; snapshot: unknown }
   | { kind: 'rename'; name: string }
 );
@@ -55,6 +57,10 @@ export class FlockdocOutbox {
 
   enqueuePaper(flockdocId: string, clientId: string, operation: PaperYjsOperation) {
     return this.enqueue({ kind: 'paper', flockdocId, clientId, operation });
+  }
+
+  enqueueDiagram(flockdocId: string, clientId: string, operation: DiagramOperation) {
+    return this.enqueue({ kind: 'diagram', flockdocId, clientId, operation });
   }
 
   enqueueCheckpoint(flockdocId: string, clientId: string, snapshot: unknown) {
@@ -108,6 +114,9 @@ export class FlockdocOutbox {
         } else if (entry.kind === 'paper') {
           const result = await api.appendPaperOperation(entry.flockdocId, entry.idempotencyKey, entry.clientId, entry.operation);
           revisions.set(entry.flockdocId, result.revision);
+        } else if (entry.kind === 'diagram') {
+          const result = await api.appendDiagramOperation(entry.flockdocId, entry.idempotencyKey, entry.clientId, entry.operation);
+          revisions.set(entry.flockdocId, result.revision);
         } else if (entry.kind === 'checkpoint') {
           const result = await api.saveCheckpoint(entry.flockdocId, revision!, entry.idempotencyKey, entry.snapshot, entry.clientId);
           revisions.set(entry.flockdocId, result.revision);
@@ -115,10 +124,10 @@ export class FlockdocOutbox {
           await api.rename(entry.flockdocId, entry.name);
         }
       } catch (error) {
-        const hasPaperCheckpoint = entry.kind === 'paper' && this.entries.some(candidate => (
+        const hasFallbackCheckpoint = (entry.kind === 'paper' || entry.kind === 'diagram') && this.entries.some(candidate => (
           candidate.flockdocId === entry.flockdocId && candidate.kind === 'checkpoint'
         ));
-        if (!(hasPaperCheckpoint && error instanceof FlockdocApiError && [400, 403, 404].includes(error.status))) throw error;
+        if (!(hasFallbackCheckpoint && error instanceof FlockdocApiError && [400, 403, 404].includes(error.status))) throw error;
       }
 
       this.entries = this.entries.filter(candidate => candidate.id !== entry.id);

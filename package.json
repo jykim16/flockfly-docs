@@ -13,6 +13,7 @@
     "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
+    "@excalidraw/excalidraw": "^0.18.0",
     "@univerjs/core": "1.0.0-beta.2",
     "@univerjs/docs": "1.0.0-beta.2",
     "@univerjs/preset-docs-core": "1.0.0-beta.2",

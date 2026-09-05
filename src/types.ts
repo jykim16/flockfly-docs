@@ -1,5 +1,5 @@
-export type FlockdocType = 'paper' | 'spreadsheet';
-export type WorkspaceFilter = 'all' | 'paper' | 'spreadsheet';
+export type FlockdocType = 'paper' | 'spreadsheet' | 'diagram';
+export type WorkspaceFilter = 'all' | FlockdocType;
 
 export interface Collaborator {
   id: string;

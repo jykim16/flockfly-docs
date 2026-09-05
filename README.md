@@ -1,11 +1,12 @@
 # Flockdoc
 
-Flockdoc is the collaborative document workspace for Flockfly. A saved object is a **flockdoc** and has one of two types:
+Flockdoc is the collaborative document workspace for Flockfly. A saved object is a **flockdoc** and has one of three types:
 
 **Live app:** [https://platform.flockfly.ai/flockdoc/](https://platform.flockfly.ai/flockdoc/)
 
 - **Paper** — a rich-text document.
 - **Spreadsheet** — a workbook.
+- **Diagram** — a collaborative Excalidraw canvas based on the `excalidraw-mcp` implementation.
 
 The frontend is intentionally a separate repository. Authentication, storage, permissions, content-anchored comments, revision history, sharing, and agent identity live in the existing Flockfly backend. Flockdocs carry a slash-delimited path prefix; the workspace derives virtual folders from those prefixes, so moving a file to a new path implicitly creates the folder hierarchy. Files also support recoverable deletion.
 
@@ -71,8 +72,8 @@ When the host browser exposes `document.modelContext`, the app registers:
 - `flockdoc.rename`
 - `flockdoc.move`
 - `flockdoc.delete`
-- `paper.update`
-- `spreadsheet.update`
+
+Diagram scenes use the same authenticated revision, checkpoint, presence, offline recovery, and sharing infrastructure as Papers and Spreadsheets.
 
 The tool boundary is implemented in `src/lib/webmcp.ts`. The same application actions are intended to back human UI operations and agent tool calls so permissions and audit behavior do not diverge.
 

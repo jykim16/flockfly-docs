@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bot, FileText, Folder, Table2 } from 'lucide-react';
+import { Bot, FileText, Folder, Shapes, Table2 } from 'lucide-react';
 import type { Flockdoc } from '../../types';
 import { navigateFlockdoc } from '../../lib/navigation';
 import { prefixName } from '../../lib/prefixes';
@@ -19,7 +19,8 @@ function FlockdocRow({ item, allPrefixes, onMove, onDelete }: Pick<Props, 'allPr
   const [destination, setDestination] = useState(item.prefix);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const Icon = item.type === 'paper' ? FileText : Table2;
+  const Icon = item.type === 'paper' ? FileText : item.type === 'spreadsheet' ? Table2 : Shapes;
+  const typeLabel = item.type === 'paper' ? 'Paper' : item.type === 'spreadsheet' ? 'Spreadsheet' : 'Diagram';
   const canMove = item.permissions?.canEdit ?? true;
   const canDelete = item.permissions?.canDelete ?? true;
 
@@ -29,10 +30,10 @@ function FlockdocRow({ item, allPrefixes, onMove, onDelete }: Pick<Props, 'allPr
     catch (cause) { setError(cause instanceof Error ? cause.message : 'The action could not be completed.'); setBusy(false); }
   };
 
-  return <div role="row" className={`file-row ${mode !== 'idle' ? 'expanded' : ''}`} aria-label={`${item.name} ${item.type === 'paper' ? 'Paper' : 'Spreadsheet'}`} onClick={event => event.target === event.currentTarget && navigateFlockdoc(`/flockdoc/${item.type}/${item.id}`)}>
+  return <div role="row" className={`file-row ${mode !== 'idle' ? 'expanded' : ''}`} aria-label={`${item.name} ${typeLabel}`} onClick={event => event.target === event.currentTarget && navigateFlockdoc(`/flockdoc/${item.type}/${item.id}`)}>
     {mode === 'idle' ? <>
       <button type="button" className="file-open file-name" onClick={() => navigateFlockdoc(`/flockdoc/${item.type}/${item.id}`)}><Icon className={`type-icon ${item.type}`} /><span>{item.name}</span></button>
-      <span className="type-label">{item.type === 'paper' ? 'Paper' : 'Spreadsheet'}</span>
+      <span className="type-label">{typeLabel}</span>
       <span className="avatar-stack">{item.collaborators.slice(0, 3).map(p => <Avatar key={p.id} person={p} small />)}{item.collaborators.length > 3 && <i>+{item.collaborators.length - 3}</i>}{item.collaborators.some(p => p.kind === 'agent') && <span className="sr-only"><Bot />Agent collaborator</span>}</span>
       <span className="modified">{item.modifiedAt}</span>
       <span className="file-actions">{canMove && <button type="button" onClick={() => setMode('move')} aria-label={`Move ${item.name}`}>Move</button>}{canDelete && <button type="button" className="danger-link" onClick={() => setMode('delete')} aria-label={`Delete ${item.name}`}>Delete</button>}</span>
@@ -46,7 +47,7 @@ function FlockdocRow({ item, allPrefixes, onMove, onDelete }: Pick<Props, 'allPr
 export function FlockdocTable({ items, prefixes, allPrefixes, onOpenFolder, onMove, onDelete }: Props) {
   return <div className="file-table" role="table" aria-label="Flockdocs">
     <div className="file-row table-head" role="row"><span>Name ↑</span><span>Type</span><span>People & agents</span><span>Modified ↓</span><span>Actions</span></div>
-    {items.length === 0 && prefixes.length === 0 && <div className="empty-state"><FileText /><strong>No flockdocs yet</strong><span>Create a Paper or Spreadsheet to start working.</span></div>}
+    {items.length === 0 && prefixes.length === 0 && <div className="empty-state"><FileText /><strong>No flockdocs yet</strong><span>Create a Paper, Spreadsheet, or Diagram to start working.</span></div>}
     {prefixes.map(prefix => <div role="row" aria-label={`${prefixName(prefix)} Folder`} className="file-row folder-row" key={prefix}>
       <button type="button" className="file-open file-name" aria-label={`Open ${prefixName(prefix)}`} onClick={() => onOpenFolder(prefix)}><Folder className="type-icon folder" /><span>{prefixName(prefix)}</span></button>
       <span className="type-label">Folder</span><span /><span className="modified">—</span><span />

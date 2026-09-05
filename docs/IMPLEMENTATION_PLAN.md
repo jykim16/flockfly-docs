@@ -5,7 +5,7 @@
 - A **flockdoc** is a saved collaborative object.
 - A **Paper** is a flockdoc with type `paper`.
 - A **Spreadsheet** is a flockdoc with type `spreadsheet`.
-- **Flockdoc** is also the Drive-like workspace where Papers, Spreadsheets, and folders are organized.
+- **Flockdoc** is also the Drive-like workspace where Papers, Spreadsheets, Diagrams, and folders are organized.
 
 Legacy labels such as Docs, Sheets, and Drive are not used in product-facing contracts.
 
@@ -13,7 +13,7 @@ Legacy labels such as Docs, Sheets, and Drive are not used in product-facing con
 
 | Area | Repository | Responsibility |
 | --- | --- | --- |
-| Web product | `flockfly-docs` | Workspace, Paper UI, Spreadsheet UI, comments/activity surfaces, WebMCP registration |
+| Web product | `flockfly-docs` | Workspace, Paper UI, Spreadsheet UI, Excalidraw Diagram UI, comments/activity surfaces, WebMCP registration |
 | Platform services | existing Flockfly backend | Authentication, organizations, unified authorization, metadata, collaboration journal, versions, comments, share links, agent principals |
 
 `contextrouter` is not a frontend package dependency. Flockdoc uses the existing backend service and its permission model, while remaining independently buildable and deployable.
@@ -44,7 +44,7 @@ This is the same authorization substrate used by skills and routers. Agents and 
 - [x] Responsive Flockdoc workspace with search, type filters, selected state, collaborator/agent presence, activity, and threaded comment presentation.
 - [x] Paper editing surface.
 - [x] Spreadsheet calendar editing surface modeled on the supplied 2026 planner.
-- [x] Page-defined WebMCP tools for workspace, sharing, comments, Paper updates, and Spreadsheet range updates.
+- [x] Page-defined WebMCP tools for workspace operations across Paper, Spreadsheet, and Diagram flockdocs.
 - [x] Backend `flockdoc` and nested folder schemas and CRUD APIs.
 - [x] Unified user/team/agent/link grants with legacy email-grant compatibility.
 - [x] Durable, idempotent revision journal and named version checkpoints.
@@ -72,7 +72,7 @@ This is the same authorization substrate used by skills and routers. Agents and 
 
 ### 3. Editor adapters
 
-- Mount the production Univer Paper and Spreadsheet editors behind a common `FlockdocEditorAdapter`.
+- Mount the production Univer Paper/Spreadsheet and Excalidraw Diagram editors behind the shared flockdoc collaboration boundary.
 - Translate editor-native changes to Yjs updates and anchored comment positions.
 - Import `.xlsx` into a Spreadsheet snapshot and export without routing bytes through the browser when a server-side converter is available.
 - Preserve the existing spreadsheet WebMCP range/format/grid operations as the Spreadsheet adapter implementation.
@@ -94,7 +94,7 @@ This is the same authorization substrate used by skills and routers. Agents and 
 
 ## Acceptance gates
 
-- Two users and one agent converge on the same Paper and Spreadsheet after reconnect.
+- Two users and one agent converge on the same Paper, Spreadsheet, and Diagram after reconnect.
 - Viewers cannot mutate through UI, HTTP, WebSocket, or WebMCP paths.
 - Editors can edit but cannot share; managers can share but cannot delete; only owners can delete.
 - Link revocation takes effect on the next request and WebSocket authorization refresh.

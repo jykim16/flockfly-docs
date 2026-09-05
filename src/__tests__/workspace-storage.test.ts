@@ -24,6 +24,18 @@ describe('workspace storage', () => {
     expect(JSON.parse(localStorage.getItem(WORKSPACE_STORAGE_KEY)!)).toMatchObject({ version: 1 });
   });
 
+  it('loads persisted Excalidraw diagram scenes', () => {
+    const diagram: Flockdoc = {
+      ...paper,
+      id: 'diagram-1',
+      name: 'Architecture',
+      type: 'diagram',
+      snapshot: { elements: [{ id: 'box-1', type: 'rectangle' }] },
+    };
+    saveWorkspace([diagram], localStorage);
+    expect(loadWorkspace(localStorage)).toEqual([diagram]);
+  });
+
   it('migrates legacy nested folder IDs to prefixes and clears folder storage on save', () => {
     localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify({ version: 1, flockdocs: [{ ...paper, prefix: undefined, parentFolderId: 'folder-child' }] }));
     localStorage.setItem(FOLDER_STORAGE_KEY, JSON.stringify({ version: 1, folders: [
