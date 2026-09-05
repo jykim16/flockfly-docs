@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { RevisionConflictError, type FlockdocApi, type FlockdocState } from '../../lib/api';
 import { SerializedCheckpointSaver } from '../../lib/checkpoint-persistence';
 import { FlockdocRealtimeClient, FlockdocRealtimeRecovery, getFlockdocRealtimeClientId, type FlockdocRealtimeEvent } from '../../lib/flockdoc-realtime';
-import { checkpointDisposition, initialOperationRecoveryRevision } from '../../lib/operation-recovery';
+import { checkpointDisposition, initialOperationRecoveryRevision, isPairedPaperCheckpoint } from '../../lib/operation-recovery';
 import { decodeSpreadsheetOperation, shouldCheckpointSpreadsheet, type SpreadsheetOperation } from '../../lib/spreadsheet-operations';
 import { decodePaperOperation, PaperCollaborationDocument, paperSnapshotForEditor, type PaperTextPatch } from '../../lib/paper-collaboration';
 import type { Flockdoc } from '../../types';
@@ -57,6 +57,7 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
   const [newerRevision, setNewerRevision] = useState<number | null>(null);
   const [remoteOperations, setRemoteOperations] = useState<Array<{ revision: number; operation: SpreadsheetOperation }>>([]);
   const [remotePaperPatches, setRemotePaperPatches] = useState<Array<{ revision: number; patch: PaperTextPatch }>>([]);
+  const lastRemotePaperOperation = useRef<{ revision: number; clientId: string } | null>(null);
   const [checkpointRevision, setCheckpointRevision] = useState<number | null>(null);
   const closeSharing = useCallback(() => setSharing(false), []);
 
@@ -118,6 +119,21 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
     };
     const onRealtimeEvent = async (event: FlockdocRealtimeEvent) => {
       if (event.kind === 'revision.committed') {
+        const previousPaperOperation = lastRemotePaperOperation.current;
+        const pairedPaperCheckpoint = item.type === 'paper' && isPairedPaperCheckpoint(
+          appliedRevision.current,
+          event,
+          previousPaperOperation,
+          clientId,
+        );
+        lastRemotePaperOperation.current = null;
+        if (pairedPaperCheckpoint) {
+          saver.revision = event.revision;
+          appliedRevision.current = event.revision;
+          snapshotRevision.current = event.revision;
+          onUpdateRef.current({ headRevision: event.revision, modifiedAt: 'Just now' });
+          return;
+        }
         const disposition = checkpointDisposition(appliedRevision.current, event.revision, event.clientId !== clientId);
         if (disposition === 'advance') {
           saver.revision = event.revision;
@@ -131,10 +147,12 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
       }
       if (event.kind === 'update.committed') {
         if (event.revision <= appliedRevision.current) return;
+        lastRemotePaperOperation.current = null;
         if (item.type === 'paper') {
           const operation = decodePaperOperation(event.updateBase64);
           if (!operation || !paperCollaboration) return;
           const patch = event.clientId === clientId ? null : paperCollaboration.applyOperation(operation);
+          if (event.clientId !== clientId) lastRemotePaperOperation.current = { revision: event.revision, clientId: event.clientId };
           if (patch) setRemotePaperPatches(current => [...current, { revision: event.revision, patch }]);
           else if (event.clientId !== clientId) setPaperEditorSnapshot(paperCollaboration.snapshot());
           onUpdateRef.current({ snapshot: paperCollaboration.snapshot(), headRevision: event.revision, modifiedAt: 'Just now' });

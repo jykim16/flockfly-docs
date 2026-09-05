@@ -1,5 +1,6 @@
 import type { IDocumentData } from '@univerjs/core';
 import { DocumentFlavor, getDocsEmptySnapshot, LocaleType, mergeLocales } from '@univerjs/core';
+import { DOC_SELECTION_OPTION_PRESERVE_CARET, DocSelectionManagerService } from '@univerjs/docs';
 import { UniverDocsCorePreset } from '@univerjs/preset-docs-core';
 import docsLocale from '@univerjs/preset-docs-core/locales/en-US';
 import { createUniver } from '@univerjs/presets';
@@ -16,6 +17,7 @@ export function mountPaper({ host, id, name, snapshot, canEdit = true, onSnapsho
   let document = univerAPI.createDocument(
     (snapshot ?? getDocsEmptySnapshot(id, LocaleType.EN_US, name, DocumentFlavor.TRADITIONAL)) as IDocumentData,
   );
+  const selectionManager = univer.__getInjector().get(DocSelectionManagerService);
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   let applyingRemotePatch = false;
   const subscribeToChanges = () => canEdit ? univerAPI.addEvent(univerAPI.Event.CommandExecuted, () => {
@@ -43,6 +45,16 @@ export function mountPaper({ host, id, name, snapshot, canEdit = true, onSnapsho
     },
     getSnapshot() { return document.save(); },
     applySnapshot(nextSnapshot) {
+      const currentDocumentId = document.getId();
+      const selection = selectionManager.getSelectionInfo({ unitId: currentDocumentId, subUnitId: currentDocumentId });
+      const textRanges = selection?.textRanges.map(range => ({
+        startOffset: range.startOffset,
+        endOffset: range.endOffset,
+        segmentId: range.segmentId,
+        segmentPage: range.segmentPage,
+        style: range.style,
+        rangeType: range.rangeType,
+      }));
       clearTimeout(saveTimer);
       saveTimer = undefined;
       commandSubscription?.dispose();
@@ -51,6 +63,22 @@ export function mountPaper({ host, id, name, snapshot, canEdit = true, onSnapsho
         (nextSnapshot ?? getDocsEmptySnapshot(id, LocaleType.EN_US, name, DocumentFlavor.TRADITIONAL)) as IDocumentData,
       );
       commandSubscription = subscribeToChanges();
+      if (selection && textRanges?.length) {
+        const dataStream = document.save().body?.dataStream ?? '';
+        const editableEnd = Math.max(0, dataStream.endsWith('\r\n') ? dataStream.length - 2 : dataStream.length);
+        const restoredRanges = textRanges.map(range => ({
+          ...range,
+          startOffset: Math.min(range.startOffset, editableEnd),
+          endOffset: Math.min(range.endOffset, editableEnd),
+        }));
+        const documentId = document.getId();
+        selectionManager.replaceDocRanges(
+          restoredRanges,
+          { unitId: documentId, subUnitId: documentId },
+          selection.isEditing,
+          { ...selection.options, [DOC_SELECTION_OPTION_PRESERVE_CARET]: true },
+        );
+      }
     },
     dispose() {
       if (saveTimer && !onPaperSnapshotChange) {

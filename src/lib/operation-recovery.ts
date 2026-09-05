@@ -9,3 +9,15 @@ export function checkpointDisposition(currentRevision: number, checkpointRevisio
   if (authoredRemotely) return 'reload';
   return checkpointRevision === currentRevision + 1 ? 'advance' : 'reload';
 }
+
+export function isPairedPaperCheckpoint(
+  currentRevision: number,
+  checkpoint: { revision: number; clientId: string },
+  previousOperation: { revision: number; clientId: string } | null,
+  localClientId: string,
+): boolean {
+  return checkpoint.clientId !== localClientId
+    && previousOperation?.clientId === checkpoint.clientId
+    && previousOperation.revision === currentRevision
+    && checkpoint.revision === previousOperation.revision + 1;
+}

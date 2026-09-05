@@ -7,13 +7,24 @@ import type { Flockdoc } from '../types';
 import { RemoteEditor } from '../features/editor/RemoteEditor';
 import { mountSpreadsheet } from '../features/editor/univer/mount-spreadsheet';
 import { mountPaper } from '../features/editor/univer/mount-paper';
+import { encodePaperOperation, PaperCollaborationDocument } from '../lib/paper-collaboration';
+
+const realtimeState = vi.hoisted(() => ({
+  handlers: [] as Array<(event: unknown) => void | Promise<void>>,
+}));
 
 vi.mock('../features/editor/univer/mount-spreadsheet', () => ({ mountSpreadsheet: vi.fn() }));
 vi.mock('../features/editor/univer/mount-paper', () => ({ mountPaper: vi.fn() }));
 vi.mock('../lib/flockdoc-realtime', () => ({
   getFlockdocRealtimeClientId: () => 'browser-1',
   FlockdocRealtimeRecovery: class { recover() { return Promise.resolve(); } },
-  FlockdocRealtimeClient: class { start() { return Promise.resolve(); } stop() {} },
+  FlockdocRealtimeClient: class {
+    constructor(_api: unknown, _flockdocId: string, _clientId: string, onEvent: (event: unknown) => void | Promise<void>) {
+      realtimeState.handlers.push(onEvent);
+    }
+    start() { return Promise.resolve(); }
+    stop() {}
+  },
 }));
 
 const item: Flockdoc = {
@@ -28,7 +39,10 @@ const item: Flockdoc = {
 
 const paperItem: Flockdoc = { ...item, id: 'paper-1', name: 'Plan', type: 'paper' };
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  realtimeState.handlers = [];
+  vi.clearAllMocks();
+});
 
 describe('remote editor offline persistence', () => {
   it('accepts edits while offline and flushes the durable queue on reconnect', async () => {
@@ -104,5 +118,64 @@ describe('remote editor offline persistence', () => {
     fireEvent.change(screen.getByLabelText('Paper name'), { target: { value: 'Roadmap' } });
     await waitFor(() => expect(api.rename).toHaveBeenCalledWith('paper-1', 'Roadmap'), { timeout: 1500 });
     expect(outbox.pending()).toEqual([]);
+  });
+
+  it('keeps a receiving Paper editor mounted through a remote operation and its checkpoint', async () => {
+    const initial = { id: 'paper-1', body: { dataStream: 'hello world\r\n' } };
+    const next = { id: 'paper-1', body: { dataStream: 'hello brave world\r\n' } };
+    const source = new PaperCollaborationDocument('paper-1', initial);
+    const operation = source.updateFromSnapshot(next)!;
+    const applySnapshot = vi.fn<(snapshot: unknown) => void>();
+    const applyPaperPatch = vi.fn<(patch: { index: number; deleteCount: number; insert: string }) => void>();
+    vi.mocked(mountPaper).mockImplementation(() => ({ applySnapshot, applyPaperPatch, dispose: vi.fn() }));
+    let stateReads = 0;
+    const api = {
+      getState: vi.fn().mockImplementation(() => Promise.resolve(stateReads++ < 1
+        ? { flockdoc: paperItem, revision: 0, snapshotRevision: 0, snapshot: initial }
+        : { flockdoc: paperItem, revision: 2, snapshotRevision: 2, snapshot: source.checkpoint() })),
+    } as unknown as FlockdocApi;
+
+    render(<RemoteEditor
+      api={api}
+      outbox={new FlockdocOutbox(localStorage, 'receiver@flockfly.ai')}
+      item={paperItem}
+      onBack={vi.fn()}
+      onUpdate={vi.fn()}
+    />);
+    await waitFor(() => expect(mountPaper).toHaveBeenCalledOnce());
+    expect(realtimeState.handlers).toHaveLength(1);
+
+    const committedUpdate = {
+      protocolVersion: 1 as const,
+      kind: 'update.committed' as const,
+      eventId: 'update-1',
+      flockdocId: 'paper-1',
+      clientId: 'remote-author',
+      actor: { type: 'user' as const, id: 'user-2', displayName: 'Writer' },
+      occurredAt: new Date().toISOString(),
+      revision: 1,
+      idempotencyKey: 'operation-1',
+      updateBase64: encodePaperOperation(operation),
+    };
+    const committedCheckpoint = {
+      ...committedUpdate,
+      kind: 'revision.committed' as const,
+      eventId: 'checkpoint-2',
+      revision: 2,
+      idempotencyKey: 'checkpoint-2',
+      snapshotKey: 'snapshot-2',
+    };
+    await act(async () => {
+      await realtimeState.handlers[0](committedUpdate);
+      await realtimeState.handlers[0](committedCheckpoint);
+    });
+
+    await waitFor(() => expect(applyPaperPatch).toHaveBeenCalledWith({
+      index: 6,
+      deleteCount: 0,
+      insert: 'brave ',
+    }));
+    expect(applySnapshot).not.toHaveBeenCalled();
+    expect(api.getState).toHaveBeenCalledOnce();
   });
 });
