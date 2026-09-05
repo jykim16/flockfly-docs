@@ -1,0 +1,800 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/diagram-operations.test.ts src/__tests__/workspace.test.tsx src/__tests__/webmcp.test.ts src/__tests__/workspace-storage.test.ts
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:37530) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37529) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37531) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37528) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/diagram-operations.test.ts (0 test)
+ ❯ src/__tests__/webmcp.test.ts (4 tests | 1 failed) 11ms
+     × uses prefix fields for create and move tool inputs 3ms
+ ❯ src/__tests__/workspace-storage.test.ts (7 tests | 1 failed) 10ms
+     × loads persisted Excalidraw diagram scenes 3ms
+ ❯ src/__tests__/workspace.test.tsx (13 tests | 2 failed) 447ms
+     × uses the agreed Paper, Spreadsheet, Diagram, and Flockdoc terminology 39ms
+     × lets a signed-out user create a local Diagram 85ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/diagram-operations.test.ts [ src/__tests__/diagram-operations.test.ts ]
+Error: Failed to resolve import "../lib/diagram-operations" from "src/__tests__/diagram-operations.test.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/jkim/Documents/vibe/webmcp/flockfly-docs/src/__tests__/diagram-operations.test.ts:2:86
+  1  |  import { describe, expect, it } from "vitest";
+  2  |  import { decodeDiagramOperation, encodeDiagramOperation, normalizeDiagramScene } from "../lib/diagram-operations";
+     |                                                                                         ^
+  3  |  describe("diagram operations", () => {
+  4  |    it("round-trips an Excalidraw scene through the realtime transport", () => {
+ ❯ TransformPluginContext._formatLog node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:42658:41
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:42655:16
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:40634:23
+ ❯ node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:40753:37
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:40680:7
+ ❯ EnvironmentPluginContainer.transform node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:42453:18
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:35845:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/webmcp.test.ts > Flockdoc WebMCP bridge > uses prefix fields for create and move tool inputs
+AssertionError: expected [ 'paper', 'spreadsheet' ] to deeply equal [ 'paper', 'spreadsheet', 'diagram' ]
+
+- Expected
++ Received
+
+  [
+    "paper",
+    "spreadsheet",
+-   "diagram",
+  ]
+
+ ❯ src/__tests__/webmcp.test.ts:67:71
+     65|     expect(tools['flockdoc.move'].inputSchema.properties).toEqual(expe…
+     66|     expect(tools['flockdoc.move'].inputSchema.required).toEqual(['id',…
+     67|     expect(tools['flockdoc.create'].inputSchema.properties.type.enum).…
+       |                                                                       ^
+     68|   });
+     69|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/__tests__/workspace-storage.test.ts > workspace storage > loads persisted Excalidraw diagram scenes
+AssertionError: expected [] to deeply equal [ { id: 'diagram-1', …(6) } ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "collaborators": [],
+-     "id": "diagram-1",
+-     "modifiedAt": "Just now",
+-     "name": "Architecture",
+-     "prefix": "",
+-     "snapshot": {
+-       "elements": [
+-         {
+-           "id": "box-1",
+-           "type": "rectangle",
+-         },
+-       ],
+-     },
+-     "type": "diagram",
+-   },
+- ]
++ []
+
+ ❯ src/__tests__/workspace-storage.test.ts:36:41
+     34|     };
+     35|     saveWorkspace([diagram], localStorage);
+     36|     expect(loadWorkspace(localStorage)).toEqual([diagram]);
+       |                                         ^
+     37|   });
+     38|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/__tests__/workspace.test.tsx > Flockdoc workspace > uses the agreed Paper, Spreadsheet, Diagram, and Flockdoc terminology
+TestingLibraryElementError: Unable to find an accessible element with the role "menuitem" and name "Diagram"
+
+Here are the accessible roles:
+
+  menuitem:
+
+  Name "Paper":
+  [36m<button[39m
+    [33mrole[39m=[32m"menuitem"[39m
+  [36m/>[39m
+
+  --------------------------------------------------menuitem:
+
+  Name "Spreadsheet":
+  [36m<button[39m
+    [33mrole[39m=[32m"menuitem"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33maria-label[39m=[32m"Create"[39m
+  [33mclass[39m=[32m"create-menu"[39m
+  [33mrole[39m=[32m"menu"[39m
+[36m>[39m
+  [36m<button[39m
+    [33mrole[39m=[32m"menuitem"[39m
+  [36m>[39m
+    [36m<svg[39m
+      [33mclass[39m=[32m"lucide lucide-file-text"[39m
+      [33mfill[39m=[32m"none"[39m
+      [33mheight[39m=[32m"24"[39m
+      [33mstroke[39m=[32m"currentColor"[39m
+      [33mstroke-linecap[39m=[32m"round"[39m
+      [33mstroke-linejoin[39m=[32m"round"[39m
+      [33mstroke-width[39m=[32m"2"[39m
+      [33mviewBox[39m=[32m"0 0 24 24"[39m
+      [33mwidth[39m=[32m"24"[39m
+      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+    [36m>[39m
+      [36m<path[39m
+        [33md[39m=[32m"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"[39m
+      [36m/>[39m
+      [36m<path[39m
+        [33md[39m=[32m"M14 2v4a2 2 0 0 0 2 2h4"[39m
+      [36m/>[39m
+      [36m<path[39m
+        [33md[39m=[32m"M10 9H8"[39m
+      [36m/>[39m
+      [36m<path[39m
+        [33md[39m=[32m"M16 13H8"[39m
+      [36m/>[39m
+      [36m<path[39m
+        [33md[39m=[32m"M16 17H8"[39m
+      [36m/>[39m
+    [36m</svg>[39m
+    [0m Paper[0m
+  [36m</button>[39m
+  [36m<button[39m
+    [33mrole[39m=[32m"menuitem"[39m
+  [36m>[39m
+    [36m<svg[39m
+      [33mclass[39m=[32m"lucide lucide-table2"[39m
+      [33mfill[39m=[32m"none"[39m
+      [33mheight[39m=[32m"24"[39m
+      [33mstroke[39m=[32m"currentColor"[39m
+      [33mstroke-linecap[39m=[32m"round"[39m
+      [33mstroke-linejoin[39m=[32m"round"[39m
+      [33mstroke-width[39m=[32m"2"[39m
+      [33mviewBox[39m=[32m"0 0 24 24"[39m
+      [33mwidth[39m=[32m"24"[39m
+      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+    [36m>[39m
+      [36m<path[39m
+        [33md[39m=[32m"M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"[39m
+      [36m/>[39m
+    [36m</svg>[39m
+    [0m Spreadsheet[0m
+  [36m</button>[39m
+[36m</div>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/__tests__/workspace.test.tsx:90:25
+     88|     expect(within(menu).getByRole('menuitem', { name: 'Paper' })).toBe…
+     89|     expect(within(menu).getByRole('menuitem', { name: 'Spreadsheet' })…
+     90|     expect(within(menu).getByRole('menuitem', { name: 'Diagram' })).to…
+       |                         ^
+     91|     expect(within(menu).queryByRole('menuitem', { name: 'Folder' })).n…
+     92|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/__tests__/workspace.test.tsx > Flockdoc workspace > lets a signed-out user create a local Diagram
+TestingLibraryElementError: Unable to find an accessible element with the role "menuitem" and name "Diagram"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "Flockfly platform navigation":
+  [36m<header[39m
+    [33maria-label[39m=[32m"Flockfly platform navigation"[39m
+    [33mclass[39m=[32m"platform-header"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"topbar"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Flockfly Platform":
+  [36m<a[39m
+    [33maria-label[39m=[32m"Flockfly Platform"[39m
+    [33mclass[39m=[32m"brand"[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/"[39m
+  [36m/>[39m
+
+  Name "Skills":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/skills"[39m
+  [36m/>[39m
+
+  Name "Routers":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/routers"[39m
+  [36m/>[39m
+
+  Name "Sessions":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/sessions"[39m
+  [36m/>[39m
+
+  Name "Flockdoc":
+  [36m<a[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mhref[39m=[32m"/flockdoc/"[39m
+  [36m/>[39m
+
+  Name "Getting started":
+  [36m<a[39m
+    [33mhref[39m=[32m"https://platform.flockfly.ai/getting-started"[39m
+  [36m/>[39m
+
+  Name "My workspace":
+  [36m<a[39m
+    [33maria-current[39m=[32m"page"[39m
+    [33mclass[39m=[32m"active"[39m
+    [33mhref[39m=[32m"/flockdoc/"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  presentation:
+
+  Name "":
+  [36m<img[39m
+    [33malt[39m=[32m""[39m
+    [33mclass[39m=[32m"brand-mark"[39m
+    [33msrc[39m=[32m"/icon.png"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  navigation:
+
+  Name "Platform":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"Platform"[39m
+  [36m/>[39m
+
+  Name "Workspace navigation":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"Workspace navigation"[39m
+  [36m/>[39m
+
+  Name "Folder path":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"Folder path"[39m
+    [33mclass[39m=[32m"folder-breadcrumb"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  complementary:
+
+  Name "":
+  [36m<aside[39m
+    [33mclass[39m=[32m"sidebar"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "New":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"true"[39m
+    [33mclass[39m=[32m"new-button"[39m
+  [36m/>[39m
+
+  Name "Help":
+  [36m<button[39m
+    [33maria-label[39m=[32m"Help"[39m
+  [36m/>[39m
+
+  Name "My workspace":
+  [36m<button[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "All":
+  [36m<button[39m
+    [33mclass[39m=[32m"active"[39m
+  [36m/>[39m
+
+  Name "Papers":
+  [36m<button[39m
+    [33mclass[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Spreadsheets":
+  [36m<button[39m
+    [33mclass[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  menu:
+
+  Name "Create":
+  [36m<div[39m
+    [33maria-label[39m=[32m"Create"[39m
+    [33mclass[39m=[32m"create-menu"[39m
+    [33mrole[39m=[32m"menu"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  menuitem:
+
+  Name "Paper":
+  [36m<button[39m
+    [33mrole[39m=[32m"menuitem"[39m
+  [36m/>[39m
+
+  Name "Spreadsheet":
+  [36m<button[39m
+    [33mrole[39m=[32m"menuitem"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  main:
+
+  Name "":
+  [36m<main[39m
+    [33mclass[39m=[32m"workspace"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "":
+  [36m<input[39m
+    [33mplaceholder[39m=[32m"Search papers and spreadsheets"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"sync-note"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "My workspace":
+  [36m<h1 />[39m
+
+  --------------------------------------------------
+  table:
+
+  Name "Flockdocs":
+  [36m<div[39m
+    [33maria-label[39m=[32m"Flockdocs"[39m
+    [33mclass[39m=[32m"file-table"[39m
+    [33mrole[39m=[32m"table"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  row:
+
+  Name "Name ↑ Type People & agents Modified ↓ Actions":
+  [36m<div[39m
+    [33mclass[39m=[32m"file-row table-head"[39m
+    [33mrole[39m=[32m"row"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong />[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"app-shell"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33maria-label[39m=[32m"Flockfly platform navigation"[39m
+        [33mclass[39m=[32m"platform-header"[39m
+      [36m>[39m
+        [36m<a[39m
+          [33maria-label[39m=[32m"Flockfly Platform"[39m
+          [33mclass[39m=[32m"brand"[39m
+          [33mhref[39m=[32m"https://platform.flockfly.ai/"[39m
+        [36m>[39m
+          [36m<img[39m
+            [33malt[39m=[32m""[39m
+            [33mclass[39m=[32m"brand-mark"[39m
+            [33msrc[39m=[32m"/icon.png"[39m
+          [36m/>[39m
+          [36m<span>[39m
+            [0mFlockfly [0m
+            [36m<span[39m
+              [33mclass[39m=[32m"platform"[39m
+            [36m>[39m
+              [0mPlatform[0m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</a>[39m
+        [36m<nav[39m
+          [33maria-label[39m=[32m"Platform"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/skills"[39m
+          [36m>[39m
+            [0mSkills[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/routers"[39m
+          [36m>[39m
+            [0mRouters[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/sessions"[39m
+          [36m>[39m
+            [0mSessions[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33maria-current[39m=[32m"page"[39m
+            [33mhref[39m=[32m"/flockdoc/"[39m
+          [36m>[39m
+            [0mFlockdoc[0m
+          [36m</a>[39m
+          [36m<a[39m
+            [33mhref[39m=[32m"https://platform.flockfly.ai/getting-started"[39m
+          [36m>[39m
+            [0mGetting started[0m
+          [36m</a>[39m
+        [36m</nav>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spacer"[39m
+        [36m/>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"user-chip"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [0mPreview workspace[0m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<aside[39m
+        [33mclass[39m=[32m"sidebar"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"new-wrap"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"true"[39m
+            [33mclass[39m=[32m"new-button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-plus"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"20"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"20"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M5 12h14"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 5v14"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0m New[0m
+          [36m</button>[39m
+          [36m<div[39m
+            [33maria-label[39m=[32m"Create"[39m
+            [33mclass[39m=[32m"create-menu"[39m
+            [33mrole[39m=[32m"menu"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mrole[39m=[32m"menuitem"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-file-text"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M14 2v4a2 2 0 0 0 2 2h4"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M10 9H8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M16 13H8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M16 17H8"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0m Paper[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mrole[39m=[32m"menuitem"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-table2"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0m Spreadsheet[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<nav[39m
+          [33maria-label[39m=[32m"Workspace navigation"[39m
+        [36m>[39m
+          [36m<a[39m
+            [33maria-current[39m=[32m"page"[39m
+            [33mclass[39m=[32m"active"[39m
+            [33mhref[39m=[32m"/flockdoc/"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-folder-open"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mMy workspace[0m
+          [36m</a>[39m
+        [36m</nav>[39m
+      [36m</aside>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"workspace"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"topbar"[39m
+        [36m>[39m
+          [36m<label>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-search"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"11"[39m
+                [33mcy[39m=[32m"11"[39m
+                [33mr[39m=[32m"8"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m21 21-4.3-4.3"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<input[39m
+              [33mplaceholder[39m=[32m"Search papers and spreadsheets"[39m
+              [33mvalue[39m=[32m""[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33maria-label[39m=[32m"Help"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-circle-help"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"12"[39m
+                [33mcy[39m=[32m"12"[39m
+                [33mr[39m=[32m"10"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 17h.01"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</button>[39m
+        [36m</header>[39m
+        [36m<section[39m
+          [33mclass[39m=[32m"workspace-content"[39m
+        [36m>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"sync-note"[39m
+          [36m>[39m
+            [0mLoading your cloud workspace…[0m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"title-row"[39m
+          [36m>[39m
+            [36m<h1>[39m
+              [0mMy workspace[0m
+            [36m</h1>[39m
+          [36m</div>[39m
+          [36m<nav[39m
+            [33maria-label[39m=[32m"Folder path"[39m
+            [33mclass[39m=[32m"folder-breadcrumb"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mMy workspace[0m
+            [36m</button>[39m
+          [36m</nav>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"filters"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"active"[39m
+            [36m>[39m
+              [0mAll[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mPapers[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m""[39m
+            [36m>[39m
+              [0mSpreadsheets[0m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33maria-label[39m=[32m"Flockdocs"[39m
+            [33mclass[39m=[32m"file-table"[39m
+            [33mrole[39m=[32m"table"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"file-row table-head"[39m
+              [33mrole[39m=[32m"row"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0mName ↑[0m
+              [36m</span>[39m
+              [36m<span>[39m
+                [0mType[0m
+              [36m</span>[39m
+              [36m<span>[39m
+                [0mPeople & agents[0m
+              [36m</span>[39m
+              [36m<span>[39m
+                [0mModified ↓[0m
+              [36m</span>[39m
+              [36m<span>[39m
+                [0mActions[0m
+              [36m</span>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"empty-state"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-file-text"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M14 2v4a2 2 0 0 0 2 2h4"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M10 9H8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M16 13H8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M16 17H8"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<strong>[39m
+                [0mNo flockdocs yet[0m
+              [36m</strong>[39m
+              [36m<span>[39m
+                [0mCreate a Paper or Spreadsheet to start working.[0m
+              [36m</span>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</section>[39m
+      [36m</main>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/__tests__/workspace.test.tsx:97:28
+     95|     render(<App />);
+     96|     fireEvent.click(screen.getByRole('button', { name: /new/i }));
+     97|     fireEvent.click(screen.getByRole('menuitem', { name: 'Diagram' }));
+       |                            ^
+     98|
+     99|     expect(window.location.pathname).toMatch(/^\/flockdoc\/diagram\//);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  4 failed (4)
+      Tests  4 failed | 20 passed (24)
+   Start at  10:16:26
+   Duration  1.24s (transform 466ms, setup 438ms, import 334ms, tests 468ms, environment 1.29s)
+
