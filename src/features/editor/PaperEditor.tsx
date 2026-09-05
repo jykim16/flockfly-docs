@@ -20,14 +20,21 @@ interface PaperEditorProps {
   persistenceStatus?: string;
 }
 
+function snapshotSignature(snapshot: unknown): string | undefined {
+  try { return JSON.stringify(snapshot); } catch { return undefined; }
+}
+
 export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPaperSnapshotChange, remotePatches = [], onRemotePatchesApplied, checkpointRevision, canEdit = true, canShare = true, onShare, persistenceStatus }: PaperEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef<MountedUniverEditor | undefined>(undefined);
   const mountedSnapshotRef = useRef(item.snapshot);
+  const mountedSnapshotSignatureRef = useRef(snapshotSignature(item.snapshot));
   const latestSnapshotRef = useRef(item.snapshot);
   const onSnapshotRef = useRef(onSnapshot);
+  const onPaperSnapshotChangeRef = useRef(onPaperSnapshotChange);
   const [status, setStatus] = useState('Loading Univer…');
   onSnapshotRef.current = onSnapshot;
+  onPaperSnapshotChangeRef.current = onPaperSnapshotChange;
   latestSnapshotRef.current = item.snapshot;
 
   useEffect(() => {
@@ -43,7 +50,11 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPap
         snapshot: latestSnapshotRef.current,
         canEdit,
         onDirty,
-        onPaperSnapshotChange,
+        onPaperSnapshotChange: onPaperSnapshotChange ? snapshot => {
+          mountedSnapshotRef.current = snapshot;
+          mountedSnapshotSignatureRef.current = snapshotSignature(snapshot);
+          return onPaperSnapshotChangeRef.current?.(snapshot);
+        } : undefined,
         onSnapshot: snapshot => {
           mountedSnapshotRef.current = snapshot;
           setStatus('Saving…');
@@ -56,6 +67,7 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPap
       });
       mountedRef.current = mounted;
       mountedSnapshotRef.current = latestSnapshotRef.current;
+      mountedSnapshotSignatureRef.current = snapshotSignature(latestSnapshotRef.current);
       setStatus(canEdit ? 'Saved' : 'View only');
     }).catch(error => {
       console.error('Failed to load Univer Paper', error);
@@ -71,7 +83,13 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPap
 
   useEffect(() => {
     if (!mountedRef.current || Object.is(mountedSnapshotRef.current, item.snapshot)) return;
+    const nextSignature = snapshotSignature(item.snapshot);
+    if (nextSignature !== undefined && nextSignature === mountedSnapshotSignatureRef.current) {
+      mountedSnapshotRef.current = item.snapshot;
+      return;
+    }
     mountedSnapshotRef.current = item.snapshot;
+    mountedSnapshotSignatureRef.current = nextSignature;
     mountedRef.current.applySnapshot(item.snapshot);
   }, [item.snapshot]);
 
