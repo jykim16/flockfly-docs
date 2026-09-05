@@ -7,7 +7,7 @@
 - [x] GREEN: suppress no-op metadata writes while preserving formatting-only updates.
 - [x] Validate focused tests, full suite (92 tests), and production build.
 - [x] Review confirms the change is scoped to no-op suppression and preserves formatting updates.
-- [ ] Commit (pending).
+- [x] Committed as `7e83793` (`fix(paper): suppress redundant yjs updates`).
 
 ## TDD result
 
