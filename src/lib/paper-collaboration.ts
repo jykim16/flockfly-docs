@@ -40,12 +40,29 @@ function bodyText(snapshot: Record<string, unknown>): string {
     : '\r\n';
 }
 
+function realignPointMetadata(value: unknown, text: string, sentinel: string): unknown {
+  if (!Array.isArray(value)) return value;
+  const indexes: number[] = [];
+  for (let index = 0; index < text.length; index++) {
+    if (text[index] === sentinel) indexes.push(index);
+  }
+  return value.slice(0, indexes.length).flatMap((entry, index) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return [];
+    return [{ ...entry as Record<string, unknown>, startIndex: indexes[index] }];
+  });
+}
+
 function withBodyText(snapshot: Record<string, unknown>, text: string): Record<string, unknown> {
   const next = structuredClone(snapshot);
   const body = next.body && typeof next.body === 'object' && !Array.isArray(next.body)
     ? next.body as Record<string, unknown>
     : {};
-  next.body = { ...body, dataStream: text };
+  next.body = {
+    ...body,
+    dataStream: text,
+    ...(Array.isArray(body.paragraphs) ? { paragraphs: realignPointMetadata(body.paragraphs, text, '\r') } : {}),
+    ...(Array.isArray(body.sectionBreaks) ? { sectionBreaks: realignPointMetadata(body.sectionBreaks, text, '\n') } : {}),
+  };
   return next;
 }
 

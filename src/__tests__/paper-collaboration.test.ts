@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { validateDocumentStructure } from '@univerjs/core';
 import { PaperCollaborationDocument, decodePaperOperation, encodePaperOperation } from '../lib/paper-collaboration';
 
 const snapshot = (text: string) => ({
@@ -21,6 +22,25 @@ describe('Paper CRDT collaboration', () => {
 
     expect(document.updateFromSnapshot(formatted)).not.toBeNull();
     expect(document.snapshot()).toEqual(formatted);
+  });
+
+  it('realigns stale paragraph metadata before giving a snapshot to Univer', () => {
+    const stale = {
+      ...snapshot('hello world\r\n'),
+      body: {
+        dataStream: 'hello world\r\n',
+        paragraphs: [{ startIndex: 1, paragraphId: 'paragraph-1', paragraphStyle: { lineSpacing: 1 } }],
+        sectionBreaks: [{ startIndex: 2, sectionId: 'section-1' }],
+      },
+    };
+    const document = new PaperCollaborationDocument('paper-1', stale);
+    const restored = document.snapshot();
+
+    expect(restored.body).toMatchObject({
+      paragraphs: [{ startIndex: 11, paragraphId: 'paragraph-1' }],
+      sectionBreaks: [{ startIndex: 12, sectionId: 'section-1' }],
+    });
+    expect(validateDocumentStructure(restored as never)).toEqual([]);
   });
 
   it('converges concurrent edits made from the same legacy snapshot', () => {
