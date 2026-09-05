@@ -17,5 +17,5 @@
 - [x] Save a Paper checkpoint with each queued operation.
 - [x] Recover from permanently rejected Paper operations when a complete checkpoint follows.
 - [x] Run focused tests, full tests, typecheck, and build.
-- [ ] Commit and deploy.
-- [ ] Verify typing, Enter, title, autosave, reload, and console health in production.
+- [x] Commit and deploy.
+- [x] Verify typing, Enter, title, autosave, reload, and visible editor health in production.
