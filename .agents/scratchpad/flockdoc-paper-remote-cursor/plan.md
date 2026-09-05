@@ -15,4 +15,4 @@
 - [x] Preserve selection around unavoidable Paper snapshot replacements.
 - [x] Run focused tests, full tests, typecheck, and production build.
 - [x] Validate the rendered editor locally and multi-session fan-out in automated tests.
-- [ ] Commit the verified change without pushing.
+- [x] Commit the verified change without pushing.

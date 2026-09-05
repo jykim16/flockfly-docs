@@ -10,4 +10,4 @@
 - [x] Rendered QA: local Paper loaded, accepted text, persisted across reload, and reported no console warnings or errors.
 - [x] Multi-session scale: a 20-receiver fan-out test confirms each session independently recognizes the same remote operation/checkpoint pair.
 - [ ] Live production cross-session QA remains pending deployment of this commit.
-- [ ] Commit and record the result.
+- [x] Commit `d6e798b` (`fix(paper): preserve cursor across remote edits`); branch remains unpushed.
