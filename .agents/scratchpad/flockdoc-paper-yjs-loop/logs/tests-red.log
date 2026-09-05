@@ -1,0 +1,39 @@
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:24267) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/paper-collaboration.test.ts (4 tests | 1 failed) 13ms
+     × does not create an update for an unchanged editor snapshot 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/paper-collaboration.test.ts > Paper CRDT collaboration > does not create an update for an unchanged editor snapshot
+AssertionError: expected { protocolVersion: 1, …(2) } to be null
+
+- Expected:
+null
+
++ Received:
+{
+  "kind": "paper.yjs.update",
+  "protocolVersion": 1,
+  "updateBase64": "AQH9yY68CgCopdCeowQNAXdWeyJpZCI6InBhcGVyLTEiLCJib2R5Ijp7ImRhdGFTdHJlYW0iOiJoZWxsbyB3b3JsZFxyXG4iLCJ0ZXh0UnVucyI6W10sInBhcmFncmFwaHMiOltdfX0BpdCeowQBDQE=",
+}
+
+ ❯ src/__tests__/paper-collaboration.test.ts:14:67
+     12|     const document = new PaperCollaborationDocument('paper-1', initial…
+     13|
+     14|     expect(document.updateFromSnapshot(structuredClone(initial))).toBe…
+       |                                                                   ^
+     15|   });
+     16|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  19:43:26
+   Duration  419ms (transform 25ms, setup 86ms, import 24ms, tests 13ms, environment 225ms)
+

@@ -7,6 +7,22 @@ const snapshot = (text: string) => ({
 });
 
 describe('Paper CRDT collaboration', () => {
+  it('does not create an update for an unchanged editor snapshot', () => {
+    const initial = snapshot('hello world\r\n');
+    const document = new PaperCollaborationDocument('paper-1', initial);
+
+    expect(document.updateFromSnapshot(structuredClone(initial))).toBeNull();
+  });
+
+  it('still creates an update for a formatting-only snapshot change', () => {
+    const initial = snapshot('hello world\r\n');
+    const document = new PaperCollaborationDocument('paper-1', initial);
+    const formatted = { ...initial, body: { ...initial.body, textRuns: [{ st: 0, ed: 5, ts: { bl: 1 } }] } };
+
+    expect(document.updateFromSnapshot(formatted)).not.toBeNull();
+    expect(document.snapshot()).toEqual(formatted);
+  });
+
   it('converges concurrent edits made from the same legacy snapshot', () => {
     const first = new PaperCollaborationDocument('paper-1', snapshot('Plan\r\n'));
     const second = new PaperCollaborationDocument('paper-1', snapshot('Plan\r\n'));

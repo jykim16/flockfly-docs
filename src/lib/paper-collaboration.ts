@@ -130,6 +130,7 @@ export class PaperCollaborationDocument {
 
   updateFromSnapshot(value: unknown): PaperYjsOperation | null {
     const next = cloneRecord(value, this.snapshot());
+    const encodedNext = JSON.stringify(next);
     const updates: Uint8Array[] = [];
     const listener = (update: Uint8Array, origin: unknown) => { if (origin === LOCAL_ORIGIN) updates.push(update); };
     this.document.on('update', listener);
@@ -137,7 +138,7 @@ export class PaperCollaborationDocument {
       const patch = diffText(this.text, bodyText(next));
       if (patch?.deleteCount) this.textType.delete(patch.index, patch.deleteCount);
       if (patch?.insert) this.textType.insert(patch.index, patch.insert);
-      this.metadata.set('univer', JSON.stringify(next));
+      if (this.metadata.get('univer') !== encodedNext) this.metadata.set('univer', encodedNext);
     }, LOCAL_ORIGIN);
     this.document.off('update', listener);
     if (!updates.length) return null;

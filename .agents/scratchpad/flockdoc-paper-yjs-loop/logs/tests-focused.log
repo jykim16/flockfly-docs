@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:24398) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  19:44:02
+   Duration  249ms (transform 21ms, setup 45ms, import 20ms, tests 11ms, environment 115ms)
+
