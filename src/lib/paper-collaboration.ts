@@ -40,15 +40,32 @@ function bodyText(snapshot: Record<string, unknown>): string {
     : '\r\n';
 }
 
-function realignPointMetadata(value: unknown, text: string, sentinel: string): unknown {
-  if (!Array.isArray(value)) return value;
+function realignPointMetadata(
+  value: unknown,
+  text: string,
+  sentinel: string,
+  idKey: 'paragraphId' | 'sectionId',
+  idPrefix: 'para_' | 'section_',
+  defaults: Record<string, unknown> = {},
+): Array<Record<string, unknown>> {
+  const entries = Array.isArray(value)
+    ? value.filter((entry): entry is Record<string, unknown> => !!entry && typeof entry === 'object' && !Array.isArray(entry))
+    : [];
   const indexes: number[] = [];
   for (let index = 0; index < text.length; index++) {
     if (text[index] === sentinel) indexes.push(index);
   }
-  return value.slice(0, indexes.length).flatMap((entry, index) => {
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return [];
-    return [{ ...entry as Record<string, unknown>, startIndex: indexes[index] }];
+  const usedIds = new Set<string>();
+  return indexes.map((startIndex, index) => {
+    const entry = entries[index] ?? defaults;
+    const candidate = entry[idKey];
+    let id = typeof candidate === 'string' && candidate && !usedIds.has(candidate)
+      ? candidate
+      : `${idPrefix}flockdoc_${index}`;
+    let suffix = 1;
+    while (usedIds.has(id)) id = `${idPrefix}flockdoc_${index}_${suffix++}`;
+    usedIds.add(id);
+    return { ...defaults, ...entry, [idKey]: id, startIndex };
   });
 }
 
@@ -60,8 +77,8 @@ function withBodyText(snapshot: Record<string, unknown>, text: string): Record<s
   next.body = {
     ...body,
     dataStream: text,
-    ...(Array.isArray(body.paragraphs) ? { paragraphs: realignPointMetadata(body.paragraphs, text, '\r') } : {}),
-    ...(Array.isArray(body.sectionBreaks) ? { sectionBreaks: realignPointMetadata(body.sectionBreaks, text, '\n') } : {}),
+    paragraphs: realignPointMetadata(body.paragraphs, text, '\r', 'paragraphId', 'para_', { paragraphStyle: { lineSpacing: 1 } }),
+    sectionBreaks: realignPointMetadata(body.sectionBreaks, text, '\n', 'sectionId', 'section_'),
   };
   return next;
 }
@@ -136,7 +153,8 @@ export class PaperCollaborationDocument {
       return;
     }
     const fallback = { id: this.id, body: { dataStream: '\r\n' } };
-    const univer = cloneRecord(source, fallback);
+    const sourceSnapshot = cloneRecord(source, fallback);
+    const univer = withBodyText(sourceSnapshot, bodyText(sourceSnapshot));
     const bootstrap = new Y.Doc();
     bootstrap.clientID = stableClientId(`flockdoc-paper:${this.id}`);
     bootstrap.getText('body').insert(0, bodyText(univer));
@@ -146,7 +164,8 @@ export class PaperCollaborationDocument {
   }
 
   updateFromSnapshot(value: unknown): PaperYjsOperation | null {
-    const next = cloneRecord(value, this.snapshot());
+    const sourceSnapshot = cloneRecord(value, this.snapshot());
+    const next = withBodyText(sourceSnapshot, bodyText(sourceSnapshot));
     const encodedNext = JSON.stringify(next);
     const updates: Uint8Array[] = [];
     const listener = (update: Uint8Array, origin: unknown) => { if (origin === LOCAL_ORIGIN) updates.push(update); };

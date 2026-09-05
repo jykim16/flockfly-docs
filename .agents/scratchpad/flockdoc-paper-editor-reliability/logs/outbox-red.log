@@ -1,0 +1,28 @@
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:33888) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/offline-outbox.test.ts (7 tests | 1 failed) 61ms
+     × falls back to the latest Paper checkpoint after a permanently rejected update 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/offline-outbox.test.ts > authenticated flockdoc outbox > falls back to the latest Paper checkpoint after a permanently rejected update
+FlockdocApiError: Invalid Paper update
+ ❯ src/__tests__/offline-outbox.test.ts:52:55
+     50|     const checkpoint = { flockdocCollaboration: { kind: 'paper.yjs.sna…
+     51|     const api = {
+     52|       appendPaperOperation: vi.fn().mockRejectedValue(new FlockdocApiE…
+       |                                                       ^
+     53|       getState: vi.fn().mockResolvedValue({ revision: 5 }),
+     54|       saveCheckpoint: vi.fn().mockResolvedValue({ revision: 6, duplica…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  22:03:31
+   Duration  318ms (transform 31ms, setup 51ms, import 20ms, tests 61ms, environment 123ms)
+

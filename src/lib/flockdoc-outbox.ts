@@ -1,4 +1,4 @@
-import type { FlockdocApi } from './api';
+import { FlockdocApiError, type FlockdocApi } from './api';
 import type { PaperYjsOperation } from './paper-collaboration';
 import type { SpreadsheetOperation } from './spreadsheet-operations';
 
@@ -98,20 +98,27 @@ export class FlockdocOutbox {
         revisions.set(entry.flockdocId, revision);
       }
 
-      if (entry.kind === 'spreadsheet') {
-        const operation = entry.operation.kind === 'spreadsheet.structure.patch'
-          ? { ...entry.operation, baseRevision: revision! }
-          : entry.operation;
-        const result = await api.appendSpreadsheetOperation(entry.flockdocId, entry.idempotencyKey, entry.clientId, operation);
-        revisions.set(entry.flockdocId, result.revision);
-      } else if (entry.kind === 'paper') {
-        const result = await api.appendPaperOperation(entry.flockdocId, entry.idempotencyKey, entry.clientId, entry.operation);
-        revisions.set(entry.flockdocId, result.revision);
-      } else if (entry.kind === 'checkpoint') {
-        const result = await api.saveCheckpoint(entry.flockdocId, revision!, entry.idempotencyKey, entry.snapshot, entry.clientId);
-        revisions.set(entry.flockdocId, result.revision);
-      } else {
-        await api.rename(entry.flockdocId, entry.name);
+      try {
+        if (entry.kind === 'spreadsheet') {
+          const operation = entry.operation.kind === 'spreadsheet.structure.patch'
+            ? { ...entry.operation, baseRevision: revision! }
+            : entry.operation;
+          const result = await api.appendSpreadsheetOperation(entry.flockdocId, entry.idempotencyKey, entry.clientId, operation);
+          revisions.set(entry.flockdocId, result.revision);
+        } else if (entry.kind === 'paper') {
+          const result = await api.appendPaperOperation(entry.flockdocId, entry.idempotencyKey, entry.clientId, entry.operation);
+          revisions.set(entry.flockdocId, result.revision);
+        } else if (entry.kind === 'checkpoint') {
+          const result = await api.saveCheckpoint(entry.flockdocId, revision!, entry.idempotencyKey, entry.snapshot, entry.clientId);
+          revisions.set(entry.flockdocId, result.revision);
+        } else {
+          await api.rename(entry.flockdocId, entry.name);
+        }
+      } catch (error) {
+        const hasPaperCheckpoint = entry.kind === 'paper' && this.entries.some(candidate => (
+          candidate.flockdocId === entry.flockdocId && candidate.kind === 'checkpoint'
+        ));
+        if (!(hasPaperCheckpoint && error instanceof FlockdocApiError && [400, 403, 404].includes(error.status))) throw error;
       }
 
       this.entries = this.entries.filter(candidate => candidate.id !== entry.id);

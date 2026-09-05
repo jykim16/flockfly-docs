@@ -21,7 +21,8 @@ describe('Paper CRDT collaboration', () => {
     const formatted = { ...initial, body: { ...initial.body, textRuns: [{ st: 0, ed: 5, ts: { bl: 1 } }] } };
 
     expect(document.updateFromSnapshot(formatted)).not.toBeNull();
-    expect(document.snapshot()).toEqual(formatted);
+    expect(document.snapshot()).toMatchObject({ body: { dataStream: 'hello world\r\n', textRuns: formatted.body.textRuns } });
+    expect(validateDocumentStructure(document.snapshot() as never)).toEqual([]);
   });
 
   it('realigns stale paragraph metadata before giving a snapshot to Univer', () => {
@@ -41,6 +42,24 @@ describe('Paper CRDT collaboration', () => {
       sectionBreaks: [{ startIndex: 12, sectionId: 'section-1' }],
     });
     expect(validateDocumentStructure(restored as never)).toEqual([]);
+  });
+
+  it('creates complete valid structure for a new line and converges after reload', () => {
+    const first = new PaperCollaborationDocument('paper-1', snapshot('hello\r\n'));
+    const operation = first.updateFromSnapshot({
+      ...snapshot('hello\rworld\r\n'),
+      body: { dataStream: 'hello\rworld\r\n', paragraphs: [{ startIndex: 5, paragraphId: 'p-1' }] },
+    });
+    const restored = new PaperCollaborationDocument('paper-1', first.checkpoint());
+    const result = restored.snapshot();
+
+    expect(operation).not.toBeNull();
+    expect(result.body).toMatchObject({
+      dataStream: 'hello\rworld\r\n',
+      paragraphs: [{ startIndex: 5 }, { startIndex: 11 }],
+      sectionBreaks: [{ startIndex: 12 }],
+    });
+    expect(validateDocumentStructure(result as never)).toEqual([]);
   });
 
   it('converges concurrent edits made from the same legacy snapshot', () => {

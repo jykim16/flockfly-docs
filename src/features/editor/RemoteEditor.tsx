@@ -25,8 +25,9 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
   const [paperCollaboration] = useState(() => currentItem.type === 'paper'
     ? new PaperCollaborationDocument(currentItem.id, state.snapshot ?? currentItem.snapshot)
     : null);
+  const [paperEditorSnapshot, setPaperEditorSnapshot] = useState<unknown>(() => paperCollaboration?.snapshot());
   const storedSnapshot = liveState.snapshot ?? currentItem.snapshot;
-  const editorSnapshot = paperCollaboration?.snapshot() ?? paperSnapshotForEditor(storedSnapshot);
+  const editorSnapshot = paperCollaboration ? paperEditorSnapshot : paperSnapshotForEditor(storedSnapshot);
   const item = { ...liveState.flockdoc, ...currentItem, snapshot: editorSnapshot, headRevision: liveState.revision };
   const [clientId] = useState(getFlockdocRealtimeClientId);
   const [offlineQueued, setOfflineQueued] = useState(() => outbox.pending().some(entry => entry.flockdocId === item.id));
@@ -103,7 +104,10 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
       }
       const next = await api.getState(item.id);
       if (next.snapshotRevision < targetRevision || next.revision <= appliedRevision.current) return;
-      if (paperCollaboration) paperCollaboration.reset(next.snapshot);
+      if (paperCollaboration) {
+        paperCollaboration.reset(next.snapshot);
+        setPaperEditorSnapshot(paperCollaboration.snapshot());
+      }
       const normalized = paperCollaboration ? { ...next, snapshot: paperCollaboration.snapshot() } : next;
       saver.revision = next.revision;
       appliedRevision.current = next.revision;
@@ -132,6 +136,7 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
           if (!operation || !paperCollaboration) return;
           const patch = event.clientId === clientId ? null : paperCollaboration.applyOperation(operation);
           if (patch) setRemotePaperPatches(current => [...current, { revision: event.revision, patch }]);
+          else if (event.clientId !== clientId) setPaperEditorSnapshot(paperCollaboration.snapshot());
           onUpdateRef.current({ snapshot: paperCollaboration.snapshot(), headRevision: event.revision, modifiedAt: 'Just now' });
         } else {
           const operation = decodeSpreadsheetOperation(event.updateBase64);
@@ -213,17 +218,20 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
   };
   const onPaperSnapshotChange = (snapshot: unknown) => {
     if (!paperCollaboration) return Promise.resolve();
+    setPaperEditorSnapshot(snapshot);
     const operation = paperCollaboration.updateFromSnapshot(snapshot);
     onUpdate({ snapshot: paperCollaboration.snapshot(), modifiedAt: 'Just now' });
     if (!operation) return Promise.resolve();
     const savingEditVersion = ++editVersion.current;
     outbox.enqueuePaper(item.id, clientId, operation);
+    outbox.enqueueCheckpoint(item.id, clientId, paperCollaboration.checkpoint());
     setOfflineQueued(true);
     const submission = operationTail.current.then(async () => {
       const revision = await flushQueued();
       if (revision === undefined) return;
       persistedEditVersion.current = Math.max(persistedEditVersion.current, savingEditVersion);
-      if (shouldCheckpointSpreadsheet(snapshotRevision.current, revision)) setCheckpointRevision(current => current ?? revision);
+      snapshotRevision.current = revision;
+      appliedRevision.current = revision;
     });
     operationTail.current = submission.then(() => undefined, () => undefined);
     return submission;

@@ -1,0 +1,70 @@
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:32456) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32455) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/paper-collaboration.test.ts (7 tests | 1 failed) 15ms
+     × creates complete valid structure for a new line and converges after reload 4ms
+ ❯ src/__tests__/remote-editor-offline.test.tsx (3 tests | 1 failed) 556ms
+     × journals a multiline Paper edit and checkpoints the acknowledged state 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/paper-collaboration.test.ts > Paper CRDT collaboration > creates complete valid structure for a new line and converges after reload
+AssertionError: expected { Object (dataStream, paragraphs) } to match object { Object (dataStream, paragraphs, ...) }
+
+- Expected
++ Received
+
+  {
+    "dataStream": "helloworld
+  ",
+    "paragraphs": [
+      {
++       "paragraphId": "p-1",
+        "startIndex": 5,
+-     },
+-     {
+-       "startIndex": 11,
+-     },
+-   ],
+-   "sectionBreaks": [
+-     {
+-       "startIndex": 12,
+      },
+    ],
+  }
+
+ ❯ src/__tests__/paper-collaboration.test.ts:56:25
+     54|
+     55|     expect(operation).not.toBeNull();
+     56|     expect(result.body).toMatchObject({
+       |                         ^
+     57|       dataStream: 'hello\rworld\r\n',
+     58|       paragraphs: [{ startIndex: 5 }, { startIndex: 11 }],
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/__tests__/remote-editor-offline.test.tsx > remote editor offline persistence > journals a multiline Paper edit and checkpoints the acknowledged state
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'paper-1', 1, Any<String>, …(2) ]
+
+Number of calls: 0
+
+ ❯ src/__tests__/remote-editor-offline.test.tsx:86:32
+     84|
+     85|     expect(api.appendPaperOperation).toHaveBeenCalledOnce();
+     86|     expect(api.saveCheckpoint).toHaveBeenCalledWith('paper-1', 1, expe…
+       |                                ^
+     87|       flockdocCollaboration: expect.objectContaining({ kind: 'paper.yj…
+     88|       univer: expect.objectContaining({ body: expect.objectContaining(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 8 passed (10)
+   Start at  21:47:06
+   Duration  1.14s (transform 327ms, setup 163ms, import 519ms, tests 571ms, environment 431ms)
+

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { FlockdocApi } from '../lib/api';
+import { FlockdocApiError, type FlockdocApi } from '../lib/api';
 import { FlockdocOutbox } from '../lib/flockdoc-outbox';
 import type { SpreadsheetOperation } from '../lib/spreadsheet-operations';
 
@@ -43,6 +43,24 @@ describe('authenticated flockdoc outbox', () => {
     await outbox.flush(api);
 
     expect(api.appendPaperOperation).toHaveBeenCalledWith('paper-1', queued.idempotencyKey, 'browser-1', operation);
+  });
+
+  it('falls back to the latest Paper checkpoint after a permanently rejected update', async () => {
+    const operation = { protocolVersion: 1 as const, kind: 'paper.yjs.update' as const, updateBase64: 'AQID' };
+    const checkpoint = { flockdocCollaboration: { kind: 'paper.yjs.snapshot' }, univer: { body: { dataStream: 'saved\r\n' } } };
+    const api = {
+      appendPaperOperation: vi.fn().mockRejectedValue(new FlockdocApiError(400, 'invalid_request', 'Invalid Paper update')),
+      getState: vi.fn().mockResolvedValue({ revision: 5 }),
+      saveCheckpoint: vi.fn().mockResolvedValue({ revision: 6, duplicate: false, snapshotKey: 'snapshot-6' }),
+    } as unknown as FlockdocApi;
+    const outbox = new FlockdocOutbox(localStorage, 'paper-fallback@flockfly.ai');
+    outbox.enqueuePaper('paper-1', 'browser-1', operation);
+    outbox.enqueueCheckpoint('paper-1', 'browser-1', checkpoint);
+
+    await outbox.flush(api);
+
+    expect(api.saveCheckpoint).toHaveBeenCalledWith('paper-1', 5, expect.any(String), checkpoint, 'browser-1');
+    expect(outbox.pending()).toEqual([]);
   });
 
   it('rebases queued structure changes and checkpoints onto the latest server revision', async () => {
