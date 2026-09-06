@@ -14,6 +14,11 @@ const univerState = vi.hoisted(() => ({
     options?: Record<string, boolean>;
   },
   replaceDocRanges: vi.fn(),
+  webMcpOptions: undefined as undefined | {
+    getText: () => string;
+    writeText: (text: string) => void | Promise<void>;
+  },
+  unregisterWebMCP: vi.fn(),
 }));
 
 vi.mock('@univerjs/core', () => ({
@@ -55,12 +60,20 @@ vi.mock('@univerjs/presets', () => ({
     };
   }),
 }));
+vi.mock('../lib/editor-webmcp', () => ({
+  registerPaperWebMCP: vi.fn((options) => {
+    univerState.webMcpOptions = options;
+    return univerState.unregisterWebMCP;
+  }),
+}));
 
 describe('mounted Paper selection preservation', () => {
   afterEach(() => {
     univerState.documents = [];
     univerState.selectionInfo = undefined;
+    univerState.webMcpOptions = undefined;
     univerState.replaceDocRanges.mockReset();
+    univerState.unregisterWebMCP.mockReset();
     vi.clearAllMocks();
   });
 
@@ -111,5 +124,25 @@ describe('mounted Paper selection preservation', () => {
       { preserveCaret: true },
     );
     mounted.dispose();
+  });
+
+  it('routes Paper WebMCP writes through the collaborative snapshot callback', async () => {
+    const onPaperSnapshotChange = vi.fn().mockResolvedValue(undefined);
+    const mounted = mountPaper({
+      host: document.createElement('div'),
+      id: 'paper-1',
+      name: 'Plan',
+      snapshot: { id: 'paper-1', body: { dataStream: 'hello world\r\n' } },
+      onSnapshot: vi.fn(),
+      onPaperSnapshotChange,
+    });
+
+    expect(univerState.webMcpOptions?.getText()).toBe('hello world');
+    await univerState.webMcpOptions?.writeText('new text');
+
+    expect(univerState.documents[0].getTextRange).toHaveBeenCalledWith(0, 11);
+    expect(onPaperSnapshotChange).toHaveBeenCalledOnce();
+    mounted.dispose();
+    expect(univerState.unregisterWebMCP).toHaveBeenCalledOnce();
   });
 });

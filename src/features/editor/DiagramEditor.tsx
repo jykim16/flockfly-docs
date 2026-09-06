@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 
 import { ArrowLeft, Share2 } from 'lucide-react';
 import type { Flockdoc } from '../../types';
 import { normalizeDiagramScene, type DiagramScene } from '../../lib/diagram-operations';
+import { registerDiagramWebMCP } from '../../lib/editor-webmcp';
 
 type ExcalidrawApi = {
   updateScene: (scene: { elements: DiagramScene['elements']; captureUpdate?: unknown }) => void;
@@ -120,6 +121,34 @@ export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSce
     if (checkpointRevision === null || checkpointRevision === undefined) return;
     void Promise.resolve(onSnapshotRef.current(latestScene.current));
   }, [checkpointRevision]);
+
+  useEffect(() => {
+    if (!api) return;
+    return registerDiagramWebMCP({
+      ownerDocument: document,
+      id: item.id,
+      name: item.name,
+      canEdit,
+      getScene: () => latestScene.current,
+      writeScene: async nextScene => {
+        const scene = normalizeDiagramScene(nextScene);
+        latestScene.current = scene;
+        appliedSignature.current = signature(scene);
+        api.updateScene({ elements: scene.elements, captureUpdate: captureNever });
+        setStatus('Saving…');
+        const save = onDiagramSceneChangeRef.current ?? onSnapshotRef.current;
+        try {
+          await save(scene);
+          setStatus('Saved to Flockfly');
+        } catch (error) {
+          setStatus(error instanceof Error && error.name === 'RevisionConflictError'
+            ? 'Newer revision available — reopen to refresh'
+            : 'Save failed — changes remain in this browser');
+          throw error;
+        }
+      },
+    });
+  }, [api, canEdit, captureNever, item.id, item.name]);
 
   const onChange = (elements: readonly DiagramScene['elements'][number][]) => {
     const scene = normalizeDiagramScene({ elements });

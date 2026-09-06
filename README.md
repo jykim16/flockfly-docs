@@ -73,6 +73,14 @@ When the host browser exposes `document.modelContext`, the app registers:
 - `flockdoc.move`
 - `flockdoc.delete`
 
+An open editor also registers tools for its document type:
+
+- Paper: `read_me`, `inspect_document`, `read_document`, and `write_document` for editors.
+- Spreadsheet: workbook inspection, range reads/writes, formatting, grid, merge, and sheet-management tools.
+- Diagram: `read_me`, `inspect_diagram`, `read_diagram`, plus element upsert/delete tools for editors.
+
+View-only collaborators receive inspection and read tools, but no mutation tools. Paper and Diagram tool edits use the same save, realtime collaboration, offline recovery, and permission paths as edits made in the editor UI.
+
 Diagram scenes use the same authenticated revision, checkpoint, presence, offline recovery, and sharing infrastructure as Papers and Spreadsheets.
 
 The tool boundary is implemented in `src/lib/webmcp.ts`. The same application actions are intended to back human UI operations and agent tool calls so permissions and audit behavior do not diverge.

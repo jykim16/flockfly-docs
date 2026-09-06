@@ -1,11 +1,13 @@
 import { render, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Excalidraw } from '@excalidraw/excalidraw';
 import type { Flockdoc } from '../types';
 import { DiagramEditor } from '../features/editor/DiagramEditor';
 
+const excalidrawState = vi.hoisted(() => ({ updateScene: vi.fn() }));
+
 vi.mock('@excalidraw/excalidraw', () => {
-  const api = { id: 'excalidraw-api' };
+  const api = { id: 'excalidraw-api', updateScene: excalidrawState.updateScene, getSceneElements: vi.fn(() => []) };
   const menuItem = (name: string) => () => <span data-menu-item={name} />;
   const MainMenu = Object.assign(
     ({ children }: { children?: React.ReactNode }) => <div data-testid="excalidraw-main-menu">{children}</div>,
@@ -27,6 +29,11 @@ vi.mock('@excalidraw/excalidraw', () => {
     MainMenu,
     useHandleLibrary: vi.fn(),
   };
+});
+
+afterEach(() => {
+  document.modelContext = undefined;
+  excalidrawState.updateScene.mockReset();
 });
 
 const item: Flockdoc = {
@@ -79,11 +86,29 @@ describe('DiagramEditor Excalidraw integration', () => {
     expect(window.name).toBe('flockdocdiagram1');
     expect(props.libraryReturnUrl).toBe(`${location.origin}${location.pathname}`);
     await waitFor(() => expect(useHandleLibrary).toHaveBeenCalledWith({
-      excalidrawAPI: { id: 'excalidraw-api' },
+      excalidrawAPI: expect.objectContaining({ id: 'excalidraw-api' }),
     }));
 
     unmount();
     expect(window.name).toBe('existing-window-name');
     window.name = originalName;
+  });
+
+  it('routes Diagram WebMCP writes through Excalidraw and collaborative persistence', async () => {
+    const tools = new Map<string, { execute: (input: Record<string, unknown>) => Promise<unknown> | unknown }>();
+    document.modelContext = { registerTool: (tool, options) => {
+      tools.set(tool.name, tool);
+      options?.signal?.addEventListener('abort', () => tools.delete(tool.name));
+    } };
+    const onDiagramSceneChange = vi.fn().mockResolvedValue(undefined);
+    const view = render(<DiagramEditor item={item} onBack={vi.fn()} onRename={vi.fn()} onSnapshot={vi.fn()} onDiagramSceneChange={onDiagramSceneChange} />);
+
+    await waitFor(() => expect(tools.has('upsert_diagram_elements')).toBe(true));
+    await tools.get('upsert_diagram_elements')?.execute({ elements: [{ id: 'box-1', type: 'rectangle' }] });
+    expect(excalidrawState.updateScene).toHaveBeenCalledWith({ elements: [{ id: 'box-1', type: 'rectangle' }], captureUpdate: 'never' });
+    expect(onDiagramSceneChange).toHaveBeenCalledWith({ elements: [{ id: 'box-1', type: 'rectangle' }] });
+
+    view.unmount();
+    expect(tools.size).toBe(0);
   });
 });

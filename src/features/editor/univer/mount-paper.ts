@@ -5,7 +5,17 @@ import { UniverDocsCorePreset } from '@univerjs/preset-docs-core';
 import docsLocale from '@univerjs/preset-docs-core/locales/en-US';
 import { createUniver } from '@univerjs/presets';
 import type { MountedUniverEditor, MountUniverEditorOptions } from './types';
+import { registerPaperWebMCP } from '../../../lib/editor-webmcp';
 import '@univerjs/preset-docs-core/lib/index.css';
+
+function plainText(snapshot: IDocumentData): string {
+  const dataStream = snapshot.body?.dataStream ?? '';
+  return dataStream.replace(/\r\n$/, '').replace(/\r/g, '\n');
+}
+
+function editorText(text: string): string {
+  return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\n/g, '\r');
+}
 
 export function mountPaper({ host, id, name, snapshot, canEdit = true, onSnapshot, onDirty, onPaperSnapshotChange }: MountUniverEditorOptions): MountedUniverEditor {
   const { univer, univerAPI } = createUniver({
@@ -32,6 +42,32 @@ export function mountPaper({ host, id, name, snapshot, canEdit = true, onSnapsho
     }, 350);
   }) : undefined;
   let commandSubscription = subscribeToChanges();
+  const unregisterWebMCP = registerPaperWebMCP({
+    ownerDocument: host.ownerDocument,
+    id,
+    name,
+    canEdit,
+    getText: () => plainText(document.save()),
+    writeText: async text => {
+      clearTimeout(saveTimer);
+      saveTimer = undefined;
+      const snapshot = document.save();
+      const dataStream = snapshot.body?.dataStream ?? '';
+      const editableEnd = Math.max(0, dataStream.endsWith('\r\n') ? dataStream.length - 2 : dataStream.length);
+      applyingRemotePatch = true;
+      try {
+        const nextText = editorText(text);
+        if (editableEnd) document.getTextRange(0, editableEnd).setText(nextText);
+        else if (nextText) document.insertText(0, nextText);
+      } finally {
+        applyingRemotePatch = false;
+      }
+      onDirty?.();
+      const next = document.save();
+      if (onPaperSnapshotChange) await onPaperSnapshotChange(next);
+      else await onSnapshot(next);
+    },
+  });
 
   return {
     applyPaperPatch(patch) {
@@ -86,6 +122,7 @@ export function mountPaper({ host, id, name, snapshot, canEdit = true, onSnapsho
         onSnapshot(document.save());
       }
       commandSubscription?.dispose();
+      unregisterWebMCP();
       // Univer owns a nested React root. Dispose it after Flockdoc's outer
       // React commit finishes to avoid nested synchronous unmounts.
       setTimeout(() => univer.dispose(), 0);
