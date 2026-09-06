@@ -8,7 +8,7 @@
 - [x] Run focused and regression checks.
 - [x] Verify the rendered callback flow.
 - [x] Review React structure and integration boundaries.
-- [ ] Commit.
+- [x] Commit.
 
 ## Setup notes
 
@@ -32,3 +32,8 @@
 - Rendered callback QA at `http://localhost:3003/flockdoc/`: the Browse libraries link targeted the originating Diagram, the callback hash was consumed, the clean Diagram URL was restored, the library panel opened, and the software-architecture shapes rendered.
 - Browser console errors/warnings: none.
 - Browser-plugin and standalone Playwright runners were unavailable; QA used the existing in-app computer-use browser surface without installing dependencies.
+
+## Commit
+
+- Implementation commit: `3d4a076` (`fix(flockdoc): handle Excalidraw library callbacks`).
+- Status: complete; no push or deployment performed.
