@@ -1,0 +1,36 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/DiagramEditor.test.tsx
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:63664) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/DiagramEditor.test.tsx (2 tests | 1 failed) 73ms
+     × connects Excalidraw library callbacks to the originating Diagram tab 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/DiagramEditor.test.tsx > DiagramEditor Excalidraw menu > connects Excalidraw library callbacks to the originating Diagram tab
+AssertionError: expected 'existing-window-name' to be 'flockdocdiagram1' // Object.is equality
+
+Expected: "flockdocdiagram1"
+Received: "existing-window-name"
+
+ ❯ src/__tests__/DiagramEditor.test.tsx:79:25
+     77|     await waitFor(() => expect(Excalidraw).toHaveBeenCalled());
+     78|     const props = vi.mocked(Excalidraw).mock.lastCall![0] as Record<st…
+     79|     expect(window.name).toBe('flockdocdiagram1');
+       |                         ^
+     80|     expect(props.libraryReturnUrl).toBe(`${location.origin}${location.…
+     81|     await waitFor(() => expect(useHandleLibrary).toHaveBeenCalledWith({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  00:47:22
+   Duration  366ms (transform 60ms, setup 46ms, import 63ms, tests 73ms, environment 121ms)
+

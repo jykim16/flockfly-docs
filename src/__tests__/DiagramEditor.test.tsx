@@ -5,6 +5,7 @@ import type { Flockdoc } from '../types';
 import { DiagramEditor } from '../features/editor/DiagramEditor';
 
 vi.mock('@excalidraw/excalidraw', () => {
+  const api = { id: 'excalidraw-api' };
   const menuItem = (name: string) => () => <span data-menu-item={name} />;
   const MainMenu = Object.assign(
     ({ children }: { children?: React.ReactNode }) => <div data-testid="excalidraw-main-menu">{children}</div>,
@@ -19,8 +20,12 @@ vi.mock('@excalidraw/excalidraw', () => {
   );
   return {
     CaptureUpdateAction: { NEVER: 'never' },
-    Excalidraw: vi.fn(({ children }: { children?: React.ReactNode }) => <div data-testid="excalidraw">{children}</div>),
+    Excalidraw: vi.fn(({ children, excalidrawAPI }: { children?: React.ReactNode; excalidrawAPI?: (api: object) => void }) => {
+      excalidrawAPI?.(api);
+      return <div data-testid="excalidraw">{children}</div>;
+    }),
     MainMenu,
+    useHandleLibrary: vi.fn(),
   };
 });
 
@@ -35,7 +40,7 @@ const item: Flockdoc = {
   snapshot: { elements: [] },
 };
 
-describe('DiagramEditor Excalidraw menu', () => {
+describe('DiagramEditor Excalidraw integration', () => {
   it('keeps only the Excalidraw controls supported by Flockdocs', async () => {
     const { container } = render(<DiagramEditor item={item} onBack={vi.fn()} onRename={vi.fn()} onSnapshot={vi.fn()} />);
 
@@ -61,5 +66,24 @@ describe('DiagramEditor Excalidraw menu', () => {
       'help',
       'clear-canvas',
     ]);
+  });
+
+  it('connects Excalidraw library callbacks to the originating Diagram tab', async () => {
+    const originalName = window.name;
+    window.name = 'existing-window-name';
+    const { useHandleLibrary } = await import('@excalidraw/excalidraw');
+    const { unmount } = render(<DiagramEditor item={item} onBack={vi.fn()} onRename={vi.fn()} onSnapshot={vi.fn()} />);
+
+    await waitFor(() => expect(Excalidraw).toHaveBeenCalled());
+    const props = vi.mocked(Excalidraw).mock.lastCall![0] as Record<string, unknown>;
+    expect(window.name).toBe('flockdocdiagram1');
+    expect(props.libraryReturnUrl).toBe(`${location.origin}${location.pathname}`);
+    await waitFor(() => expect(useHandleLibrary).toHaveBeenCalledWith({
+      excalidrawAPI: { id: 'excalidraw-api' },
+    }));
+
+    unmount();
+    expect(window.name).toBe('existing-window-name');
+    window.name = originalName;
   });
 });

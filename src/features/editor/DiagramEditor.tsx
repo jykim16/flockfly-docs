@@ -8,6 +8,13 @@ type ExcalidrawApi = {
   getSceneElements: () => readonly DiagramScene['elements'][number][];
 };
 
+type ExcalidrawLibraryHandler = (options: { excalidrawAPI: ExcalidrawApi | null }) => void;
+
+function DiagramLibraryCallback({ useHandleLibrary, excalidrawAPI }: { useHandleLibrary: ExcalidrawLibraryHandler; excalidrawAPI: ExcalidrawApi | null }) {
+  useHandleLibrary({ excalidrawAPI });
+  return null;
+}
+
 type ExcalidrawMainMenu = ComponentType<{ children?: ReactNode }> & {
   DefaultItems: {
     SaveAsImage: ComponentType;
@@ -52,6 +59,7 @@ function signature(scene: DiagramScene): string {
 export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSceneChange, remoteScenes = [], onRemoteScenesApplied, checkpointRevision, canEdit = true, canShare = true, onShare, persistenceStatus }: DiagramEditorProps) {
   const [editor, setEditor] = useState<ComponentType<Record<string, unknown>> | null>(null);
   const [mainMenu, setMainMenu] = useState<ExcalidrawMainMenu | null>(null);
+  const [useHandleLibrary, setUseHandleLibrary] = useState<ExcalidrawLibraryHandler | null>(null);
   const [captureNever, setCaptureNever] = useState<unknown>();
   const [api, setApi] = useState<ExcalidrawApi | null>(null);
   const [status, setStatus] = useState('Loading Excalidraw…');
@@ -72,6 +80,7 @@ export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSce
       if (!active) return;
       setEditor(() => module.Excalidraw as ComponentType<Record<string, unknown>>);
       setMainMenu(() => module.MainMenu as ExcalidrawMainMenu);
+      setUseHandleLibrary(() => module.useHandleLibrary as ExcalidrawLibraryHandler);
       setCaptureNever(module.CaptureUpdateAction.NEVER);
       setStatus(canEdit ? 'Saved' : 'View only');
     }).catch(error => {
@@ -80,6 +89,12 @@ export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSce
     });
     return () => { active = false; clearTimeout(saveTimer.current); };
   }, [canEdit, item.id]);
+
+  useEffect(() => {
+    const previousName = window.name;
+    window.name = `flockdoc${item.id.replace(/[^a-z0-9]/gi, '')}`;
+    return () => { window.name = previousName; };
+  }, [item.id]);
 
   useEffect(() => {
     if (!remoteScenes.length || !api) return;
@@ -126,9 +141,10 @@ export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSce
 
   const Excalidraw = editor;
   const MainMenu = mainMenu;
+  const libraryReturnUrl = `${location.origin}${location.pathname}`;
   return <main className="editor-shell diagram-shell">
     <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Diagram name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>
-    <div className="diagram-editor-host" aria-label="Diagram editor">{Excalidraw && MainMenu ? <Excalidraw excalidrawAPI={(value: ExcalidrawApi) => setApi(value)} initialData={{ elements: latestScene.current.elements, scrollToContent: true }} viewModeEnabled={!canEdit} theme="light" aiEnabled={false} UIOptions={FLOCKDOC_EXCALIDRAW_UI_OPTIONS} onChange={onChange}>
+    <div className="diagram-editor-host" aria-label="Diagram editor">{Excalidraw && MainMenu ? <Excalidraw excalidrawAPI={(value: ExcalidrawApi) => setApi(value)} initialData={{ elements: latestScene.current.elements, scrollToContent: true }} viewModeEnabled={!canEdit} theme="light" aiEnabled={false} libraryReturnUrl={libraryReturnUrl} UIOptions={FLOCKDOC_EXCALIDRAW_UI_OPTIONS} onChange={onChange}>
       <MainMenu>
         <MainMenu.DefaultItems.SaveAsImage />
         <MainMenu.DefaultItems.SearchMenu />
@@ -136,5 +152,6 @@ export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSce
         <MainMenu.DefaultItems.ClearCanvas />
       </MainMenu>
     </Excalidraw> : null}</div>
+    {useHandleLibrary ? <DiagramLibraryCallback useHandleLibrary={useHandleLibrary} excalidrawAPI={api} /> : null}
   </main>;
 }
