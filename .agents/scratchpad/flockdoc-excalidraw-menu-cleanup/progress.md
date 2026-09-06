@@ -7,7 +7,7 @@
 - [x] Implement the reduced menu.
 - [x] Run focused and regression checks.
 - [x] Review React structure and rendered behavior.
-- [ ] Commit.
+- [x] Commit.
 
 ## Setup notes
 
@@ -30,3 +30,8 @@
 - Production build: passed with the existing large-chunk advisory.
 - Desktop rendered QA at `http://localhost:3003/flockdoc/`: created a Diagram, opened the main menu, confirmed exactly four actions, opened Find on canvas, and found no console errors or warnings.
 - Mobile viewport QA was not available through the current browser session.
+
+## Commit
+
+- Implementation commit: `6677630` (`refactor(flockdoc): trim Excalidraw diagram menu`).
+- Status: complete; no push or deployment performed.
