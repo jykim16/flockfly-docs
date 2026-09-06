@@ -1,4 +1,4 @@
-import { FileText, FolderOpen, Plus, Shapes, Table2 } from 'lucide-react';
+import { FileText, FolderOpen, Plus, Presentation, Shapes, Table2 } from 'lucide-react';
 import type { FlockdocType } from '../types';
 
 export function Sidebar({ menuOpen, onToggleMenu, onCreate }: { menuOpen: boolean; onToggleMenu: () => void; onCreate: (type: FlockdocType) => void }) {
@@ -9,6 +9,7 @@ export function Sidebar({ menuOpen, onToggleMenu, onCreate }: { menuOpen: boolea
         <button role="menuitem" onClick={() => onCreate('paper')}><FileText /> Paper</button>
         <button role="menuitem" onClick={() => onCreate('spreadsheet')}><Table2 /> Spreadsheet</button>
         <button role="menuitem" onClick={() => onCreate('diagram')}><Shapes /> Diagram</button>
+        <button role="menuitem" onClick={() => onCreate('presentation')}><Presentation /> Presentation</button>
       </div>}
     </div>
     <nav aria-label="Workspace navigation"><a className="active" href="/flockdoc/" aria-current="page"><FolderOpen />My workspace</a></nav>

@@ -1,4 +1,5 @@
 import { normalizeDiagramScene, type DiagramScene, type ExcalidrawElement } from './diagram-operations';
+import { normalizePresentationSnapshot, type PresentationSnapshot, type UniverSlide } from './presentation-operations';
 
 interface EditorWebMCPTextContent {
   type: 'text';
@@ -192,5 +193,94 @@ export function registerDiagramWebMCP({ ownerDocument, id, name, canEdit = true,
     },
   );
 
+  return registerTools(ownerDocument, tools);
+}
+
+interface RegisterPresentationWebMCPOptions {
+  ownerDocument: EditorWebMCPDocument;
+  id: string;
+  name: string;
+  canEdit?: boolean;
+  getSnapshot: () => unknown;
+  writeSnapshot: (snapshot: PresentationSnapshot) => void | Promise<void>;
+}
+
+export function registerPresentationWebMCP({ ownerDocument, id, name, canEdit = true, getSnapshot, writeSnapshot }: RegisterPresentationWebMCPOptions): () => void {
+  const current = () => normalizePresentationSnapshot(getSnapshot(), id, name);
+  const tools: EditorWebMCPTool[] = [
+    {
+      name: 'read_me',
+      description: 'Describe the WebMCP tools available for the open Flockdoc Presentation.',
+      inputSchema: objectSchema({}),
+      execute: () => result('Use inspect_presentation for metadata, read_presentation for the Univer deck, and the slide mutation tools when editing is allowed.'),
+    },
+    {
+      name: 'inspect_presentation',
+      description: 'Inspect the open Flockdoc Presentation and report its identity and slide count.',
+      inputSchema: objectSchema({}),
+      execute: () => {
+        const snapshot = current();
+        return result(`${name}: ${snapshot.body.pageOrder.length} slides.`, { id, name, slideCount: snapshot.body.pageOrder.length, canEdit });
+      },
+    },
+    {
+      name: 'read_presentation',
+      description: 'Read the complete Univer snapshot for the open Flockdoc Presentation.',
+      inputSchema: objectSchema({}),
+      execute: () => { const snapshot = current(); return result(JSON.stringify(snapshot), { snapshot }); },
+    },
+  ];
+
+  if (canEdit) tools.push(
+    {
+      name: 'replace_presentation',
+      description: 'Replace the complete Univer snapshot for the open Flockdoc Presentation. The edit is saved and shared with collaborators.',
+      inputSchema: objectSchema({ snapshot: { type: 'object' } }, ['snapshot']),
+      execute: async input => {
+        try {
+          const snapshot = normalizePresentationSnapshot(input.snapshot, id, name);
+          await writeSnapshot(snapshot);
+          return result(`Replaced ${name} with ${snapshot.body.pageOrder.length} slides.`, { snapshot });
+        } catch (error) { return toolError(error); }
+      },
+    },
+    {
+      name: 'upsert_slides',
+      description: 'Add or replace complete Univer slide objects by id. The edit is saved and shared with collaborators.',
+      inputSchema: objectSchema({ slides: { type: 'array', items: { type: 'object' } } }, ['slides']),
+      execute: async input => {
+        try {
+          if (!Array.isArray(input.slides)) throw new Error('slides must be an array.');
+          const slides = input.slides as UniverSlide[];
+          if (slides.some(slide => !slide || typeof slide !== 'object' || typeof slide.id !== 'string' || !slide.id)) throw new Error('Each slide requires an id.');
+          const snapshot = current();
+          for (const slide of slides) {
+            snapshot.body.pages[slide.id] = { ...structuredClone(slide), pageElements: slide.pageElements && typeof slide.pageElements === 'object' ? structuredClone(slide.pageElements) : {} };
+            if (!snapshot.body.pageOrder.includes(slide.id)) snapshot.body.pageOrder.push(slide.id);
+          }
+          await writeSnapshot(snapshot);
+          return result(`Upserted ${slides.length} slides in ${name}.`, { snapshot });
+        } catch (error) { return toolError(error); }
+      },
+    },
+    {
+      name: 'delete_slides',
+      description: 'Delete slides by id from the open Flockdoc Presentation. The edit is saved and shared with collaborators.',
+      inputSchema: objectSchema({ ids: { type: 'array', items: { type: 'string' } } }, ['ids']),
+      execute: async input => {
+        try {
+          if (!Array.isArray(input.ids) || input.ids.some(value => typeof value !== 'string')) throw new Error('ids must be an array of strings.');
+          const snapshot = current();
+          const previousCount = snapshot.body.pageOrder.length;
+          const ids = new Set(input.ids as string[]);
+          for (const slideId of ids) delete snapshot.body.pages[slideId];
+          snapshot.body.pageOrder = snapshot.body.pageOrder.filter(slideId => !ids.has(slideId));
+          const normalized = normalizePresentationSnapshot(snapshot, id, name);
+          await writeSnapshot(normalized);
+          return result(`Deleted ${previousCount - snapshot.body.pageOrder.length} slides from ${name}.`, { snapshot: normalized });
+        } catch (error) { return toolError(error); }
+      },
+    },
+  );
   return registerTools(ownerDocument, tools);
 }

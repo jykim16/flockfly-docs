@@ -6,6 +6,7 @@ import { PaperEditor } from './features/editor/PaperEditor';
 import { RemoteEditor } from './features/editor/RemoteEditor';
 import { SpreadsheetEditor } from './features/editor/SpreadsheetEditor';
 import { DiagramEditor } from './features/editor/DiagramEditor';
+import { PresentationEditor } from './features/editor/PresentationEditor';
 import { FlockdocTable } from './features/workspace/FlockdocTable';
 import { FolderBreadcrumb } from './features/workspace/FolderBreadcrumb';
 import { consumeAuthTokenFromHash, FlockdocApi, getToken, googleSignInUrl, supportsPlatformSession } from './lib/api';
@@ -70,7 +71,7 @@ export default function App() {
       const [listed, pending] = await claim.then(() => Promise.all([api.list(), api.listInvitations()]));
       return { accountId: session.user.email, listed, pending };
     }).then(async ({ accountId, listed, pending }) => {
-      const requestedId = currentFlockdocPath().match(/^\/flockdoc\/(?:paper|spreadsheet|diagram)\/([^/]+)/)?.[1];
+      const requestedId = currentFlockdocPath().match(/^\/flockdoc\/(?:paper|spreadsheet|diagram|presentation)\/([^/]+)/)?.[1];
       if (requestedId && !listed.flockdocs.some(item => item.id === requestedId)) {
         try { await api.joinPublic(requestedId); listed = await api.list(); } catch { /* Restricted documents remain hidden. */ }
       }
@@ -142,7 +143,7 @@ export default function App() {
   const visibleItems = useMemo(() => items.filter(item => item.prefix === currentPrefix && (filter === 'all' || item.type === filter) && item.name.toLowerCase().includes(query.toLowerCase())), [currentPrefix, filter, items, query]);
   const visiblePrefixes = useMemo(() => immediatePrefixes(items, currentPrefix).filter(prefix => prefixName(prefix).toLowerCase().includes(query.toLowerCase())), [currentPrefix, items, query]);
   const knownPrefixes = useMemo(() => allPrefixes(items), [items]);
-  const routeMatch = route.match(/^\/flockdoc\/(paper|spreadsheet|diagram)\/([^/]+)/);
+  const routeMatch = route.match(/^\/flockdoc\/(paper|spreadsheet|diagram|presentation)\/([^/]+)/);
   if (routeMatch) {
     const item = items.find(entry => entry.id === routeMatch[2]);
     const updateItem = (updates: Partial<Flockdoc>) => setItems(current => current.map(entry => entry.id === item?.id ? { ...entry, ...updates } : entry));
@@ -154,13 +155,15 @@ export default function App() {
           ? <PaperEditor key={item.id} item={item} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
           : item.type === 'spreadsheet'
             ? <SpreadsheetEditor key={item.id} item={item} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
-            : <DiagramEditor key={item.id} item={item} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />}
+            : item.type === 'diagram'
+              ? <DiagramEditor key={item.id} item={item} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
+              : <PresentationEditor key={item.id} item={item} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />}
     </div>;
   }
 
   const create = async (type: FlockdocType) => {
     setMenuOpen(false);
-    const name = type === 'paper' ? 'Untitled Paper' : type === 'spreadsheet' ? 'Untitled Spreadsheet' : 'Untitled Diagram';
+    const name = type === 'paper' ? 'Untitled Paper' : type === 'spreadsheet' ? 'Untitled Spreadsheet' : type === 'diagram' ? 'Untitled Diagram' : 'Untitled Presentation';
     const item: Flockdoc = cloudApi
       ? (await cloudApi.create(name, type, currentPrefix)).flockdoc
       : { id: crypto.randomUUID(), name, type, prefix: currentPrefix, modifiedAt: 'Just now', collaborators: [] };
@@ -183,13 +186,13 @@ export default function App() {
     <main className="workspace">
       <header className="topbar"><label><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search flockdocs" /></label><button aria-label="Help"><HelpCircle /></button></header>
       <section className="workspace-content">
-        {syncStatus === 'browser' ? <aside className="sync-banner"><div><strong>Keep your flockdocs on every device</strong><span>Sign in once on Flockfly to store Paper, Spreadsheet, and Diagram revisions securely.</span></div><a href={googleSignInUrl()}>Sign in to sync</a></aside> : null}
+        {syncStatus === 'browser' ? <aside className="sync-banner"><div><strong>Keep your flockdocs on every device</strong><span>Sign in once on Flockfly to store Paper, Spreadsheet, Diagram, and Presentation revisions securely.</span></div><a href={googleSignInUrl()}>Sign in to sync</a></aside> : null}
         {syncStatus === 'loading' ? <p className="sync-note">Loading your cloud workspace…</p> : null}
         {syncStatus === 'error' ? <p className="sync-note error">Cloud sync is unavailable. Your browser copy has not been removed.</p> : null}
         {cloudApi && invitations.length ? <aside className="flockdoc-invitations"><strong>Document invitations</strong>{invitations.map(invitation => <div key={invitation.id}><span><b>{invitation.flockdocName}</b> · {flockdocRoleLabel(invitation.role)}</span><button onClick={() => void cloudApi.respondToInvitation(invitation.id, 'decline').then(() => setInvitations(current => current.filter(item => item.id !== invitation.id)))}>Decline</button><button className="primary" onClick={() => void cloudApi.respondToInvitation(invitation.id, 'accept').then(() => Promise.all([cloudApi.list(), cloudApi.listInvitations()])).then(([listed, pending]) => { setItems(listed.flockdocs); setInvitations(pending.invitations); })}>Accept</button></div>)}</aside> : null}
         <div className="title-row"><h1>My workspace</h1></div>
         <FolderBreadcrumb prefix={currentPrefix} onNavigate={setCurrentPrefix} />
-        <div className="filters">{([['all', 'All'], ['paper', 'Papers'], ['spreadsheet', 'Spreadsheets'], ['diagram', 'Diagrams']] as const).map(([value, label]) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div>
+        <div className="filters">{([['all', 'All'], ['paper', 'Papers'], ['spreadsheet', 'Spreadsheets'], ['diagram', 'Diagrams'], ['presentation', 'Presentations']] as const).map(([value, label]) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div>
         <FlockdocTable items={visibleItems} prefixes={visiblePrefixes} allPrefixes={knownPrefixes} onOpenFolder={setCurrentPrefix} onMove={moveFlockdoc} onDelete={deleteFlockdoc} />
       </section>
     </main>

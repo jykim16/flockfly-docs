@@ -64,7 +64,7 @@ describe('Flockdoc WebMCP bridge', () => {
     expect(tools['flockdoc.create'].inputSchema.properties).toHaveProperty('prefix');
     expect(tools['flockdoc.move'].inputSchema.properties).toEqual(expect.objectContaining({ prefix: { type: 'string' } }));
     expect(tools['flockdoc.move'].inputSchema.required).toEqual(['id', 'prefix']);
-    expect(tools['flockdoc.create'].inputSchema.properties.type.enum).toEqual(['paper', 'spreadsheet', 'diagram']);
+    expect(tools['flockdoc.create'].inputSchema.properties.type.enum).toEqual(['paper', 'spreadsheet', 'diagram', 'presentation']);
   });
 
   it('delegates open requests and returns the navigation result', async () => {

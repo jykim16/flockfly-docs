@@ -169,6 +169,7 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
 .type-icon.paper { color: var(--ocean); }
 .type-icon.spreadsheet { color: #238c70; }
 .type-icon.diagram { color: #8b5cf6; }
+.type-icon.presentation { color: #e66a45; }
 .file-row-detail input:focus { border-color: var(--ocean-light); outline: 0; box-shadow: 0 0 0 3px rgba(67,198,164,.16); }
 .file-row-detail button:disabled { cursor: wait; opacity: .55; }
 

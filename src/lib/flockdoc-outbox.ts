@@ -2,6 +2,7 @@ import { FlockdocApiError, type FlockdocApi } from './api';
 import type { PaperYjsOperation } from './paper-collaboration';
 import type { SpreadsheetOperation } from './spreadsheet-operations';
 import type { DiagramOperation } from './diagram-operations';
+import type { PresentationOperation } from './presentation-operations';
 
 type OutboxBase = {
   id: string;
@@ -14,6 +15,7 @@ export type FlockdocOutboxEntry = OutboxBase & (
   | { kind: 'spreadsheet'; operation: SpreadsheetOperation }
   | { kind: 'paper'; operation: PaperYjsOperation }
   | { kind: 'diagram'; operation: DiagramOperation }
+  | { kind: 'presentation'; operation: PresentationOperation }
   | { kind: 'checkpoint'; snapshot: unknown }
   | { kind: 'rename'; name: string }
 );
@@ -61,6 +63,10 @@ export class FlockdocOutbox {
 
   enqueueDiagram(flockdocId: string, clientId: string, operation: DiagramOperation) {
     return this.enqueue({ kind: 'diagram', flockdocId, clientId, operation });
+  }
+
+  enqueuePresentation(flockdocId: string, clientId: string, operation: PresentationOperation) {
+    return this.enqueue({ kind: 'presentation', flockdocId, clientId, operation });
   }
 
   enqueueCheckpoint(flockdocId: string, clientId: string, snapshot: unknown) {
@@ -117,6 +123,9 @@ export class FlockdocOutbox {
         } else if (entry.kind === 'diagram') {
           const result = await api.appendDiagramOperation(entry.flockdocId, entry.idempotencyKey, entry.clientId, entry.operation);
           revisions.set(entry.flockdocId, result.revision);
+        } else if (entry.kind === 'presentation') {
+          const result = await api.appendPresentationOperation(entry.flockdocId, entry.idempotencyKey, entry.clientId, entry.operation);
+          revisions.set(entry.flockdocId, result.revision);
         } else if (entry.kind === 'checkpoint') {
           const result = await api.saveCheckpoint(entry.flockdocId, revision!, entry.idempotencyKey, entry.snapshot, entry.clientId);
           revisions.set(entry.flockdocId, result.revision);
@@ -124,7 +133,7 @@ export class FlockdocOutbox {
           await api.rename(entry.flockdocId, entry.name);
         }
       } catch (error) {
-        const hasFallbackCheckpoint = (entry.kind === 'paper' || entry.kind === 'diagram') && this.entries.some(candidate => (
+        const hasFallbackCheckpoint = (entry.kind === 'paper' || entry.kind === 'diagram' || entry.kind === 'presentation') && this.entries.some(candidate => (
           candidate.flockdocId === entry.flockdocId && candidate.kind === 'checkpoint'
         ));
         if (!(hasFallbackCheckpoint && error instanceof FlockdocApiError && [400, 403, 404].includes(error.status))) throw error;

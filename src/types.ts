@@ -1,4 +1,4 @@
-export type FlockdocType = 'paper' | 'spreadsheet' | 'diagram';
+export type FlockdocType = 'paper' | 'spreadsheet' | 'diagram' | 'presentation';
 export type WorkspaceFilter = 'all' | FlockdocType;
 
 export interface Collaborator {

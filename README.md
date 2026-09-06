@@ -1,12 +1,13 @@
 # Flockdoc
 
-Flockdoc is the collaborative document workspace for Flockfly. A saved object is a **flockdoc** and has one of three types:
+Flockdoc is the collaborative document workspace for Flockfly. A saved object is a **flockdoc** and has one of four types:
 
 **Live app:** [https://platform.flockfly.ai/flockdoc/](https://platform.flockfly.ai/flockdoc/)
 
 - **Paper** — a rich-text document.
 - **Spreadsheet** — a workbook.
 - **Diagram** — a collaborative Excalidraw canvas based on the `excalidraw-mcp` implementation.
+- **Presentation** — a collaborative Univer Slides deck.
 
 The frontend is intentionally a separate repository. Authentication, storage, permissions, content-anchored comments, revision history, sharing, and agent identity live in the existing Flockfly backend. Flockdocs carry a slash-delimited path prefix; the workspace derives virtual folders from those prefixes, so moving a file to a new path implicitly creates the folder hierarchy. Files also support recoverable deletion.
 
@@ -78,10 +79,11 @@ An open editor also registers tools for its document type:
 - Paper: `read_me`, `inspect_document`, `read_document`, and `write_document` for editors.
 - Spreadsheet: workbook inspection, range reads/writes, formatting, grid, merge, and sheet-management tools.
 - Diagram: `read_me`, `inspect_diagram`, `read_diagram`, plus element upsert/delete tools for editors.
+- Presentation: `read_me`, `inspect_presentation`, `read_presentation`, plus deck replacement and slide upsert/delete tools for editors.
 
-View-only collaborators receive inspection and read tools, but no mutation tools. Paper and Diagram tool edits use the same save, realtime collaboration, offline recovery, and permission paths as edits made in the editor UI.
+View-only collaborators receive inspection and read tools, but no mutation tools. Paper, Diagram, and Presentation tool edits use the same save, realtime collaboration, offline recovery, and permission paths as edits made in the editor UI.
 
-Diagram scenes use the same authenticated revision, checkpoint, presence, offline recovery, and sharing infrastructure as Papers and Spreadsheets.
+Diagram scenes and Presentation decks use the same authenticated revision, checkpoint, presence, offline recovery, and sharing infrastructure as Papers and Spreadsheets.
 
 The tool boundary is implemented in `src/lib/webmcp.ts`. The same application actions are intended to back human UI operations and agent tool calls so permissions and audit behavior do not diverge.
 

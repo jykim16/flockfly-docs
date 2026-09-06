@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { registerDiagramWebMCP, registerPaperWebMCP, type EditorWebMCPTool } from '../lib/editor-webmcp';
+import { registerDiagramWebMCP, registerPaperWebMCP, registerPresentationWebMCP, type EditorWebMCPTool } from '../lib/editor-webmcp';
 
 class FakeModelContext {
   tools = new Map<string, EditorWebMCPTool>();
@@ -46,6 +46,32 @@ describe('Paper WebMCP', () => {
     const modelContext = new FakeModelContext();
     registerPaperWebMCP({ ownerDocument: ownerDocument(modelContext), id: 'paper-1', name: 'Plan', canEdit: false, getText: () => '', writeText: vi.fn() });
     expect([...modelContext.tools.keys()]).toEqual(['read_me', 'inspect_document', 'read_document']);
+  });
+});
+
+describe('Presentation WebMCP', () => {
+  const initial = { id: 'deck-1', title: 'Launch', body: { pageOrder: ['one'], pages: { one: { id: 'one', pageElements: {} } } } };
+
+  it('registers collaborative slide tools for editors', async () => {
+    const modelContext = new FakeModelContext();
+    let snapshot = initial;
+    const writeSnapshot = vi.fn(async next => { snapshot = next as typeof initial; });
+    const cleanup = registerPresentationWebMCP({ ownerDocument: ownerDocument(modelContext), id: 'deck-1', name: 'Launch', canEdit: true, getSnapshot: () => snapshot, writeSnapshot });
+
+    expect([...modelContext.tools.keys()]).toEqual(['read_me', 'inspect_presentation', 'read_presentation', 'replace_presentation', 'upsert_slides', 'delete_slides']);
+    await modelContext.tools.get('upsert_slides')?.execute({ slides: [{ id: 'two', pageElements: {} }] });
+    expect(snapshot.body.pageOrder).toEqual(['one', 'two']);
+    await modelContext.tools.get('delete_slides')?.execute({ ids: ['one'] });
+    expect(snapshot.body.pageOrder).toEqual(['two']);
+
+    cleanup();
+    expect(modelContext.tools.size).toBe(0);
+  });
+
+  it('omits presentation mutation tools for viewers', () => {
+    const modelContext = new FakeModelContext();
+    registerPresentationWebMCP({ ownerDocument: ownerDocument(modelContext), id: 'deck-1', name: 'Launch', canEdit: false, getSnapshot: () => initial, writeSnapshot: vi.fn() });
+    expect([...modelContext.tools.keys()]).toEqual(['read_me', 'inspect_presentation', 'read_presentation']);
   });
 });
 

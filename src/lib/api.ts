@@ -3,6 +3,7 @@ import type { FlockdocCommittedEvent } from './flockdoc-realtime';
 import type { SpreadsheetOperation } from './spreadsheet-operations';
 import type { PaperYjsOperation } from './paper-collaboration';
 import type { DiagramOperation } from './diagram-operations';
+import type { PresentationOperation } from './presentation-operations';
 
 const TOKEN_KEY = 'flockfly.token';
 const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? '';
@@ -193,6 +194,12 @@ export class FlockdocApi {
   }
 
   appendDiagramOperation(id: string, idempotencyKey: string, clientId: string, operation: DiagramOperation) {
+    return this.request<{ revision: number; duplicate: boolean }>(`/v1/flockdocs/${id}/updates`, {
+      method: 'POST', body: JSON.stringify({ idempotencyKey, clientId, operation }),
+    });
+  }
+
+  appendPresentationOperation(id: string, idempotencyKey: string, clientId: string, operation: PresentationOperation) {
     return this.request<{ revision: number; duplicate: boolean }>(`/v1/flockdocs/${id}/updates`, {
       method: 'POST', body: JSON.stringify({ idempotencyKey, clientId, operation }),
     });

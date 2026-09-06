@@ -36,6 +36,18 @@ describe('workspace storage', () => {
     expect(loadWorkspace(localStorage)).toEqual([diagram]);
   });
 
+  it('loads persisted Univer presentations', () => {
+    const presentation: Flockdoc = {
+      ...paper,
+      id: 'deck-1',
+      name: 'Launch',
+      type: 'presentation',
+      snapshot: { id: 'deck-1', body: { pageOrder: [], pages: {} } },
+    };
+    saveWorkspace([presentation], localStorage);
+    expect(loadWorkspace(localStorage)).toEqual([presentation]);
+  });
+
   it('migrates legacy nested folder IDs to prefixes and clears folder storage on save', () => {
     localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify({ version: 1, flockdocs: [{ ...paper, prefix: undefined, parentFolderId: 'folder-child' }] }));
     localStorage.setItem(FOLDER_STORAGE_KEY, JSON.stringify({ version: 1, folders: [
