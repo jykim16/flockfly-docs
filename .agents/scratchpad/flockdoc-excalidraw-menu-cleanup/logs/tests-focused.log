@@ -1,0 +1,15 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/DiagramEditor.test.tsx
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:10713) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  18:41:38
+   Duration  310ms (transform 49ms, setup 43ms, import 52ms, tests 54ms, environment 108ms)
+

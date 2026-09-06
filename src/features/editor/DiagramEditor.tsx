@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ComponentType } from 'react';
+import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { ArrowLeft, Share2 } from 'lucide-react';
 import type { Flockdoc } from '../../types';
 import { normalizeDiagramScene, type DiagramScene } from '../../lib/diagram-operations';
@@ -6,6 +6,28 @@ import { normalizeDiagramScene, type DiagramScene } from '../../lib/diagram-oper
 type ExcalidrawApi = {
   updateScene: (scene: { elements: DiagramScene['elements']; captureUpdate?: unknown }) => void;
   getSceneElements: () => readonly DiagramScene['elements'][number][];
+};
+
+type ExcalidrawMainMenu = ComponentType<{ children?: ReactNode }> & {
+  DefaultItems: {
+    SaveAsImage: ComponentType;
+    SearchMenu: ComponentType;
+    Help: ComponentType;
+    ClearCanvas: ComponentType;
+  };
+};
+
+const FLOCKDOC_EXCALIDRAW_UI_OPTIONS = {
+  canvasActions: {
+    changeViewBackgroundColor: false,
+    clearCanvas: true,
+    export: false,
+    loadScene: false,
+    saveAsImage: true,
+    saveToActiveFile: false,
+    toggleTheme: false,
+  },
+  tools: { image: false },
 };
 
 interface DiagramEditorProps {
@@ -29,6 +51,7 @@ function signature(scene: DiagramScene): string {
 
 export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSceneChange, remoteScenes = [], onRemoteScenesApplied, checkpointRevision, canEdit = true, canShare = true, onShare, persistenceStatus }: DiagramEditorProps) {
   const [editor, setEditor] = useState<ComponentType<Record<string, unknown>> | null>(null);
+  const [mainMenu, setMainMenu] = useState<ExcalidrawMainMenu | null>(null);
   const [captureNever, setCaptureNever] = useState<unknown>();
   const [api, setApi] = useState<ExcalidrawApi | null>(null);
   const [status, setStatus] = useState('Loading Excalidraw…');
@@ -48,6 +71,7 @@ export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSce
     ]).then(([module]) => {
       if (!active) return;
       setEditor(() => module.Excalidraw as ComponentType<Record<string, unknown>>);
+      setMainMenu(() => module.MainMenu as ExcalidrawMainMenu);
       setCaptureNever(module.CaptureUpdateAction.NEVER);
       setStatus(canEdit ? 'Saved' : 'View only');
     }).catch(error => {
@@ -101,8 +125,16 @@ export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSce
   };
 
   const Excalidraw = editor;
+  const MainMenu = mainMenu;
   return <main className="editor-shell diagram-shell">
     <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Diagram name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>
-    <div className="diagram-editor-host" aria-label="Diagram editor">{Excalidraw ? <Excalidraw excalidrawAPI={(value: ExcalidrawApi) => setApi(value)} initialData={{ elements: latestScene.current.elements, scrollToContent: true }} viewModeEnabled={!canEdit} theme="light" onChange={onChange} /> : null}</div>
+    <div className="diagram-editor-host" aria-label="Diagram editor">{Excalidraw && MainMenu ? <Excalidraw excalidrawAPI={(value: ExcalidrawApi) => setApi(value)} initialData={{ elements: latestScene.current.elements, scrollToContent: true }} viewModeEnabled={!canEdit} theme="light" aiEnabled={false} UIOptions={FLOCKDOC_EXCALIDRAW_UI_OPTIONS} onChange={onChange}>
+      <MainMenu>
+        <MainMenu.DefaultItems.SaveAsImage />
+        <MainMenu.DefaultItems.SearchMenu />
+        <MainMenu.DefaultItems.Help />
+        <MainMenu.DefaultItems.ClearCanvas />
+      </MainMenu>
+    </Excalidraw> : null}</div>
   </main>;
 }

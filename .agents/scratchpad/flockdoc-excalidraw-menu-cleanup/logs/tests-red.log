@@ -1,0 +1,39 @@
+
+> flockfly-docs@0.1.0 test
+> vitest run --run src/__tests__/DiagramEditor.test.tsx
+
+
+ RUN  v4.1.11 /Users/jkim/Documents/vibe/webmcp/flockfly-docs
+
+(node:10584) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/__tests__/DiagramEditor.test.tsx (1 test | 1 failed) 59ms
+     × keeps only the Excalidraw controls supported by Flockdocs 58ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/DiagramEditor.test.tsx > DiagramEditor Excalidraw menu > keeps only the Excalidraw controls supported by Flockdocs
+AssertionError: expected undefined to be false // Object.is equality
+
+- Expected:
+false
+
++ Received:
+undefined
+
+ ❯ src/__tests__/DiagramEditor.test.tsx:45:29
+     43|     const props = vi.mocked(Excalidraw).mock.lastCall![0] as Record<st…
+     44|
+     45|     expect(props.aiEnabled).toBe(false);
+       |                             ^
+     46|     expect(props.UIOptions).toEqual({
+     47|       canvasActions: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  18:41:05
+   Duration  344ms (transform 52ms, setup 47ms, import 55ms, tests 59ms, environment 127ms)
+
