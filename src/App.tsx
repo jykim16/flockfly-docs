@@ -17,7 +17,7 @@ import { registerFlockdocWebMCP } from './lib/webmcp';
 import { currentFlockdocPath, migrateLegacyFlockdocPath, navigateFlockdoc } from './lib/navigation';
 import { loadWorkspace, saveWorkspace } from './lib/workspace-storage';
 import { allPrefixes, immediatePrefixes, normalizePrefix, prefixName } from './lib/prefixes';
-import type { Flockdoc, FlockdocInvitation, FlockdocType, WorkspaceFilter } from './types';
+import type { Flockdoc, FlockdocInvitation, FlockdocType, FlockdocWorkspace, WorkspaceFilter } from './types';
 import './styles.css';
 
 function routeFor(item: Flockdoc) { return `/flockdoc/${item.type}/${item.id}`; }
@@ -29,6 +29,9 @@ export default function App() {
     return consumed ?? getToken();
   });
   const [items, setItems] = useState<Flockdoc[]>(() => loadWorkspace(localStorage));
+  const [workspaces, setWorkspaces] = useState<FlockdocWorkspace[]>([{ id: 'local', name: 'My workspace', isDefault: true, canCreate: true }]);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('local');
+  const [workspaceView, setWorkspaceView] = useState<'active' | 'trash'>('active');
   const [currentPrefix, setCurrentPrefix] = useState('');
   const [filter, setFilter] = useState<WorkspaceFilter>('all');
   const [query, setQuery] = useState('');
@@ -43,6 +46,7 @@ export default function App() {
   const cloudApi = authenticated ? api : null;
   const itemsRef = useRef(items);
   const apiRef = useRef(cloudApi);
+  const selectedWorkspaceRef = useRef(selectedWorkspaceId);
 
   useEffect(() => {
     const handler = () => { const next = currentFlockdocPath(); migrateLegacyFlockdocPath(); setRoute(next); };
@@ -53,6 +57,7 @@ export default function App() {
   }, []);
   useEffect(() => { itemsRef.current = items; }, [items]);
   useEffect(() => { apiRef.current = cloudApi; }, [cloudApi]);
+  useEffect(() => { selectedWorkspaceRef.current = selectedWorkspaceId; }, [selectedWorkspaceId]);
   useEffect(() => { if (!authenticated) saveWorkspace(items, localStorage); }, [authenticated, items]);
   useEffect(() => {
     let active = true;
@@ -68,19 +73,25 @@ export default function App() {
       const claim = shareToken ? api.claimShareLink(shareToken).then(() => {
         history.replaceState(null, '', location.pathname);
       }) : Promise.resolve();
-      const [listed, pending] = await claim.then(() => Promise.all([api.list(), api.listInvitations()]));
-      return { accountId: session.user.email, listed, pending };
-    }).then(async ({ accountId, listed, pending }) => {
+      const workspaceResult = await api.listWorkspaces();
+      const defaultWorkspace = workspaceResult.workspaces.find(workspace => workspace.isDefault) ?? workspaceResult.workspaces[0];
+      if (!defaultWorkspace) throw new Error('No Flockdoc workspace is available.');
+      const [listed, pending] = await claim.then(() => Promise.all([api.list(defaultWorkspace.id), api.listInvitations()]));
+      return { accountId: session.user.email, listed, pending, workspaces: workspaceResult.workspaces, defaultWorkspaceId: defaultWorkspace.id };
+    }).then(async ({ accountId, listed, pending, workspaces: availableWorkspaces, defaultWorkspaceId }) => {
       const requestedId = currentFlockdocPath().match(/^\/flockdoc\/(?:paper|spreadsheet|diagram|webapp)\/([^/]+)/)?.[1];
       if (requestedId && !listed.flockdocs.some(item => item.id === requestedId)) {
-        try { await api.joinPublic(requestedId); listed = await api.list(); } catch { /* Restricted documents remain hidden. */ }
+        try { listed.flockdocs.push((await api.getState(requestedId)).flockdoc); }
+        catch { try { await api.joinPublic(requestedId); listed.flockdocs.push((await api.getState(requestedId)).flockdoc); } catch { /* Restricted documents remain hidden. */ } }
       }
-      return { accountId, flockdocs: listed.flockdocs, invitations: pending.invitations };
-    }).then(({ accountId, flockdocs, invitations: pending }) => {
+      return { accountId, flockdocs: listed.flockdocs, invitations: pending.invitations, workspaces: availableWorkspaces, defaultWorkspaceId };
+    }).then(({ accountId, flockdocs, invitations: pending, workspaces: availableWorkspaces, defaultWorkspaceId }) => {
       if (!active) return;
       setAuthenticated(true);
       setOutbox(new FlockdocOutbox(localStorage, accountId));
       setItems(flockdocs);
+      setWorkspaces(availableWorkspaces);
+      setSelectedWorkspaceId(defaultWorkspaceId);
       setInvitations(pending);
       setSyncStatus('synced');
     }).catch(error => {
@@ -89,6 +100,8 @@ export default function App() {
       setOutbox(null);
       setAccount(null);
       setItems(loadWorkspace(localStorage));
+      setWorkspaces([{ id: 'local', name: 'My workspace', isDefault: true, canCreate: true }]);
+      setSelectedWorkspaceId('local');
       setSyncStatus(error instanceof Error && 'status' in error && [401, 403, 404].includes(Number(error.status)) ? 'browser' : 'error');
     });
     return () => { active = false; };
@@ -113,7 +126,7 @@ export default function App() {
       const remoteApi = apiRef.current;
       const targetPrefix = normalizePrefix(typeof prefix === 'string' ? prefix : '');
       const next = remoteApi
-        ? (await remoteApi.create(String(name), type as FlockdocType, targetPrefix)).flockdoc
+        ? (await remoteApi.create(String(name), type as FlockdocType, targetPrefix, selectedWorkspaceRef.current)).flockdoc
         : { id: crypto.randomUUID(), name: String(name), type: type as FlockdocType, prefix: targetPrefix, modifiedAt: 'Just now', collaborators: [] };
       setItems(current => [next, ...current]);
       return { flockdoc: next };
@@ -135,14 +148,15 @@ export default function App() {
     deleteFlockdoc: async ({ id }) => {
       const remoteApi = apiRef.current;
       if (remoteApi) await remoteApi.trash(String(id));
-      setItems(current => current.filter(item => item.id !== id));
+      setItems(current => current.map(item => item.id === id ? { ...item, trashedAt: new Date().toISOString() } : item));
       return { ok: true };
     },
   }}), []);
 
-  const visibleItems = useMemo(() => items.filter(item => item.prefix === currentPrefix && (filter === 'all' || item.type === filter) && item.name.toLowerCase().includes(query.toLowerCase())), [currentPrefix, filter, items, query]);
-  const visiblePrefixes = useMemo(() => immediatePrefixes(items, currentPrefix).filter(prefix => prefixName(prefix).toLowerCase().includes(query.toLowerCase())), [currentPrefix, items, query]);
-  const knownPrefixes = useMemo(() => allPrefixes(items), [items]);
+  const itemsInView = useMemo(() => items.filter(item => workspaceView === 'trash' ? item.trashedAt != null : item.trashedAt == null), [items, workspaceView]);
+  const visibleItems = useMemo(() => itemsInView.filter(item => item.prefix === currentPrefix && (filter === 'all' || item.type === filter) && item.name.toLowerCase().includes(query.toLowerCase())), [currentPrefix, filter, itemsInView, query]);
+  const visiblePrefixes = useMemo(() => immediatePrefixes(itemsInView, currentPrefix).filter(prefix => prefixName(prefix).toLowerCase().includes(query.toLowerCase())), [currentPrefix, itemsInView, query]);
+  const knownPrefixes = useMemo(() => allPrefixes(itemsInView), [itemsInView]);
   const routeMatch = route.match(/^\/flockdoc\/(paper|spreadsheet|diagram|webapp)\/([^/]+)/);
   if (routeMatch) {
     const item = items.find(entry => entry.id === routeMatch[2]);
@@ -165,7 +179,7 @@ export default function App() {
     setMenuOpen(false);
     const name = type === 'paper' ? 'Untitled Paper' : type === 'spreadsheet' ? 'Untitled Spreadsheet' : type === 'diagram' ? 'Untitled Diagram' : 'Untitled Web App';
     const item: Flockdoc = cloudApi
-      ? (await cloudApi.create(name, type, currentPrefix)).flockdoc
+      ? (await cloudApi.create(name, type, currentPrefix, selectedWorkspaceId)).flockdoc
       : { id: crypto.randomUUID(), name, type, prefix: currentPrefix, modifiedAt: 'Just now', collaborators: [] };
     setItems(current => [item, ...current]); navigateFlockdoc(routeFor(item));
   };
@@ -177,23 +191,40 @@ export default function App() {
   };
   const deleteFlockdoc = async (item: Flockdoc) => {
     if (cloudApi) await cloudApi.trash(item.id);
+    setItems(current => current.map(entry => entry.id === item.id ? { ...entry, trashedAt: new Date().toISOString() } : entry));
+  };
+  const removeFlockdoc = async (item: Flockdoc) => {
+    if (cloudApi) await cloudApi.removeFromWorkspace(item.id);
     setItems(current => current.filter(entry => entry.id !== item.id));
   };
+  const restoreFlockdoc = async (item: Flockdoc) => {
+    const restored = cloudApi ? (await cloudApi.restore(item.id)).flockdoc : { ...item, trashedAt: null };
+    setItems(current => current.map(entry => entry.id === item.id ? restored : entry));
+  };
+  const selectWorkspace = async (id: string) => {
+    setCurrentPrefix(''); setWorkspaceView('active'); setSelectedWorkspaceId(id);
+    if (cloudApi) { setSyncStatus('loading'); setItems((await cloudApi.list(id)).flockdocs); setSyncStatus('synced'); }
+  };
+  const selectTrash = async () => {
+    setCurrentPrefix(''); setWorkspaceView('trash');
+    if (cloudApi) { setSyncStatus('loading'); setItems((await cloudApi.list(selectedWorkspaceId, 'trash')).flockdocs); setSyncStatus('synced'); }
+  };
+  const selectedWorkspace = workspaces.find(workspace => workspace.id === selectedWorkspaceId) ?? workspaces[0];
 
   return <div className="app-shell">
     <PlatformHeader account={account} />
-    <Sidebar menuOpen={menuOpen} onToggleMenu={() => setMenuOpen(value => !value)} onCreate={create} />
+    <Sidebar menuOpen={menuOpen} workspaces={workspaces} selectedWorkspaceId={selectedWorkspaceId} view={workspaceView} canCreate={selectedWorkspace?.canCreate ?? false} onToggleMenu={() => setMenuOpen(value => !value)} onCreate={create} onSelectWorkspace={id => void selectWorkspace(id)} onSelectTrash={() => void selectTrash()} />
     <main className="workspace">
       <header className="topbar"><label><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search flockdocs" /></label><button aria-label="Help"><HelpCircle /></button></header>
       <section className="workspace-content">
         {syncStatus === 'browser' ? <aside className="sync-banner"><div><strong>Keep your flockdocs on every device</strong><span>Sign in once on Flockfly to store Paper, Spreadsheet, Diagram, and Web App revisions securely.</span></div><a href={googleSignInUrl()}>Sign in to sync</a></aside> : null}
         {syncStatus === 'loading' ? <p className="sync-note">Loading your cloud workspace…</p> : null}
         {syncStatus === 'error' ? <p className="sync-note error">Cloud sync is unavailable. Your browser copy has not been removed.</p> : null}
-        {cloudApi && invitations.length ? <aside className="flockdoc-invitations"><strong>Document invitations</strong>{invitations.map(invitation => <div key={invitation.id}><span><b>{invitation.flockdocName}</b> · {flockdocRoleLabel(invitation.role)}</span><button onClick={() => void cloudApi.respondToInvitation(invitation.id, 'decline').then(() => setInvitations(current => current.filter(item => item.id !== invitation.id)))}>Decline</button><button className="primary" onClick={() => void cloudApi.respondToInvitation(invitation.id, 'accept').then(() => Promise.all([cloudApi.list(), cloudApi.listInvitations()])).then(([listed, pending]) => { setItems(listed.flockdocs); setInvitations(pending.invitations); })}>Accept</button></div>)}</aside> : null}
-        <div className="title-row"><h1>My workspace</h1></div>
+        {cloudApi && invitations.length ? <aside className="flockdoc-invitations"><strong>Document invitations</strong>{invitations.map(invitation => <div key={invitation.id}><span><b>{invitation.flockdocName}</b> · {flockdocRoleLabel(invitation.role)}</span><button onClick={() => void cloudApi.respondToInvitation(invitation.id, 'decline').then(() => setInvitations(current => current.filter(item => item.id !== invitation.id)))}>Decline</button><button className="primary" onClick={() => void cloudApi.respondToInvitation(invitation.id, 'accept').then(() => Promise.all([cloudApi.list(selectedWorkspaceId), cloudApi.listInvitations()])).then(([listed, pending]) => { setItems(listed.flockdocs); setInvitations(pending.invitations); })}>Accept</button></div>)}</aside> : null}
+        <div className="title-row"><h1>{workspaceView === 'trash' ? 'Trash' : selectedWorkspace?.name ?? 'My workspace'}</h1></div>
         <FolderBreadcrumb prefix={currentPrefix} onNavigate={setCurrentPrefix} />
         <div className="filters">{([['all', 'All'], ['paper', 'Papers'], ['spreadsheet', 'Spreadsheets'], ['diagram', 'Diagrams'], ['webapp', 'Web Apps']] as const).map(([value, label]) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div>
-        <FlockdocTable items={visibleItems} prefixes={visiblePrefixes} allPrefixes={knownPrefixes} onOpenFolder={setCurrentPrefix} onMove={moveFlockdoc} onDelete={deleteFlockdoc} />
+        <FlockdocTable items={visibleItems} prefixes={visiblePrefixes} allPrefixes={knownPrefixes} onOpenFolder={setCurrentPrefix} onMove={moveFlockdoc} onDelete={deleteFlockdoc} onRemove={removeFlockdoc} onRestore={restoreFlockdoc} view={workspaceView} />
       </section>
     </main>
   </div>;

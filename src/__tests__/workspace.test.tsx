@@ -35,6 +35,7 @@ describe('Flockdoc workspace', () => {
     const workspaceLink = within(navigation).getByRole('link', { name: 'My workspace' });
     expect(workspaceLink).toHaveAttribute('href', '/flockdoc/');
     expect(workspaceLink).toHaveAttribute('aria-current', 'page');
+    expect(within(navigation).getByRole('button', { name: 'Trash' })).toBeInTheDocument();
     expect(screen.queryByText('Storage')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Share' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Copy link' })).not.toBeInTheDocument();
@@ -45,6 +46,52 @@ describe('Flockdoc workspace', () => {
     fireEvent.click(row);
     expect(screen.queryByRole('complementary', { name: 'Document details' })).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Add a comment')).not.toBeInTheDocument();
+  });
+
+  it('shows collection workspaces and lets a viewer remove a shared document without deleting it', async () => {
+    const viewerPermissions = { canRead: true, canComment: false, canEdit: false, canShare: false, canDelete: false };
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/v1/me') return new Response(JSON.stringify({ user: { id: 'user-viewer', email: 'viewer@example.com' } }), { status: 200 });
+      if (url === '/v1/collections') return new Response(JSON.stringify({ collections: [
+        { id: 'coll_personal', kind: 'private', name: "Viewer's sessions", personalOwnerUserId: 'user-viewer', isMember: true, permissions: { canPublish: true } },
+        { id: 'coll_design', kind: 'private', name: 'Design team', personalOwnerUserId: null, isMember: true, permissions: { canPublish: false } },
+      ] }), { status: 200 });
+      if (url === '/v1/flockdocs?collectionId=coll_personal') return new Response(JSON.stringify({ flockdocs: [] }), { status: 200 });
+      if (url === '/v1/flockdocs?collectionId=coll_design') return new Response(JSON.stringify({ flockdocs: [{
+        id: 'shared-1', collectionId: 'coll_design', name: 'Shared research', type: 'paper', updatedAt: '2026-09-07T00:00:00Z', role: 'viewer', permissions: viewerPermissions,
+      }] }), { status: 200 });
+      if (url === '/v1/flockdocs/shared-1/workspace' && init?.method === 'DELETE') return new Response(null, { status: 204 });
+      if (url === '/v1/flockdoc-invitations') return new Response(JSON.stringify({ invitations: [] }), { status: 200 });
+      throw new Error(`Unexpected request: ${init?.method ?? 'GET'} ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+
+    const navigation = await screen.findByRole('navigation', { name: 'Workspace navigation' });
+    fireEvent.click(await within(navigation).findByRole('button', { name: 'Design team' }));
+    expect(screen.getByRole('button', { name: 'New' })).toBeDisabled();
+    const row = await screen.findByRole('row', { name: /Shared research/ });
+    fireEvent.click(within(row).getByRole('button', { name: 'Remove Shared research from workspace' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm remove' }));
+    await waitFor(() => expect(screen.queryByText('Shared research')).not.toBeInTheDocument());
+    expect(fetchMock).toHaveBeenCalledWith('/v1/flockdocs/shared-1/workspace', expect.objectContaining({ method: 'DELETE' }));
+  });
+
+  it('moves a local document to Trash and restores it', async () => {
+    localStorage.setItem('flockfly.flockdoc.workspace.v1', JSON.stringify({ version: 1, flockdocs: [{
+      id: 'paper-trash', name: 'Recoverable Paper', type: 'paper', modifiedAt: 'Just now', prefix: '', collaborators: [],
+    }] }));
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Recoverable Paper' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm delete' }));
+    expect(screen.queryByText('Recoverable Paper')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Trash' }));
+    expect(screen.getByText('Recoverable Paper')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Restore Recoverable Paper' }));
+    expect(screen.queryByText('Recoverable Paper')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('link', { name: 'My workspace' }));
+    expect(screen.getByText('Recoverable Paper')).toBeInTheDocument();
   });
 
   it('opens flockdocs from a single accessible click with a clean path', () => {
@@ -208,6 +255,10 @@ describe('Flockdoc workspace', () => {
       if (url === '/v1/me') return new Response(JSON.stringify({
         user: { id: 'user-1', email: 'planner@flockfly.ai' }, billing: { entitled: true },
       }), { status: 200 });
+      if (url === '/v1/collections') return new Response(JSON.stringify({ collections: [{
+        id: 'coll_personal', kind: 'private', name: "Planner's sessions", personalOwnerUserId: 'user-1',
+        isMember: true, permissions: { canPublish: true },
+      }] }), { status: 200 });
       if (url === '/v1/flockdocs' && init?.method === 'POST') return new Response(JSON.stringify({ flockdoc: {
         id: 'cloud-browser', name: 'Browser only', type: 'paper', updatedAt: '2026-09-03T00:00:00Z', headRevision: 0,
         role: 'owner', permissions: cloudPermissions,
@@ -216,7 +267,7 @@ describe('Flockdoc workspace', () => {
         flockdoc: { id: 'cloud-browser', name: 'Browser only', type: 'paper' }, revision: 0, snapshotRevision: 0, snapshot: null,
       }), { status: 200 });
       if (url === '/v1/flockdocs/cloud-browser/checkpoints') return new Response(JSON.stringify({ revision: 1, snapshotKey: 'snapshot-1', duplicate: false }), { status: 200 });
-      if (url === '/v1/flockdocs') return new Response(JSON.stringify({ flockdocs: [{
+      if (url === '/v1/flockdocs?collectionId=coll_personal') return new Response(JSON.stringify({ flockdocs: [{
         id: 'cloud-1', name: 'Cloud plan', type: 'spreadsheet', updatedAt: '2026-08-29T00:00:00Z',
         headRevision: 3, role: 'manager', permissions: cloudPermissions,
       }, {

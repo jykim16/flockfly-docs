@@ -12,15 +12,16 @@ button { color: inherit; }
 .brand-mark { display: grid; place-items: center; width: 27px; height: 31px; color: #fff; font-weight: 700; font-style: italic; background: var(--blue); border-radius: 6px 11px 5px 11px; transform: skew(-7deg); }
 .new-wrap { position: relative; margin: 38px 8px 26px; }
 .new-button { width: 100%; height: 48px; display: flex; gap: 9px; align-items: center; justify-content: center; border: 0; border-radius: 10px; background: var(--blue); color: #fff; font-size: 15px; font-weight: 600; box-shadow: 0 5px 12px rgba(18,103,232,.18); cursor: pointer; }
+.new-button:disabled { cursor: not-allowed; opacity: .45; box-shadow: none; }
 .create-menu { position: absolute; z-index: 10; top: 55px; right: -8px; left: 48px; padding: 9px; border: 1px solid var(--border); border-radius: 9px; background: #fff; box-shadow: 0 10px 26px rgba(30,43,65,.14); }
 .create-menu button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 11px 10px; border: 0; background: transparent; border-radius: 7px; font-size: 14px; cursor: pointer; }
 .create-menu button:hover { background: #f2f6fb; }
 .create-menu svg { width: 18px; }
 .sidebar nav { display: grid; gap: 4px; }
-.sidebar nav a { display: flex; align-items: center; gap: 14px; height: 48px; padding: 0 13px; border-radius: 7px; background: transparent; color: inherit; font-size: 14px; text-decoration: none; }
-.sidebar nav a svg { width: 19px; stroke-width: 1.75; }
-.sidebar nav a.active { position: relative; color: #075bd7; background: #eaf2fd; font-weight: 550; }
-.sidebar nav a.active::before { content: ''; position: absolute; left: -9px; width: 4px; height: 38px; border-radius: 3px; background: var(--blue); }
+.sidebar nav a, .sidebar nav button { display: flex; align-items: center; gap: 14px; width: 100%; height: 48px; padding: 0 13px; border: 0; border-radius: 7px; background: transparent; color: inherit; font: inherit; font-size: 14px; text-align: left; text-decoration: none; cursor: pointer; }
+.sidebar nav a svg, .sidebar nav button svg { width: 19px; stroke-width: 1.75; }
+.sidebar nav a.active, .sidebar nav button.active { position: relative; color: #075bd7; background: #eaf2fd; font-weight: 550; }
+.sidebar nav a.active::before, .sidebar nav button.active::before { content: ''; position: absolute; left: -9px; width: 4px; height: 38px; border-radius: 3px; background: var(--blue); }
 .workspace { min-width: 0; height: 100vh; overflow: auto; }
 .topbar { height: 86px; display: flex; align-items: center; gap: 24px; padding: 0 26px; border-bottom: 1px solid var(--border); }
 .topbar label { width: min(570px, 70%); height: 48px; display: flex; align-items: center; gap: 11px; padding: 0 15px; border: 1px solid #cfd7e3; border-radius: 9px; }
@@ -125,10 +126,10 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
 .new-button:hover, .editor-header .share:hover { border-color: var(--reef); background: var(--reef); transform: translateY(-1px); }
 .create-menu { border-color: var(--line); border-radius: 12px; box-shadow: 0 16px 40px rgba(16,32,51,.12); }
 .create-menu button:hover { background: rgba(217,236,239,.45); color: var(--reef); }
-.sidebar nav a { color: var(--slate); border-radius: 9px; }
-.sidebar nav a:hover { color: var(--reef); background: rgba(255,255,255,.72); }
-.sidebar nav a.active { color: var(--reef); background: rgba(157,231,213,.28); font-weight: 600; }
-.sidebar nav a.active::before { background: var(--seafoam); }
+.sidebar nav a, .sidebar nav button { color: var(--slate); border-radius: 9px; }
+.sidebar nav a:hover, .sidebar nav button:hover { color: var(--reef); background: rgba(255,255,255,.72); }
+.sidebar nav a.active, .sidebar nav button.active { color: var(--reef); background: rgba(157,231,213,.28); font-weight: 600; }
+.sidebar nav a.active::before, .sidebar nav button.active::before { background: var(--seafoam); }
 
 .workspace { grid-row: 2; height: auto; min-height: 0; background: #f7fbfa; }
 .topbar { height: 78px; border-color: var(--line); background: rgba(247,251,250,.82); }

@@ -11,6 +11,7 @@ export interface Collaborator {
 
 export interface Flockdoc {
   id: string;
+  collectionId?: string;
   name: string;
   type: FlockdocType;
   modifiedAt: string;
@@ -21,6 +22,14 @@ export interface Flockdoc {
   headRevision?: number;
   role?: FlockdocRole;
   permissions?: FlockdocPermissions;
+  trashedAt?: string | null;
+}
+
+export interface FlockdocWorkspace {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  canCreate: boolean;
 }
 
 export type FlockdocRole = 'owner' | 'manager' | 'editor' | 'commenter' | 'viewer';

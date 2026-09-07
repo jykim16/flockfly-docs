@@ -1,4 +1,4 @@
-import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocComment, FlockdocInvitation, FlockdocLinkRole, FlockdocMember, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType, FlockdocVisibility } from '../types';
+import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocComment, FlockdocInvitation, FlockdocLinkRole, FlockdocMember, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType, FlockdocVisibility, FlockdocWorkspace } from '../types';
 import type { FlockdocCommittedEvent } from './flockdoc-realtime';
 import type { SpreadsheetOperation } from './spreadsheet-operations';
 import type { PaperYjsOperation } from './paper-collaboration';
@@ -19,6 +19,7 @@ interface ApiErrorBody {
 
 interface BackendFlockdoc {
   id: string;
+  collectionId?: string;
   type: FlockdocType;
   name: string;
   updatedAt?: string;
@@ -27,6 +28,16 @@ interface BackendFlockdoc {
   role?: FlockdocRole;
   permissions?: FlockdocPermissions;
   visibility?: FlockdocVisibility;
+  trashedAt?: string | null;
+}
+
+interface BackendCollection {
+  id: string;
+  kind: 'public' | 'org' | 'private';
+  name: string;
+  personalOwnerUserId: string | null;
+  isMember: boolean;
+  permissions: { canPublish?: boolean };
 }
 
 export interface FlockdocState {
@@ -81,6 +92,7 @@ export function googleSignInUrl(): string {
 function mapFlockdoc(flockdoc: BackendFlockdoc): Flockdoc {
   return {
     id: flockdoc.id,
+    collectionId: flockdoc.collectionId,
     name: flockdoc.name,
     type: flockdoc.type,
     modifiedAt: flockdoc.updatedAt ?? 'Just now',
@@ -90,6 +102,7 @@ function mapFlockdoc(flockdoc: BackendFlockdoc): Flockdoc {
     headRevision: flockdoc.headRevision ?? 0,
     role: flockdoc.role,
     permissions: flockdoc.permissions,
+    trashedAt: flockdoc.trashedAt ?? null,
   };
 }
 
@@ -123,14 +136,31 @@ export class FlockdocApi {
     return this.request<PlatformSession>('/v1/me');
   }
 
-  async list(): Promise<{ flockdocs: Flockdoc[] }> {
-    const response = await this.request<{ flockdocs: BackendFlockdoc[] }>('/v1/flockdocs');
+  async list(collectionId?: string, view: 'active' | 'trash' = 'active'): Promise<{ flockdocs: Flockdoc[] }> {
+    const query = new URLSearchParams();
+    if (collectionId) query.set('collectionId', collectionId);
+    if (view === 'trash') query.set('view', 'trash');
+    const response = await this.request<{ flockdocs: BackendFlockdoc[] }>(`/v1/flockdocs${query.size ? `?${query}` : ''}`);
     return { flockdocs: response.flockdocs.map(mapFlockdoc) };
   }
 
-  async create(name: string, type: FlockdocType, prefix = ''): Promise<{ flockdoc: Flockdoc }> {
+  async listWorkspaces(): Promise<{ workspaces: FlockdocWorkspace[] }> {
+    const response = await this.request<{ collections: BackendCollection[] }>('/v1/collections');
+    const workspaces = response.collections
+      .filter(collection => collection.kind !== 'public' && collection.isMember)
+      .map(collection => ({
+        id: collection.id,
+        name: collection.personalOwnerUserId ? 'My workspace' : collection.name,
+        isDefault: collection.personalOwnerUserId !== null,
+        canCreate: collection.permissions.canPublish === true,
+      }))
+      .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || left.name.localeCompare(right.name));
+    return { workspaces };
+  }
+
+  async create(name: string, type: FlockdocType, prefix = '', collectionId?: string): Promise<{ flockdoc: Flockdoc }> {
     const response = await this.request<{ flockdoc: BackendFlockdoc }>('/v1/flockdocs', {
-      method: 'POST', body: JSON.stringify({ name, type, prefix }),
+      method: 'POST', body: JSON.stringify({ name, type, prefix, ...(collectionId ? { collectionId } : {}) }),
     });
     return { flockdoc: mapFlockdoc(response.flockdoc) };
   }
@@ -144,6 +174,15 @@ export class FlockdocApi {
 
   async trash(id: string): Promise<void> {
     await this.request<void>(`/v1/flockdocs/${id}`, { method: 'DELETE' });
+  }
+
+  async restore(id: string): Promise<{ flockdoc: Flockdoc }> {
+    const response = await this.request<{ flockdoc: BackendFlockdoc }>(`/v1/flockdocs/${id}/restore`, { method: 'POST' });
+    return { flockdoc: mapFlockdoc(response.flockdoc) };
+  }
+
+  async removeFromWorkspace(id: string): Promise<void> {
+    await this.request<void>(`/v1/flockdocs/${id}/workspace`, { method: 'DELETE' });
   }
 
   async rename(id: string, name: string): Promise<{ flockdoc: Flockdoc }> {
