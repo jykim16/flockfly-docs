@@ -1,4 +1,4 @@
-export type FlockdocType = 'paper' | 'spreadsheet' | 'diagram' | 'presentation';
+export type FlockdocType = 'paper' | 'spreadsheet' | 'diagram' | 'webapp';
 export type WorkspaceFilter = 'all' | FlockdocType;
 
 export interface Collaborator {
@@ -77,4 +77,19 @@ export interface FlockdocPermissions {
   canEdit: boolean;
   canShare: boolean;
   canDelete: boolean;
+}
+
+export interface FlockdocComment {
+  id: string;
+  flockdocId: string;
+  parentCommentId: string | null;
+  threadId: string;
+  principalType: 'user' | 'agent' | 'link';
+  principalId: string;
+  anchor: Record<string, unknown>;
+  body: string;
+  resolvedAt: string | null;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }

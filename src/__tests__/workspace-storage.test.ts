@@ -36,16 +36,21 @@ describe('workspace storage', () => {
     expect(loadWorkspace(localStorage)).toEqual([diagram]);
   });
 
-  it('loads persisted Univer presentations', () => {
-    const presentation: Flockdoc = {
+  it('loads persisted Web App bundles', () => {
+    const webapp: Flockdoc = {
       ...paper,
-      id: 'deck-1',
+      id: 'app-1',
       name: 'Launch',
-      type: 'presentation',
-      snapshot: { id: 'deck-1', body: { pageOrder: [], pages: {} } },
+      type: 'webapp',
+      snapshot: { entrypoint: 'index.html', files: { 'index.html': '<h1>Launch</h1>' } },
     };
-    saveWorkspace([presentation], localStorage);
-    expect(loadWorkspace(localStorage)).toEqual([presentation]);
+    saveWorkspace([webapp], localStorage);
+    expect(loadWorkspace(localStorage)).toEqual([webapp]);
+  });
+
+  it('migrates retired local presentations into Web Apps', () => {
+    localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify({ version: 1, flockdocs: [{ ...paper, id: 'old-deck', type: 'presentation', snapshot: { body: { pages: {} } } }] }));
+    expect(loadWorkspace(localStorage)).toEqual([expect.objectContaining({ id: 'old-deck', type: 'webapp' })]);
   });
 
   it('migrates legacy nested folder IDs to prefixes and clears folder storage on save', () => {

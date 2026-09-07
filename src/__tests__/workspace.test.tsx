@@ -80,7 +80,7 @@ describe('Flockdoc workspace', () => {
     expect(window.location.pathname).toBe('/flockdoc/spreadsheet/sheet-1');
   });
 
-  it('uses the agreed Paper, Spreadsheet, Diagram, Presentation, and Flockdoc terminology', () => {
+  it('uses the agreed Paper, Spreadsheet, Diagram, Web App, and Flockdoc terminology', () => {
     render(<App />);
     expect(screen.getByRole('heading', { name: 'My workspace' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /new/i }));
@@ -88,20 +88,20 @@ describe('Flockdoc workspace', () => {
     expect(within(menu).getByRole('menuitem', { name: 'Paper' })).toBeInTheDocument();
     expect(within(menu).getByRole('menuitem', { name: 'Spreadsheet' })).toBeInTheDocument();
     expect(within(menu).getByRole('menuitem', { name: 'Diagram' })).toBeInTheDocument();
-    expect(within(menu).getByRole('menuitem', { name: 'Presentation' })).toBeInTheDocument();
+    expect(within(menu).getByRole('menuitem', { name: 'Web App' })).toBeInTheDocument();
     expect(within(menu).queryByRole('menuitem', { name: 'Folder' })).not.toBeInTheDocument();
   });
 
-  it('lets a signed-out user create a local Presentation', () => {
+  it('lets a signed-out user create a local Web App', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /new/i }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Presentation' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Web App' }));
 
-    expect(window.location.pathname).toMatch(/^\/flockdoc\/presentation\//);
-    expect(screen.getByLabelText('Presentation editor')).toBeInTheDocument();
+    expect(window.location.pathname).toMatch(/^\/flockdoc\/webapp\//);
+    expect(screen.getByTitle('Web App preview')).toBeInTheDocument();
     expect(screen.getByText('Saved in this browser')).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem('flockfly.flockdoc.workspace.v1')!).flockdocs)
-      .toEqual([expect.objectContaining({ name: 'Untitled Presentation', type: 'presentation' })]);
+      .toEqual([expect.objectContaining({ name: 'Untitled Web App', type: 'webapp' })]);
   });
 
   it('lets a signed-out user create a local Diagram', () => {

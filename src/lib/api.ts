@@ -1,9 +1,9 @@
-import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocInvitation, FlockdocLinkRole, FlockdocMember, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType, FlockdocVisibility } from '../types';
+import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocComment, FlockdocInvitation, FlockdocLinkRole, FlockdocMember, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType, FlockdocVisibility } from '../types';
 import type { FlockdocCommittedEvent } from './flockdoc-realtime';
 import type { SpreadsheetOperation } from './spreadsheet-operations';
 import type { PaperYjsOperation } from './paper-collaboration';
 import type { DiagramOperation } from './diagram-operations';
-import type { PresentationOperation } from './presentation-operations';
+import type { WebAppOperation } from './webapp-operations';
 
 const TOKEN_KEY = 'flockfly.token';
 const API_URL = import.meta.env.VITE_FLOCKFLY_API_URL ?? '';
@@ -199,10 +199,18 @@ export class FlockdocApi {
     });
   }
 
-  appendPresentationOperation(id: string, idempotencyKey: string, clientId: string, operation: PresentationOperation) {
+  appendWebAppOperation(id: string, idempotencyKey: string, clientId: string, operation: WebAppOperation) {
     return this.request<{ revision: number; duplicate: boolean }>(`/v1/flockdocs/${id}/updates`, {
       method: 'POST', body: JSON.stringify({ idempotencyKey, clientId, operation }),
     });
+  }
+
+  listComments(id: string) {
+    return this.request<{ comments: FlockdocComment[] }>(`/v1/flockdocs/${id}/comments`);
+  }
+
+  createComment(id: string, body: string, anchor: Record<string, unknown>) {
+    return this.request<{ comment: FlockdocComment }>(`/v1/flockdocs/${id}/comments`, { method: 'POST', body: JSON.stringify({ body, anchor }) });
   }
 
   grantRole(id: string, principalType: string, principalId: string, role: string) {

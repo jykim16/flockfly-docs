@@ -169,7 +169,27 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
 .type-icon.paper { color: var(--ocean); }
 .type-icon.spreadsheet { color: #238c70; }
 .type-icon.diagram { color: #8b5cf6; }
-.type-icon.presentation { color: #e66a45; }
+.type-icon.webapp { color: #6c5ce7; }
+
+.webapp-shell { height: 100%; display: flex; flex-direction: column; overflow: hidden; background: #eef1f6; }
+.webapp-toolbar { height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 20px; border-bottom: 1px solid var(--border); background: #fff; }
+.segmented { display: inline-flex; padding: 3px; border-radius: 9px; background: #eef1f6; }
+.segmented button { height: 32px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: #667085; font-size: 12px; font-weight: 650; }
+.segmented button.active { background: #fff; color: var(--ocean); box-shadow: 0 1px 4px rgba(16,24,40,.12); }
+.segmented svg { width: 15px; }
+.webapp-workbench { position: relative; min-height: 0; flex: 1; display: grid; grid-template-columns: 210px minmax(0,1fr) 300px; gap: 1px; background: var(--border); }
+.webapp-files, .webapp-comments { min-width: 0; padding: 18px 14px; background: #fff; overflow: auto; }
+.webapp-files strong { display: block; padding: 0 9px 10px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #98a2b3; }
+.webapp-files button { width: 100%; padding: 9px; border: 0; border-radius: 7px; background: transparent; text-align: left; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #344054; }
+.webapp-files button.active { background: #eaf5f4; color: var(--ocean); }
+.webapp-canvas { min-width: 0; min-height: 0; padding: 18px; background: #e7eaf0; }
+.webapp-canvas iframe, .webapp-canvas textarea { width: 100%; height: 100%; min-height: 480px; border: 1px solid #d0d5dd; border-radius: 10px; background: #fff; box-shadow: 0 8px 30px rgba(16,24,40,.08); }
+.webapp-canvas textarea { padding: 20px; resize: none; outline: none; font: 13px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; color: #d7def1; background: #161b26; }
+.webapp-comments h2 { margin: 0 0 4px; font-size: 15px; }.comment-hint { margin: 0 0 16px; color: #98a2b3; font-size: 12px; line-height: 1.45; }
+.comment-composer { padding: 12px; border: 1px solid var(--mist); border-radius: 10px; background: #f5fbfa; }.comment-composer > span { display: block; overflow: hidden; color: var(--ocean); font: 11px ui-monospace, monospace; text-overflow: ellipsis; white-space: nowrap; }.comment-composer textarea { width: 100%; min-height: 76px; margin: 10px 0; padding: 9px; border: 1px solid #d0d5dd; border-radius: 7px; resize: vertical; font: inherit; }.comment-composer button { width: 100%; height: 34px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 7px; color: white; background: var(--ocean); font-weight: 700; }.comment-composer button:disabled { opacity: .45; }.comment-composer svg { width: 15px; }
+.comment-list { display: grid; gap: 8px; margin-top: 14px; }.comment-list button { padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; text-align: left; }.comment-list span { color: #667085; font: 10px ui-monospace, monospace; }.comment-list p { margin: 6px 0 0; color: #344054; font-size: 12px; }.comment-list small { color: #12a150; }
+@media (max-width: 900px) { .webapp-workbench { grid-template-columns: 150px minmax(0,1fr); }.webapp-comments { position: absolute; right: 10px; bottom: 10px; width: min(300px, calc(100vw - 20px)); max-height: 42vh; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 30px rgba(16,24,40,.15); }.review-mode { margin-left: auto; } }
+@media (max-width: 600px) { .webapp-toolbar { padding: 0 8px; }.segmented button { padding: 0 8px; }.webapp-workbench { grid-template-columns: 1fr; }.webapp-files { display: flex; gap: 4px; padding: 8px; overflow-x: auto; }.webapp-files strong { display: none; }.webapp-files button { width: auto; white-space: nowrap; }.webapp-canvas { padding: 8px; }.webapp-canvas iframe, .webapp-canvas textarea { min-height: 420px; } }
 .file-row-detail input:focus { border-color: var(--ocean-light); outline: 0; box-shadow: 0 0 0 3px rgba(67,198,164,.16); }
 .file-row-detail button:disabled { cursor: wait; opacity: .55; }
 

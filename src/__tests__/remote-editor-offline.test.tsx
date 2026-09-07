@@ -10,8 +10,8 @@ import { mountPaper } from '../features/editor/univer/mount-paper';
 import { encodePaperOperation, PaperCollaborationDocument } from '../lib/paper-collaboration';
 import { DiagramEditor } from '../features/editor/DiagramEditor';
 import { encodeDiagramOperation, type DiagramOperation } from '../lib/diagram-operations';
-import { PresentationEditor } from '../features/editor/PresentationEditor';
-import { encodePresentationOperation, type PresentationOperation } from '../lib/presentation-operations';
+import { WebAppEditor } from '../features/editor/WebAppEditor';
+import { encodeWebAppOperation, type WebAppOperation } from '../lib/webapp-operations';
 
 const realtimeState = vi.hoisted(() => ({
   handlers: [] as Array<(event: unknown) => void | Promise<void>>,
@@ -20,7 +20,7 @@ const realtimeState = vi.hoisted(() => ({
 vi.mock('../features/editor/univer/mount-spreadsheet', () => ({ mountSpreadsheet: vi.fn() }));
 vi.mock('../features/editor/univer/mount-paper', () => ({ mountPaper: vi.fn() }));
 vi.mock('../features/editor/DiagramEditor', () => ({ DiagramEditor: vi.fn(() => <div aria-label="Diagram editor" />) }));
-vi.mock('../features/editor/PresentationEditor', () => ({ PresentationEditor: vi.fn(() => <div aria-label="Presentation editor" />) }));
+vi.mock('../features/editor/WebAppEditor', () => ({ WebAppEditor: vi.fn(() => <div aria-label="Web App editor" />) }));
 vi.mock('../lib/flockdoc-realtime', () => ({
   getFlockdocRealtimeClientId: () => 'browser-1',
   FlockdocRealtimeRecovery: class { recover() { return Promise.resolve(); } },
@@ -45,7 +45,7 @@ const item: Flockdoc = {
 
 const paperItem: Flockdoc = { ...item, id: 'paper-1', name: 'Plan', type: 'paper' };
 const diagramItem: Flockdoc = { ...item, id: 'diagram-1', name: 'Architecture', type: 'diagram' };
-const presentationItem: Flockdoc = { ...item, id: 'presentation-1', name: 'Launch', type: 'presentation' };
+const webAppItem: Flockdoc = { ...item, id: 'webapp-1', name: 'Launch', type: 'webapp' };
 
 beforeEach(() => {
   realtimeState.handlers = [];
@@ -239,27 +239,28 @@ describe('remote editor offline persistence', () => {
     ]));
   });
 
-  it('journals, checkpoints, and receives Presentation snapshots', async () => {
-    const initial = { id: 'presentation-1', title: 'Launch', pageSize: { width: 960, height: 540 }, body: { pageOrder: ['one'], pages: { one: { id: 'one', pageElements: {} } } } };
-    const next = { ...initial, body: { pageOrder: ['one', 'two'], pages: { ...initial.body.pages, two: { id: 'two', pageElements: {} } } } };
+  it('journals, checkpoints, and receives Web App bundles', async () => {
+    const initial = { entrypoint: 'index.html', files: { 'index.html': '<h1>Launch</h1>' } };
+    const next = { entrypoint: 'index.html', files: { 'index.html': '<h1>Ready</h1>', 'app.js': 'console.log(1)' } };
     const api = {
-      getState: vi.fn().mockResolvedValue({ flockdoc: presentationItem, revision: 0, snapshotRevision: 0, snapshot: initial }),
-      appendPresentationOperation: vi.fn().mockResolvedValue({ revision: 1, duplicate: false }),
-      saveCheckpoint: vi.fn().mockResolvedValue({ revision: 2, duplicate: false, snapshotKey: 'presentation-snapshot-2' }),
+      getState: vi.fn().mockResolvedValue({ flockdoc: webAppItem, revision: 0, snapshotRevision: 0, snapshot: initial }),
+      appendWebAppOperation: vi.fn().mockResolvedValue({ revision: 1, duplicate: false }),
+      saveCheckpoint: vi.fn().mockResolvedValue({ revision: 2, duplicate: false, snapshotKey: 'webapp-snapshot-2' }),
+      listComments: vi.fn().mockResolvedValue({ comments: [] }),
     } as unknown as FlockdocApi;
-    const outbox = new FlockdocOutbox(localStorage, 'presentation-user@flockfly.ai');
-    render(<RemoteEditor api={api} outbox={outbox} item={presentationItem} onBack={vi.fn()} onUpdate={vi.fn()} />);
-    await waitFor(() => expect(PresentationEditor).toHaveBeenCalled());
-    await act(async () => { await vi.mocked(PresentationEditor).mock.lastCall![0].onPresentationSnapshotChange?.(next); });
-    expect(api.appendPresentationOperation).toHaveBeenCalledWith('presentation-1', expect.any(String), 'browser-1', expect.objectContaining({ kind: 'presentation.univer.update', snapshot: next }));
-    expect(api.saveCheckpoint).toHaveBeenCalledWith('presentation-1', 1, expect.any(String), next, 'browser-1');
+    const outbox = new FlockdocOutbox(localStorage, 'webapp-user@flockfly.ai');
+    render(<RemoteEditor api={api} outbox={outbox} item={webAppItem} onBack={vi.fn()} onUpdate={vi.fn()} />);
+    await waitFor(() => expect(WebAppEditor).toHaveBeenCalled());
+    await act(async () => { await vi.mocked(WebAppEditor).mock.lastCall![0].onWebAppBundleChange?.(next); });
+    expect(api.appendWebAppOperation).toHaveBeenCalledWith('webapp-1', expect.any(String), 'browser-1', expect.objectContaining({ kind: 'webapp.bundle.update', bundle: next }));
+    expect(api.saveCheckpoint).toHaveBeenCalledWith('webapp-1', 1, expect.any(String), next, 'browser-1');
 
-    const operation: PresentationOperation = { protocolVersion: 1, kind: 'presentation.univer.update', snapshot: next };
+    const operation: WebAppOperation = { protocolVersion: 1, kind: 'webapp.bundle.update', bundle: next };
     await act(async () => realtimeState.handlers[0]({
-      protocolVersion: 1, kind: 'update.committed', eventId: 'presentation-update-3', flockdocId: 'presentation-1',
+      protocolVersion: 1, kind: 'update.committed', eventId: 'webapp-update-3', flockdocId: 'webapp-1',
       clientId: 'remote-author', actor: { type: 'user', id: 'user-2', displayName: 'Designer' }, occurredAt: new Date().toISOString(),
-      revision: 3, idempotencyKey: 'presentation-operation-3', updateBase64: encodePresentationOperation(operation),
+      revision: 3, idempotencyKey: 'webapp-operation-3', updateBase64: encodeWebAppOperation(operation),
     }));
-    await waitFor(() => expect(vi.mocked(PresentationEditor).mock.lastCall![0].remoteSnapshots).toEqual([{ revision: 3, snapshot: next }]));
+    await waitFor(() => expect(vi.mocked(WebAppEditor).mock.lastCall![0].remoteBundles).toEqual([{ revision: 3, bundle: next }]));
   });
 });

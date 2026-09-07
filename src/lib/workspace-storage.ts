@@ -9,15 +9,15 @@ interface WorkspaceRecord {
   flockdocs: Flockdoc[];
 }
 
-type LegacyFlockdoc = Omit<Flockdoc, 'prefix'> & { prefix?: string; parentFolderId?: string | null };
+type LegacyFlockdoc = Omit<Flockdoc, 'prefix' | 'type'> & { type: Flockdoc['type'] | 'presentation'; prefix?: string; parentFolderId?: string | null };
 type LegacyFolder = { id: string; name: string; parentFolderId: string | null };
 
 function isFlockdoc(value: unknown): value is LegacyFlockdoc {
   if (!value || typeof value !== 'object') return false;
-  const item = value as Partial<Flockdoc>;
+  const item = value as Partial<LegacyFlockdoc>;
   return typeof item.id === 'string'
     && typeof item.name === 'string'
-    && (item.type === 'paper' || item.type === 'spreadsheet' || item.type === 'diagram' || item.type === 'presentation')
+    && (item.type === 'paper' || item.type === 'spreadsheet' || item.type === 'diagram' || item.type === 'webapp' || item.type === 'presentation')
     && typeof item.modifiedAt === 'string'
     && Array.isArray(item.collaborators);
 }
@@ -45,7 +45,7 @@ export function loadWorkspace(storage: Storage): Flockdoc[] {
       const legacy = item as LegacyFlockdoc;
       const prefix = typeof legacy.prefix === 'string' ? normalizePrefix(legacy.prefix) : legacy.parentFolderId ? legacyFolderPath(storage, legacy.parentFolderId) : '';
       const { parentFolderId: _retired, ...current } = legacy;
-      return { ...current, prefix } as Flockdoc;
+      return { ...current, type: current.type === 'presentation' ? 'webapp' : current.type, prefix } as Flockdoc;
     });
   } catch {
     return [];

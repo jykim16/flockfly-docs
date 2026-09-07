@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bot, FileText, Folder, Presentation, Shapes, Table2 } from 'lucide-react';
+import { AppWindow, Bot, FileText, Folder, Shapes, Table2 } from 'lucide-react';
 import type { Flockdoc } from '../../types';
 import { navigateFlockdoc } from '../../lib/navigation';
 import { prefixName } from '../../lib/prefixes';
@@ -19,8 +19,8 @@ function FlockdocRow({ item, allPrefixes, onMove, onDelete }: Pick<Props, 'allPr
   const [destination, setDestination] = useState(item.prefix);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const Icon = item.type === 'paper' ? FileText : item.type === 'spreadsheet' ? Table2 : item.type === 'diagram' ? Shapes : Presentation;
-  const typeLabel = item.type === 'paper' ? 'Paper' : item.type === 'spreadsheet' ? 'Spreadsheet' : item.type === 'diagram' ? 'Diagram' : 'Presentation';
+  const Icon = item.type === 'paper' ? FileText : item.type === 'spreadsheet' ? Table2 : item.type === 'diagram' ? Shapes : AppWindow;
+  const typeLabel = item.type === 'paper' ? 'Paper' : item.type === 'spreadsheet' ? 'Spreadsheet' : item.type === 'diagram' ? 'Diagram' : 'Web App';
   const canMove = item.permissions?.canEdit ?? true;
   const canDelete = item.permissions?.canDelete ?? true;
 
@@ -47,7 +47,7 @@ function FlockdocRow({ item, allPrefixes, onMove, onDelete }: Pick<Props, 'allPr
 export function FlockdocTable({ items, prefixes, allPrefixes, onOpenFolder, onMove, onDelete }: Props) {
   return <div className="file-table" role="table" aria-label="Flockdocs">
     <div className="file-row table-head" role="row"><span>Name ↑</span><span>Type</span><span>People & agents</span><span>Modified ↓</span><span>Actions</span></div>
-    {items.length === 0 && prefixes.length === 0 && <div className="empty-state"><FileText /><strong>No flockdocs yet</strong><span>Create a Paper, Spreadsheet, Diagram, or Presentation to start working.</span></div>}
+    {items.length === 0 && prefixes.length === 0 && <div className="empty-state"><FileText /><strong>No flockdocs yet</strong><span>Create a Paper, Spreadsheet, Diagram, or Web App to start working.</span></div>}
     {prefixes.map(prefix => <div role="row" aria-label={`${prefixName(prefix)} Folder`} className="file-row folder-row" key={prefix}>
       <button type="button" className="file-open file-name" aria-label={`Open ${prefixName(prefix)}`} onClick={() => onOpenFolder(prefix)}><Folder className="type-icon folder" /><span>{prefixName(prefix)}</span></button>
       <span className="type-label">Folder</span><span /><span className="modified">—</span><span />
