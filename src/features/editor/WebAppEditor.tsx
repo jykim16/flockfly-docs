@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Code2, Eye, MessageSquarePlus, MousePointer2, Play, Share2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { ArrowLeft, Code2, Eye, Maximize2, MessageSquarePlus, Minimize2, MousePointer2, Play, Share2 } from 'lucide-react';
 import type { Flockdoc, FlockdocComment } from '../../types';
 import { buildWebAppPreview } from '../../lib/webapp-preview';
 import { DEFAULT_WEB_APP_BUNDLE, normalizeWebAppBundle, type WebAppBundle } from '../../lib/webapp-operations';
@@ -42,6 +43,7 @@ export function WebAppEditor({ item, onBack, onRename, onSnapshot, onWebAppBundl
   const [comments, setComments] = useState<FlockdocComment[]>([]);
   const [status, setStatus] = useState(canEdit ? 'Saved' : 'View only');
   const [loadToken, setLoadToken] = useState(() => crypto.randomUUID());
+  const [appFullscreen, setAppFullscreen] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const bundleRef = useRef(bundle); const commentsRef = useRef(comments);
   bundleRef.current = bundle; commentsRef.current = comments;
@@ -71,6 +73,13 @@ export function WebAppEditor({ item, onBack, onRename, onSnapshot, onWebAppBundl
   }, [loadToken]);
   useEffect(() => { iframeRef.current?.contentWindow?.postMessage({ kind: 'webapp.mode', token: loadToken, mode }, '*'); }, [loadToken, mode]);
   useEffect(() => {
+    document.body.classList.toggle('webapp-app-fullscreen', appFullscreen);
+    if (!appFullscreen) return;
+    const exitOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setAppFullscreen(false); };
+    window.addEventListener('keydown', exitOnEscape);
+    return () => { window.removeEventListener('keydown', exitOnEscape); document.body.classList.remove('webapp-app-fullscreen'); };
+  }, [appFullscreen]);
+  useEffect(() => {
     if (!remoteBundles.length) return;
     const latest = remoteBundles[remoteBundles.length - 1]; setBundle(normalizeWebAppBundle(latest.bundle)); setLoadToken(crypto.randomUUID());
     onRemoteBundlesApplied?.(latest.revision);
@@ -86,14 +95,16 @@ export function WebAppEditor({ item, onBack, onRename, onSnapshot, onWebAppBundl
     const selector = typeof comment.anchor.selector === 'string' ? comment.anchor.selector : '';
     if (selector) iframeRef.current?.contentWindow?.postMessage({ kind: 'webapp.reveal', token: loadToken, selector }, '*');
   };
+  const openAppFullscreen = () => { setView('preview'); setMode('interact'); setAppFullscreen(true); };
 
   return <main className="editor-shell webapp-shell">
     <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Web App name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><div className="editor-header-actions"><EditorFocusModeControl /><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button></div><span className="avatar">You</span></header>
-    <div className="webapp-toolbar"><div className="segmented"><button className={view === 'preview' ? 'active' : ''} onClick={() => setView('preview')}><Eye /> Preview</button><button className={view === 'code' ? 'active' : ''} onClick={() => setView('code')}><Code2 /> Code</button></div><div className="segmented review-mode"><button className={mode === 'annotate' ? 'active' : ''} onClick={() => setMode('annotate')}><MousePointer2 /> Annotate</button><button className={mode === 'interact' ? 'active' : ''} onClick={() => setMode('interact')}><Play /> Interact</button></div></div>
+    <div className="webapp-toolbar"><div className="segmented"><button className={view === 'preview' ? 'active' : ''} onClick={() => setView('preview')}><Eye /> Preview</button><button className={view === 'code' ? 'active' : ''} onClick={() => setView('code')}><Code2 /> Code</button></div><div className="webapp-toolbar-actions"><div className="segmented review-mode"><button className={mode === 'annotate' ? 'active' : ''} onClick={() => setMode('annotate')}><MousePointer2 /> Annotate</button><button className={mode === 'interact' ? 'active' : ''} onClick={() => setMode('interact')}><Play /> Interact</button></div><button className="app-fullscreen-enter" onClick={openAppFullscreen}><Maximize2 /> App full screen</button></div></div>
     <section className="webapp-workbench">
       <aside className="webapp-files"><strong>Files</strong>{Object.keys(bundle.files).map(path => <button key={path} className={path === selectedFile ? 'active' : ''} onClick={() => { setSelectedFile(path); setView('code'); }}>{path}</button>)}</aside>
       <div className="webapp-canvas">{view === 'preview' ? <iframe ref={iframeRef} title="Web App preview" sandbox="allow-scripts allow-forms" srcDoc={preview} onLoad={() => iframeRef.current?.contentWindow?.postMessage({ kind: 'webapp.mode', token: loadToken, mode }, '*')} /> : <textarea aria-label={`Editing ${selectedFile}`} value={bundle.files[selectedFile]} disabled={!canEdit} onChange={event => updateFile(event.target.value)} onBlur={persistCurrent} spellCheck={false} />}</div>
       <aside className="webapp-comments"><h2>Comments</h2><p className="comment-hint">Choose Annotate, then select an element in the preview.</p>{anchor ? <div className="comment-composer"><span>&lt;{anchor.tag}&gt; · {anchor.text || anchor.selector}</span><textarea aria-label="Comment" value={commentBody} onChange={event => setCommentBody(event.target.value)} placeholder="Leave feedback for this element…" /><button disabled={!canComment || !createComment || !commentBody.trim()} onClick={() => void submitComment()}><MessageSquarePlus /> Comment</button></div> : null}<div className="comment-list">{comments.filter(comment => !comment.deletedAt).map(comment => <button key={comment.id} onClick={() => reveal(comment)}><span>{String(comment.anchor.selector ?? 'Element')}</span><p>{comment.body}</p>{comment.resolvedAt ? <small>Resolved</small> : null}</button>)}</div></aside>
     </section>
+    {appFullscreen ? createPortal(<button className="app-fullscreen-exit" onClick={() => setAppFullscreen(false)}><Minimize2 /> Back to editor</button>, document.body) : null}
   </main>;
 }

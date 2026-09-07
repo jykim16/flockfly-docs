@@ -173,6 +173,10 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
 
 .webapp-shell { height: 100%; display: flex; flex-direction: column; overflow: hidden; background: #eef1f6; }
 .webapp-toolbar { height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 20px; border-bottom: 1px solid var(--border); background: #fff; }
+.webapp-toolbar-actions { display: flex; align-items: center; gap: 8px; }
+.app-fullscreen-enter { height: 38px; display: inline-flex; align-items: center; gap: 7px; padding: 0 13px; border: 1px solid var(--line); border-radius: 9px; color: var(--slate); background: #fff; font-size: 12px; font-weight: 650; cursor: pointer; white-space: nowrap; }
+.app-fullscreen-enter:hover { border-color: var(--ocean-light); color: var(--reef); background: rgba(217,236,239,.35); }
+.app-fullscreen-enter svg { width: 15px; }
 .segmented { display: inline-flex; padding: 3px; border-radius: 9px; background: #eef1f6; }
 .segmented button { height: 32px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: #667085; font-size: 12px; font-weight: 650; }
 .segmented button.active { background: #fff; color: var(--ocean); box-shadow: 0 1px 4px rgba(16,24,40,.12); }
@@ -188,8 +192,23 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
 .webapp-comments h2 { margin: 0 0 4px; font-size: 15px; }.comment-hint { margin: 0 0 16px; color: #98a2b3; font-size: 12px; line-height: 1.45; }
 .comment-composer { padding: 12px; border: 1px solid var(--mist); border-radius: 10px; background: #f5fbfa; }.comment-composer > span { display: block; overflow: hidden; color: var(--ocean); font: 11px ui-monospace, monospace; text-overflow: ellipsis; white-space: nowrap; }.comment-composer textarea { width: 100%; min-height: 76px; margin: 10px 0; padding: 9px; border: 1px solid #d0d5dd; border-radius: 7px; resize: vertical; font: inherit; }.comment-composer button { width: 100%; height: 34px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 7px; color: white; background: var(--ocean); font-weight: 700; }.comment-composer button:disabled { opacity: .45; }.comment-composer svg { width: 15px; }
 .comment-list { display: grid; gap: 8px; margin-top: 14px; }.comment-list button { padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; text-align: left; }.comment-list span { color: #667085; font: 10px ui-monospace, monospace; }.comment-list p { margin: 6px 0 0; color: #344054; font-size: 12px; }.comment-list small { color: #12a150; }
+.app-fullscreen-exit { position: fixed; z-index: 1000; top: 12px; right: 14px; height: 40px; display: inline-flex; align-items: center; gap: 7px; padding: 0 14px; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; color: #fff; background: rgba(16,32,51,.9); box-shadow: 0 10px 28px rgba(16,32,51,.24); backdrop-filter: blur(12px); font-size: 12px; font-weight: 650; cursor: pointer; }
+.app-fullscreen-exit:hover { background: var(--reef); transform: translateY(-1px); }
+.app-fullscreen-exit svg { width: 15px; }
+body.webapp-app-fullscreen .editor-app { display: block; }
+body.webapp-app-fullscreen .editor-app > .platform-header,
+body.webapp-app-fullscreen .webapp-shell > .editor-header,
+body.webapp-app-fullscreen .webapp-toolbar,
+body.webapp-app-fullscreen .webapp-files,
+body.webapp-app-fullscreen .webapp-comments { display: none; }
+body.webapp-app-fullscreen .webapp-shell,
+body.webapp-app-fullscreen .webapp-workbench,
+body.webapp-app-fullscreen .webapp-canvas { width: 100%; height: 100%; min-height: 0; }
+body.webapp-app-fullscreen .webapp-workbench { display: block; }
+body.webapp-app-fullscreen .webapp-canvas { padding: 0; background: #fff; }
+body.webapp-app-fullscreen .webapp-canvas iframe { min-height: 0; border: 0; border-radius: 0; box-shadow: none; }
 @media (max-width: 900px) { .webapp-workbench { grid-template-columns: 150px minmax(0,1fr); }.webapp-comments { position: absolute; right: 10px; bottom: 10px; width: min(300px, calc(100vw - 20px)); max-height: 42vh; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 30px rgba(16,24,40,.15); }.review-mode { margin-left: auto; } }
-@media (max-width: 600px) { .webapp-toolbar { padding: 0 8px; }.segmented button { padding: 0 8px; }.webapp-workbench { grid-template-columns: 1fr; }.webapp-files { display: flex; gap: 4px; padding: 8px; overflow-x: auto; }.webapp-files strong { display: none; }.webapp-files button { width: auto; white-space: nowrap; }.webapp-canvas { padding: 8px; }.webapp-canvas iframe, .webapp-canvas textarea { min-height: 420px; } }
+@media (max-width: 600px) { .webapp-toolbar { padding: 0 8px; }.segmented button { padding: 0 8px; }.app-fullscreen-enter { width: 36px; padding: 0; justify-content: center; font-size: 0; }.webapp-workbench { grid-template-columns: 1fr; }.webapp-files { display: flex; gap: 4px; padding: 8px; overflow-x: auto; }.webapp-files strong { display: none; }.webapp-files button { width: auto; white-space: nowrap; }.webapp-canvas { padding: 8px; }.webapp-canvas iframe, .webapp-canvas textarea { min-height: 420px; } }
 .file-row-detail input:focus { border-color: var(--ocean-light); outline: 0; box-shadow: 0 0 0 3px rgba(67,198,164,.16); }
 .file-row-detail button:disabled { cursor: wait; opacity: .55; }
 
