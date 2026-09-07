@@ -79,7 +79,7 @@ An open editor also registers tools for its document type:
 - Paper: `read_me`, `inspect_document`, `read_document`, and `write_document` for editors.
 - Spreadsheet: workbook inspection, range reads/writes, formatting, grid, merge, and sheet-management tools.
 - Diagram: `read_me`, `inspect_diagram`, `read_diagram`, plus element upsert/delete tools for editors.
-- Presentation: `read_me`, `inspect_presentation`, `read_presentation`, plus deck replacement and slide upsert/delete tools for editors.
+- Presentation: `read_me`, `inspect_presentation`, `read_presentation`, plus semantic tools to create slides, add text/shapes/images, update or delete elements, and low-level deck replacement and slide upsert/delete tools for editors.
 
 View-only collaborators receive inspection and read tools, but no mutation tools. Paper, Diagram, and Presentation tool edits use the same save, realtime collaboration, offline recovery, and permission paths as edits made in the editor UI.
 
