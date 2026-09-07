@@ -4,6 +4,7 @@ import type { Flockdoc } from '../../types';
 import type { MountedUniverEditor } from './univer/types';
 import type { SpreadsheetOperation } from '../../lib/spreadsheet-operations';
 import { EditorFocusModeControl } from './EditorFocusModeControl';
+import { EditorDocumentTitle } from './EditorDocumentTitle';
 
 interface SpreadsheetEditorProps {
   item: Flockdoc;
@@ -20,9 +21,10 @@ interface SpreadsheetEditorProps {
   canShare?: boolean;
   onShare?: () => void;
   persistenceStatus?: string;
+  workspaceName?: string;
 }
 
-export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty, onSpreadsheetOperation, getSpreadsheetRevision, remoteOperations = [], onRemoteOperationsApplied, checkpointRevision, canEdit = true, canShare = true, onShare, persistenceStatus }: SpreadsheetEditorProps) {
+export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty, onSpreadsheetOperation, getSpreadsheetRevision, remoteOperations = [], onRemoteOperationsApplied, checkpointRevision, canEdit = true, canShare = true, onShare, persistenceStatus, workspaceName = 'My workspace' }: SpreadsheetEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef<MountedUniverEditor | undefined>(undefined);
   const mountedSnapshotRef = useRef(item.snapshot);
@@ -94,7 +96,7 @@ export function SpreadsheetEditor({ item, onBack, onRename, onSnapshot, onDirty,
   }, [checkpointRevision]);
 
   return <main className="editor-shell univer-shell">
-    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Spreadsheet name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><div className="editor-header-actions"><EditorFocusModeControl /><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button></div><span className="avatar">You</span></header>
+    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><EditorDocumentTitle ariaLabel="Spreadsheet name" name={item.name} workspaceName={workspaceName} status={persistenceStatus ?? status} canEdit={canEdit} onRename={onRename} /><div className="editor-header-actions"><EditorFocusModeControl /><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button></div><span className="avatar">You</span></header>
     <div ref={hostRef} className="univer-editor-host" aria-label="Spreadsheet editor" />
   </main>;
 }

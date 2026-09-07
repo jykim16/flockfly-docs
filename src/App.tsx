@@ -80,18 +80,30 @@ export default function App() {
       return { accountId: session.user.email, listed, pending, workspaces: workspaceResult.workspaces, defaultWorkspaceId: defaultWorkspace.id };
     }).then(async ({ accountId, listed, pending, workspaces: availableWorkspaces, defaultWorkspaceId }) => {
       const requestedId = currentFlockdocPath().match(/^\/flockdoc\/(?:paper|spreadsheet|diagram|webapp)\/([^/]+)/)?.[1];
-      if (requestedId && !listed.flockdocs.some(item => item.id === requestedId)) {
-        try { listed.flockdocs.push((await api.getState(requestedId)).flockdoc); }
-        catch { try { await api.joinPublic(requestedId); listed.flockdocs.push((await api.getState(requestedId)).flockdoc); } catch { /* Restricted documents remain hidden. */ } }
+      let flockdocs = listed.flockdocs;
+      let openedFlockdoc = requestedId ? flockdocs.find(item => item.id === requestedId) : undefined;
+      if (requestedId && !openedFlockdoc) {
+        try { openedFlockdoc = (await api.getState(requestedId)).flockdoc; }
+        catch { try { await api.joinPublic(requestedId); openedFlockdoc = (await api.getState(requestedId)).flockdoc; } catch { /* Restricted documents remain hidden. */ } }
       }
-      return { accountId, flockdocs: listed.flockdocs, invitations: pending.invitations, workspaces: availableWorkspaces, defaultWorkspaceId };
-    }).then(({ accountId, flockdocs, invitations: pending, workspaces: availableWorkspaces, defaultWorkspaceId }) => {
+      const openedWorkspace = openedFlockdoc?.collectionId
+        ? availableWorkspaces.find(workspace => workspace.id === openedFlockdoc.collectionId)
+        : undefined;
+      const openedWorkspaceId = openedWorkspace?.id ?? defaultWorkspaceId;
+      if (openedWorkspaceId !== defaultWorkspaceId) {
+        flockdocs = (await api.list(openedWorkspaceId)).flockdocs;
+        if (openedFlockdoc && !flockdocs.some(item => item.id === openedFlockdoc.id)) flockdocs.push(openedFlockdoc);
+      } else if (openedFlockdoc && !flockdocs.some(item => item.id === openedFlockdoc.id)) {
+        flockdocs.push(openedFlockdoc);
+      }
+      return { accountId, flockdocs, invitations: pending.invitations, workspaces: availableWorkspaces, initialWorkspaceId: openedWorkspaceId };
+    }).then(({ accountId, flockdocs, invitations: pending, workspaces: availableWorkspaces, initialWorkspaceId }) => {
       if (!active) return;
       setAuthenticated(true);
       setOutbox(new FlockdocOutbox(localStorage, accountId));
       setItems(flockdocs);
       setWorkspaces(availableWorkspaces);
-      setSelectedWorkspaceId(defaultWorkspaceId);
+      setSelectedWorkspaceId(initialWorkspaceId);
       setInvitations(pending);
       setSyncStatus('synced');
     }).catch(error => {
@@ -157,21 +169,23 @@ export default function App() {
   const visibleItems = useMemo(() => itemsInView.filter(item => item.prefix === currentPrefix && (filter === 'all' || item.type === filter) && item.name.toLowerCase().includes(query.toLowerCase())), [currentPrefix, filter, itemsInView, query]);
   const visiblePrefixes = useMemo(() => immediatePrefixes(itemsInView, currentPrefix).filter(prefix => prefixName(prefix).toLowerCase().includes(query.toLowerCase())), [currentPrefix, itemsInView, query]);
   const knownPrefixes = useMemo(() => allPrefixes(itemsInView), [itemsInView]);
+  const selectedWorkspace = workspaces.find(workspace => workspace.id === selectedWorkspaceId) ?? workspaces[0];
   const routeMatch = route.match(/^\/flockdoc\/(paper|spreadsheet|diagram|webapp)\/([^/]+)/);
   if (routeMatch) {
     const item = items.find(entry => entry.id === routeMatch[2]);
+    const editorWorkspace = workspaces.find(workspace => workspace.id === item?.collectionId) ?? selectedWorkspace;
     const updateItem = (updates: Partial<Flockdoc>) => setItems(current => current.map(entry => entry.id === item?.id ? { ...entry, ...updates } : entry));
     if (item) return <div className="editor-app">
       <PlatformHeader account={account} />
       {cloudApi && outbox
-        ? <RemoteEditor api={cloudApi} outbox={outbox} item={item} currentUserEmail={account?.email} onBack={() => navigateFlockdoc('/flockdoc/')} onUpdate={updateItem} />
+        ? <RemoteEditor api={cloudApi} outbox={outbox} item={item} currentUserEmail={account?.email} workspaceName={editorWorkspace?.name ?? 'My workspace'} onBack={() => navigateFlockdoc('/flockdoc/')} onUpdate={updateItem} />
         : item.type === 'paper'
-          ? <PaperEditor key={item.id} item={item} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
+          ? <PaperEditor key={item.id} item={item} workspaceName={editorWorkspace?.name} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
           : item.type === 'spreadsheet'
-            ? <SpreadsheetEditor key={item.id} item={item} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
+            ? <SpreadsheetEditor key={item.id} item={item} workspaceName={editorWorkspace?.name} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
             : item.type === 'diagram'
-              ? <DiagramEditor key={item.id} item={item} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
-              : <WebAppEditor key={item.id} item={item} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />}
+              ? <DiagramEditor key={item.id} item={item} workspaceName={editorWorkspace?.name} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />
+              : <WebAppEditor key={item.id} item={item} workspaceName={editorWorkspace?.name} persistenceStatus="Saved in this browser" onBack={() => navigateFlockdoc('/flockdoc/')} onRename={name => updateItem({ name, modifiedAt: 'Just now' })} onSnapshot={snapshot => updateItem({ snapshot, modifiedAt: 'Just now' })} />}
     </div>;
   }
 
@@ -209,8 +223,6 @@ export default function App() {
     setCurrentPrefix(''); setWorkspaceView('trash');
     if (cloudApi) { setSyncStatus('loading'); setItems((await cloudApi.list(selectedWorkspaceId, 'trash')).flockdocs); setSyncStatus('synced'); }
   };
-  const selectedWorkspace = workspaces.find(workspace => workspace.id === selectedWorkspaceId) ?? workspaces[0];
-
   return <div className="app-shell">
     <PlatformHeader account={account} />
     <Sidebar menuOpen={menuOpen} workspaces={workspaces} selectedWorkspaceId={selectedWorkspaceId} view={workspaceView} canCreate={selectedWorkspace?.canCreate ?? false} onToggleMenu={() => setMenuOpen(value => !value)} onCreate={create} onSelectWorkspace={id => void selectWorkspace(id)} onSelectTrash={() => void selectTrash()} />
@@ -222,7 +234,7 @@ export default function App() {
         {syncStatus === 'error' ? <p className="sync-note error">Cloud sync is unavailable. Your browser copy has not been removed.</p> : null}
         {cloudApi && invitations.length ? <aside className="flockdoc-invitations"><strong>Document invitations</strong>{invitations.map(invitation => <div key={invitation.id}><span><b>{invitation.flockdocName}</b> · {flockdocRoleLabel(invitation.role)}</span><button onClick={() => void cloudApi.respondToInvitation(invitation.id, 'decline').then(() => setInvitations(current => current.filter(item => item.id !== invitation.id)))}>Decline</button><button className="primary" onClick={() => void cloudApi.respondToInvitation(invitation.id, 'accept').then(() => Promise.all([cloudApi.list(selectedWorkspaceId), cloudApi.listInvitations()])).then(([listed, pending]) => { setItems(listed.flockdocs); setInvitations(pending.invitations); })}>Accept</button></div>)}</aside> : null}
         <div className="title-row"><h1>{workspaceView === 'trash' ? 'Trash' : selectedWorkspace?.name ?? 'My workspace'}</h1></div>
-        <FolderBreadcrumb prefix={currentPrefix} onNavigate={setCurrentPrefix} />
+        <FolderBreadcrumb workspaceName={selectedWorkspace?.name ?? 'My workspace'} prefix={currentPrefix} onNavigate={setCurrentPrefix} />
         <div className="filters">{([['all', 'All'], ['paper', 'Papers'], ['spreadsheet', 'Spreadsheets'], ['diagram', 'Diagrams'], ['webapp', 'Web Apps']] as const).map(([value, label]) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div>
         <FlockdocTable items={visibleItems} prefixes={visiblePrefixes} allPrefixes={knownPrefixes} onOpenFolder={setCurrentPrefix} onMove={moveFlockdoc} onDelete={deleteFlockdoc} onRemove={removeFlockdoc} onRestore={restoreFlockdoc} view={workspaceView} />
       </section>

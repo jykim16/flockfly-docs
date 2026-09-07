@@ -3,6 +3,7 @@ import { ArrowLeft, Share2 } from 'lucide-react';
 import type { Flockdoc } from '../../types';
 import { normalizeDiagramScene, type DiagramScene } from '../../lib/diagram-operations';
 import { registerDiagramWebMCP } from '../../lib/editor-webmcp';
+import { EditorDocumentTitle } from './EditorDocumentTitle';
 
 type ExcalidrawApi = {
   updateScene: (scene: { elements: DiagramScene['elements']; captureUpdate?: unknown }) => void;
@@ -51,13 +52,14 @@ interface DiagramEditorProps {
   canShare?: boolean;
   onShare?: () => void;
   persistenceStatus?: string;
+  workspaceName?: string;
 }
 
 function signature(scene: DiagramScene): string {
   return JSON.stringify(scene.elements.map(element => `${element.id}:${String(element.version ?? 0)}:${String(element.isDeleted ?? false)}`));
 }
 
-export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSceneChange, remoteScenes = [], onRemoteScenesApplied, checkpointRevision, canEdit = true, canShare = true, onShare, persistenceStatus }: DiagramEditorProps) {
+export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSceneChange, remoteScenes = [], onRemoteScenesApplied, checkpointRevision, canEdit = true, canShare = true, onShare, persistenceStatus, workspaceName = 'My workspace' }: DiagramEditorProps) {
   const [editor, setEditor] = useState<ComponentType<Record<string, unknown>> | null>(null);
   const [mainMenu, setMainMenu] = useState<ExcalidrawMainMenu | null>(null);
   const [useHandleLibrary, setUseHandleLibrary] = useState<ExcalidrawLibraryHandler | null>(null);
@@ -172,7 +174,7 @@ export function DiagramEditor({ item, onBack, onRename, onSnapshot, onDiagramSce
   const MainMenu = mainMenu;
   const libraryReturnUrl = `${location.origin}${location.pathname}`;
   return <main className="editor-shell diagram-shell">
-    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Diagram name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>
+    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><EditorDocumentTitle ariaLabel="Diagram name" name={item.name} workspaceName={workspaceName} status={persistenceStatus ?? status} canEdit={canEdit} onRename={onRename} /><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>
     <div className="diagram-editor-host" aria-label="Diagram editor">{Excalidraw && MainMenu ? <Excalidraw excalidrawAPI={(value: ExcalidrawApi) => setApi(value)} initialData={{ elements: latestScene.current.elements, scrollToContent: true }} viewModeEnabled={!canEdit} theme="light" aiEnabled={false} libraryReturnUrl={libraryReturnUrl} UIOptions={FLOCKDOC_EXCALIDRAW_UI_OPTIONS} onChange={onChange}>
       <MainMenu>
         <MainMenu.DefaultItems.SaveAsImage />

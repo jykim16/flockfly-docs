@@ -68,13 +68,48 @@ describe('Flockdoc workspace', () => {
     render(<App />);
 
     const navigation = await screen.findByRole('navigation', { name: 'Workspace navigation' });
+    expect(within(navigation).getByText('Workspaces')).toBeInTheDocument();
     fireEvent.click(await within(navigation).findByRole('button', { name: 'Design team' }));
+    expect(await screen.findByRole('heading', { name: 'Design team' })).toBeInTheDocument();
+    expect(within(screen.getByRole('navigation', { name: 'Folder path' })).getByRole('button', { name: 'Design team' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'New' })).toBeDisabled();
     const row = await screen.findByRole('row', { name: /Shared research/ });
     fireEvent.click(within(row).getByRole('button', { name: 'Remove Shared research from workspace' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm remove' }));
     await waitFor(() => expect(screen.queryByText('Shared research')).not.toBeInTheDocument());
     expect(fetchMock).toHaveBeenCalledWith('/v1/flockdocs/shared-1/workspace', expect.objectContaining({ method: 'DELETE' }));
+  });
+
+  it('derives a directly opened flockdoc workspace from its collection', async () => {
+    history.replaceState(null, '', '/flockdoc/webapp/team-app');
+    const permissions = { canRead: true, canComment: true, canEdit: true, canShare: true, canDelete: true };
+    const teamApp = {
+      id: 'team-app', collectionId: 'coll_design', name: 'Design system', type: 'webapp', updatedAt: '2026-09-07T00:00:00Z',
+      role: 'manager', permissions,
+    };
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === '/v1/me') return new Response(JSON.stringify({ user: { id: 'user-manager', email: 'manager@example.com' } }), { status: 200 });
+      if (url === '/v1/collections') return new Response(JSON.stringify({ collections: [
+        { id: 'coll_personal', kind: 'private', name: "Manager's sessions", personalOwnerUserId: 'user-manager', isMember: true, permissions: { canPublish: true } },
+        { id: 'coll_design', kind: 'private', name: 'Design team', personalOwnerUserId: null, isMember: true, permissions: { canPublish: true } },
+      ] }), { status: 200 });
+      if (url === '/v1/flockdocs?collectionId=coll_personal') return new Response(JSON.stringify({ flockdocs: [] }), { status: 200 });
+      if (url === '/v1/flockdocs?collectionId=coll_design') return new Response(JSON.stringify({ flockdocs: [teamApp] }), { status: 200 });
+      if (url === '/v1/flockdoc-invitations') return new Response(JSON.stringify({ invitations: [] }), { status: 200 });
+      if (url === '/v1/flockdocs/team-app/state') return new Response(JSON.stringify({
+        flockdoc: teamApp, revision: 0, snapshotRevision: 0,
+        snapshot: { entrypoint: 'index.html', files: { 'index.html': '<main>Design system</main>', 'styles.css': '', 'app.js': '' } },
+      }), { status: 200 });
+      throw new Error(`Unexpected request: GET ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<App />);
+
+    expect(await screen.findByText('Workspace: Design team')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to workspace' }));
+    expect(screen.getByRole('heading', { name: 'Design team' })).toBeInTheDocument();
+    expect(within(screen.getByRole('navigation', { name: 'Folder path' })).getByRole('button', { name: 'Design team' })).toBeInTheDocument();
   });
 
   it('moves a local document to Trash and restores it', async () => {

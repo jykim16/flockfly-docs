@@ -22,9 +22,10 @@ interface RemoteEditorProps {
   onBack: () => void;
   onUpdate: (updates: Partial<Flockdoc>) => void;
   currentUserEmail?: string;
+  workspaceName?: string;
 }
 
-function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate, currentUserEmail }: Omit<RemoteEditorProps, 'item'> & { state: FlockdocState; currentItem: Flockdoc }) {
+function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate, currentUserEmail, workspaceName }: Omit<RemoteEditorProps, 'item'> & { state: FlockdocState; currentItem: Flockdoc }) {
   const [liveState, setLiveState] = useState(state);
   const [paperCollaboration] = useState(() => currentItem.type === 'paper'
     ? new PaperCollaborationDocument(currentItem.id, state.snapshot ?? currentItem.snapshot)
@@ -305,6 +306,7 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
   };
   const common = {
     item,
+    workspaceName,
     onBack,
     onRename,
     onSnapshot,
@@ -326,7 +328,7 @@ function LoadedRemoteEditor({ api, outbox, state, currentItem, onBack, onUpdate,
         : <WebAppEditor {...common} canComment={item.permissions?.canComment ?? false} onWebAppBundleChange={onWebAppBundleChange} remoteBundles={remoteWebAppBundles} onRemoteBundlesApplied={clearWebAppBundles} loadComments={() => api.listComments(item.id).then(response => response.comments)} createComment={(body, anchor) => api.createComment(item.id, body, anchor).then(response => response.comment)} />}{sharing ? <DocumentShareDialog api={api} flockdocId={item.id} flockdocType={item.type} name={item.name} currentUserEmail={currentUserEmail} onClose={closeSharing} /> : null}</>;
 }
 
-export function RemoteEditor({ api, outbox, item, onBack, onUpdate, currentUserEmail }: RemoteEditorProps) {
+export function RemoteEditor({ api, outbox, item, onBack, onUpdate, currentUserEmail, workspaceName = 'My workspace' }: RemoteEditorProps) {
   const [state, setState] = useState<{ status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; value: FlockdocState }>({ status: 'loading' });
 
   useEffect(() => {
@@ -343,5 +345,5 @@ export function RemoteEditor({ api, outbox, item, onBack, onUpdate, currentUserE
 
   if (state.status === 'loading') return <main className="editor-loading"><strong>Loading from Flockfly…</strong><span>Checking access and fetching the latest revision.</span></main>;
   if (state.status === 'error') return <main className="editor-loading error"><strong>Could not open this flockdoc</strong><span>{state.message}</span><button onClick={onBack}>Back to workspace</button></main>;
-  return <LoadedRemoteEditor key={`${item.id}:${state.value.revision}`} api={api} outbox={outbox} state={state.value} currentItem={item} onBack={onBack} onUpdate={onUpdate} currentUserEmail={currentUserEmail} />;
+  return <LoadedRemoteEditor key={`${item.id}:${state.value.revision}`} api={api} outbox={outbox} state={state.value} currentItem={item} onBack={onBack} onUpdate={onUpdate} currentUserEmail={currentUserEmail} workspaceName={workspaceName} />;
 }

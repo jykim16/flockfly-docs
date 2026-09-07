@@ -4,6 +4,7 @@ import type { Flockdoc } from '../../types';
 import type { MountedUniverEditor } from './univer/types';
 import type { PaperTextPatch } from '../../lib/paper-collaboration';
 import { EditorFocusModeControl } from './EditorFocusModeControl';
+import { EditorDocumentTitle } from './EditorDocumentTitle';
 
 interface PaperEditorProps {
   item: Flockdoc;
@@ -19,13 +20,14 @@ interface PaperEditorProps {
   canShare?: boolean;
   onShare?: () => void;
   persistenceStatus?: string;
+  workspaceName?: string;
 }
 
 function snapshotSignature(snapshot: unknown): string | undefined {
   try { return JSON.stringify(snapshot); } catch { return undefined; }
 }
 
-export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPaperSnapshotChange, remotePatches = [], onRemotePatchesApplied, checkpointRevision, canEdit = true, canShare = true, onShare, persistenceStatus }: PaperEditorProps) {
+export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPaperSnapshotChange, remotePatches = [], onRemotePatchesApplied, checkpointRevision, canEdit = true, canShare = true, onShare, persistenceStatus, workspaceName = 'My workspace' }: PaperEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef<MountedUniverEditor | undefined>(undefined);
   const mountedSnapshotRef = useRef(item.snapshot);
@@ -107,7 +109,7 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPap
   }, [checkpointRevision]);
 
   return <main className="editor-shell univer-shell">
-    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Paper name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><div className="editor-header-actions"><EditorFocusModeControl /><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button></div><span className="avatar">You</span></header>
+    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><EditorDocumentTitle ariaLabel="Paper name" name={item.name} workspaceName={workspaceName} status={persistenceStatus ?? status} canEdit={canEdit} onRename={onRename} /><div className="editor-header-actions"><EditorFocusModeControl /><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button></div><span className="avatar">You</span></header>
     <div ref={hostRef} className="univer-editor-host" aria-label="Paper editor" />
   </main>;
 }

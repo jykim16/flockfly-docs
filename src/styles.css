@@ -130,6 +130,7 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
 .sidebar nav a:hover, .sidebar nav button:hover { color: var(--reef); background: rgba(255,255,255,.72); }
 .sidebar nav a.active, .sidebar nav button.active { color: var(--reef); background: rgba(157,231,213,.28); font-weight: 600; }
 .sidebar nav a.active::before, .sidebar nav button.active::before { background: var(--seafoam); }
+.sidebar-section-label { padding: 0 13px 6px; color: #8293a2; font-size: .68rem; font-weight: 650; letter-spacing: .12em; text-transform: uppercase; }
 
 .workspace { grid-row: 2; height: auto; min-height: 0; background: #f7fbfa; }
 .topbar { height: 78px; border-color: var(--line); background: rgba(247,251,250,.82); }
@@ -232,6 +233,9 @@ body.webapp-app-fullscreen .webapp-canvas iframe { min-height: 0; border: 0; bor
 .editor-header, .paper-toolbar, .sheet-toolbar, .sheet-menu, .formula { border-color: var(--line); }
 .editor-header { background: rgba(255,255,255,.94); }
 .editor-header div span { color: var(--ocean); }
+.editor-header .editor-document-meta { display: flex; align-items: center; gap: 5px; min-width: 0; margin-top: 4px; }
+.editor-header .editor-document-meta span { margin-top: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.editor-header .editor-document-meta span:first-child { color: var(--reef); font-weight: 600; }
 .editor-header .editor-header-actions { display: flex; align-items: center; gap: 8px; }
 .editor-header-actions button { height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--slate); background: #fff; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .editor-header-actions button span { margin: 0; color: inherit; font-size: inherit; }

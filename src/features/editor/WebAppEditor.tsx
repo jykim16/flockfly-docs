@@ -6,6 +6,7 @@ import { buildWebAppPreview } from '../../lib/webapp-preview';
 import { DEFAULT_WEB_APP_BUNDLE, normalizeWebAppBundle, type WebAppBundle } from '../../lib/webapp-operations';
 import { registerWebAppWebMCP } from '../../lib/editor-webmcp';
 import { EditorFocusModeControl } from './EditorFocusModeControl';
+import { EditorDocumentTitle } from './EditorDocumentTitle';
 
 export interface WebAppAnchor extends Record<string, unknown> { kind: 'webapp'; selector: string; tag: string; text: string }
 
@@ -31,9 +32,10 @@ interface WebAppEditorProps {
   loadComments?: () => Promise<FlockdocComment[]>;
   createComment?: (body: string, anchor: WebAppAnchor) => Promise<FlockdocComment>;
   persistenceStatus?: string;
+  workspaceName?: string;
 }
 
-export function WebAppEditor({ item, onBack, onRename, onSnapshot, onWebAppBundleChange, remoteBundles = [], onRemoteBundlesApplied, canEdit = true, canComment = true, canShare = true, onShare, loadComments, createComment, persistenceStatus }: WebAppEditorProps) {
+export function WebAppEditor({ item, onBack, onRename, onSnapshot, onWebAppBundleChange, remoteBundles = [], onRemoteBundlesApplied, canEdit = true, canComment = true, canShare = true, onShare, loadComments, createComment, persistenceStatus, workspaceName = 'My workspace' }: WebAppEditorProps) {
   const [bundle, setBundle] = useState(() => normalizeWebAppBundle(item.snapshot ?? DEFAULT_WEB_APP_BUNDLE));
   const [selectedFile, setSelectedFile] = useState(bundle.entrypoint);
   const [view, setView] = useState<'preview' | 'code'>('preview');
@@ -98,7 +100,7 @@ export function WebAppEditor({ item, onBack, onRename, onSnapshot, onWebAppBundl
   const openAppFullscreen = () => { setView('preview'); setMode('interact'); setAppFullscreen(true); };
 
   return <main className="editor-shell webapp-shell">
-    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Web App name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><div className="editor-header-actions"><EditorFocusModeControl /><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button></div><span className="avatar">You</span></header>
+    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><EditorDocumentTitle ariaLabel="Web App name" name={item.name} workspaceName={workspaceName} status={persistenceStatus ?? status} canEdit={canEdit} onRename={onRename} /><div className="editor-header-actions"><EditorFocusModeControl /><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button></div><span className="avatar">You</span></header>
     <div className="webapp-toolbar"><div className="segmented"><button className={view === 'preview' ? 'active' : ''} onClick={() => setView('preview')}><Eye /> Preview</button><button className={view === 'code' ? 'active' : ''} onClick={() => setView('code')}><Code2 /> Code</button></div><div className="webapp-toolbar-actions"><div className="segmented review-mode"><button className={mode === 'annotate' ? 'active' : ''} onClick={() => setMode('annotate')}><MousePointer2 /> Annotate</button><button className={mode === 'interact' ? 'active' : ''} onClick={() => setMode('interact')}><Play /> Interact</button></div><button className="app-fullscreen-enter" onClick={openAppFullscreen}><Maximize2 /> App full screen</button></div></div>
     <section className="webapp-workbench">
       <aside className="webapp-files"><strong>Files</strong>{Object.keys(bundle.files).map(path => <button key={path} className={path === selectedFile ? 'active' : ''} onClick={() => { setSelectedFile(path); setView('code'); }}>{path}</button>)}</aside>

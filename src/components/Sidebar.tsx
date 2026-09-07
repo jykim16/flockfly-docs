@@ -25,6 +25,7 @@ export function Sidebar({ menuOpen, workspaces, selectedWorkspaceId, view, canCr
       </div>}
     </div>
     <nav aria-label="Workspace navigation">
+      <span className="sidebar-section-label">Workspaces</span>
       {workspaces.map(workspace => workspace.isDefault
         ? <a key={workspace.id} className={view === 'active' && selectedWorkspaceId === workspace.id ? 'active' : ''} href="/flockdoc/" aria-current={view === 'active' && selectedWorkspaceId === workspace.id ? 'page' : undefined} onClick={event => { event.preventDefault(); onSelectWorkspace(workspace.id); }}><FolderOpen />{workspace.name}</a>
         : <button key={workspace.id} type="button" className={view === 'active' && selectedWorkspaceId === workspace.id ? 'active' : ''} aria-current={view === 'active' && selectedWorkspaceId === workspace.id ? 'page' : undefined} onClick={() => onSelectWorkspace(workspace.id)}><Users />{workspace.name}</button>)}
