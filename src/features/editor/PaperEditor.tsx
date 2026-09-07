@@ -3,6 +3,7 @@ import { ArrowLeft, Share2 } from 'lucide-react';
 import type { Flockdoc } from '../../types';
 import type { MountedUniverEditor } from './univer/types';
 import type { PaperTextPatch } from '../../lib/paper-collaboration';
+import { EditorFocusModeControl } from './EditorFocusModeControl';
 
 interface PaperEditorProps {
   item: Flockdoc;
@@ -106,7 +107,7 @@ export function PaperEditor({ item, onBack, onRename, onSnapshot, onDirty, onPap
   }, [checkpointRevision]);
 
   return <main className="editor-shell univer-shell">
-    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Paper name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>
+    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Paper name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><div className="editor-header-actions"><EditorFocusModeControl /><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button></div><span className="avatar">You</span></header>
     <div ref={hostRef} className="univer-editor-host" aria-label="Paper editor" />
   </main>;
 }

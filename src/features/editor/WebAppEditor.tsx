@@ -4,6 +4,7 @@ import type { Flockdoc, FlockdocComment } from '../../types';
 import { buildWebAppPreview } from '../../lib/webapp-preview';
 import { DEFAULT_WEB_APP_BUNDLE, normalizeWebAppBundle, type WebAppBundle } from '../../lib/webapp-operations';
 import { registerWebAppWebMCP } from '../../lib/editor-webmcp';
+import { EditorFocusModeControl } from './EditorFocusModeControl';
 
 export interface WebAppAnchor extends Record<string, unknown> { kind: 'webapp'; selector: string; tag: string; text: string }
 
@@ -87,7 +88,7 @@ export function WebAppEditor({ item, onBack, onRename, onSnapshot, onWebAppBundl
   };
 
   return <main className="editor-shell webapp-shell">
-    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Web App name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button><span className="avatar">You</span></header>
+    <header className="editor-header"><button aria-label="Back to workspace" onClick={onBack}><ArrowLeft /></button><div><input className="document-title" aria-label="Web App name" value={item.name} disabled={!canEdit} onChange={event => onRename(event.target.value)} /><span>{persistenceStatus ?? status}</span></div><div className="editor-header-actions"><EditorFocusModeControl /><button className="share" disabled={!canShare || !onShare} onClick={onShare}><Share2 /> Share</button></div><span className="avatar">You</span></header>
     <div className="webapp-toolbar"><div className="segmented"><button className={view === 'preview' ? 'active' : ''} onClick={() => setView('preview')}><Eye /> Preview</button><button className={view === 'code' ? 'active' : ''} onClick={() => setView('code')}><Code2 /> Code</button></div><div className="segmented review-mode"><button className={mode === 'annotate' ? 'active' : ''} onClick={() => setMode('annotate')}><MousePointer2 /> Annotate</button><button className={mode === 'interact' ? 'active' : ''} onClick={() => setMode('interact')}><Play /> Interact</button></div></div>
     <section className="webapp-workbench">
       <aside className="webapp-files"><strong>Files</strong>{Object.keys(bundle.files).map(path => <button key={path} className={path === selectedFile ? 'active' : ''} onClick={() => { setSelectedFile(path); setView('code'); }}>{path}</button>)}</aside>
