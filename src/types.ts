@@ -30,6 +30,24 @@ export interface FlockdocWorkspace {
   name: string;
   isDefault: boolean;
   canCreate: boolean;
+  canShare: boolean;
+  canManageAccess: boolean;
+}
+
+export type WorkspaceRole = 'owner' | 'manager' | 'viewer';
+export type WorkspaceAssignableRole = Exclude<WorkspaceRole, 'owner'>;
+
+export interface WorkspaceMember {
+  email: string;
+  username?: string | null;
+  role: WorkspaceRole;
+  status?: 'active' | 'pending_account';
+}
+
+export interface WorkspaceInvitation {
+  id: string;
+  email: string;
+  role: WorkspaceAssignableRole;
 }
 
 export type FlockdocRole = 'owner' | 'manager' | 'editor' | 'commenter' | 'viewer';

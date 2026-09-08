@@ -150,6 +150,9 @@ a.user-chip:hover { color: var(--ocean); border-color: rgba(15,111,123,.35); }
 .sync-note { margin: 0 0 20px; color: var(--slate); font-size: .82rem; }
 .sync-note.error { color: #a33d43; }
 .title-row h1 { color: var(--navy); font-size: 1.9rem; font-weight: 650; }
+.workspace-share-button { min-height: 2.4rem; display: inline-flex; align-items: center; gap: .45rem; padding: .42rem .95rem; border: 1px solid var(--line); border-radius: 999px; color: var(--reef); background: #fff; font-size: .8rem; font-weight: 600; cursor: pointer; box-shadow: 0 6px 18px rgba(16,32,51,.05); }
+.workspace-share-button:hover { border-color: var(--ocean-light); background: rgba(157,231,213,.16); transform: translateY(-1px); }
+.workspace-share-button svg { width: 16px; height: 16px; }
 .folder-breadcrumb { display: flex; align-items: center; gap: 4px; min-height: 28px; margin-top: 9px; color: var(--slate); font-size: .78rem; }
 .folder-breadcrumb button { padding: 3px 5px; border: 0; border-radius: 5px; color: var(--ocean); background: transparent; cursor: pointer; }
 .folder-breadcrumb button:hover { color: var(--reef); background: rgba(217,236,239,.5); }

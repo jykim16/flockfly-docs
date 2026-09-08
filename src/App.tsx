@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { HelpCircle, Search } from 'lucide-react';
+import { HelpCircle, Search, Share2 } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { PlatformHeader } from './components/PlatformHeader';
 import { PaperEditor } from './features/editor/PaperEditor';
@@ -9,6 +9,7 @@ import { DiagramEditor } from './features/editor/DiagramEditor';
 import { WebAppEditor } from './features/editor/WebAppEditor';
 import { FlockdocTable } from './features/workspace/FlockdocTable';
 import { FolderBreadcrumb } from './features/workspace/FolderBreadcrumb';
+import { WorkspaceShareDialog } from './features/sharing/WorkspaceShareDialog';
 import { consumeAuthTokenFromHash, FlockdocApi, getToken, googleSignInUrl, supportsPlatformSession } from './lib/api';
 import { migrateAnonymousWorkspace } from './lib/anonymous-migration';
 import { flockdocRoleLabel } from './lib/flockdoc-roles';
@@ -29,7 +30,7 @@ export default function App() {
     return consumed ?? getToken();
   });
   const [items, setItems] = useState<Flockdoc[]>(() => loadWorkspace(localStorage));
-  const [workspaces, setWorkspaces] = useState<FlockdocWorkspace[]>([{ id: 'local', name: 'My workspace', isDefault: true, canCreate: true }]);
+  const [workspaces, setWorkspaces] = useState<FlockdocWorkspace[]>([{ id: 'local', name: 'My workspace', isDefault: true, canCreate: true, canShare: false, canManageAccess: false }]);
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('local');
   const [workspaceView, setWorkspaceView] = useState<'active' | 'trash'>('active');
   const [currentPrefix, setCurrentPrefix] = useState('');
@@ -42,6 +43,7 @@ export default function App() {
   const [outbox, setOutbox] = useState<FlockdocOutbox | null>(null);
   const [account, setAccount] = useState<{ email: string; entitled: boolean } | null>(null);
   const [invitations, setInvitations] = useState<FlockdocInvitation[]>([]);
+  const [workspaceShareOpen, setWorkspaceShareOpen] = useState(false);
   const api = useMemo(() => new FlockdocApi(token ?? undefined), [token]);
   const cloudApi = authenticated ? api : null;
   const itemsRef = useRef(items);
@@ -112,7 +114,7 @@ export default function App() {
       setOutbox(null);
       setAccount(null);
       setItems(loadWorkspace(localStorage));
-      setWorkspaces([{ id: 'local', name: 'My workspace', isDefault: true, canCreate: true }]);
+      setWorkspaces([{ id: 'local', name: 'My workspace', isDefault: true, canCreate: true, canShare: false, canManageAccess: false }]);
       setSelectedWorkspaceId('local');
       setSyncStatus(error instanceof Error && 'status' in error && [401, 403, 404].includes(Number(error.status)) ? 'browser' : 'error');
     });
@@ -216,11 +218,11 @@ export default function App() {
     setItems(current => current.map(entry => entry.id === item.id ? restored : entry));
   };
   const selectWorkspace = async (id: string) => {
-    setCurrentPrefix(''); setWorkspaceView('active'); setSelectedWorkspaceId(id);
+    setCurrentPrefix(''); setWorkspaceView('active'); setSelectedWorkspaceId(id); setWorkspaceShareOpen(false);
     if (cloudApi) { setSyncStatus('loading'); setItems((await cloudApi.list(id)).flockdocs); setSyncStatus('synced'); }
   };
   const selectTrash = async () => {
-    setCurrentPrefix(''); setWorkspaceView('trash');
+    setCurrentPrefix(''); setWorkspaceView('trash'); setWorkspaceShareOpen(false);
     if (cloudApi) { setSyncStatus('loading'); setItems((await cloudApi.list(selectedWorkspaceId, 'trash')).flockdocs); setSyncStatus('synced'); }
   };
   return <div className="app-shell">
@@ -233,7 +235,8 @@ export default function App() {
         {syncStatus === 'loading' ? <p className="sync-note">Loading your cloud workspace…</p> : null}
         {syncStatus === 'error' ? <p className="sync-note error">Cloud sync is unavailable. Your browser copy has not been removed.</p> : null}
         {cloudApi && invitations.length ? <aside className="flockdoc-invitations"><strong>Document invitations</strong>{invitations.map(invitation => <div key={invitation.id}><span><b>{invitation.flockdocName}</b> · {flockdocRoleLabel(invitation.role)}</span><button onClick={() => void cloudApi.respondToInvitation(invitation.id, 'decline').then(() => setInvitations(current => current.filter(item => item.id !== invitation.id)))}>Decline</button><button className="primary" onClick={() => void cloudApi.respondToInvitation(invitation.id, 'accept').then(() => Promise.all([cloudApi.list(selectedWorkspaceId), cloudApi.listInvitations()])).then(([listed, pending]) => { setItems(listed.flockdocs); setInvitations(pending.invitations); })}>Accept</button></div>)}</aside> : null}
-        <div className="title-row"><h1>{workspaceView === 'trash' ? 'Trash' : selectedWorkspace?.name ?? 'My workspace'}</h1></div>
+        <div className="title-row"><h1>{workspaceView === 'trash' ? 'Trash' : selectedWorkspace?.name ?? 'My workspace'}</h1>{workspaceView === 'active' && cloudApi && selectedWorkspace?.canShare ? <button type="button" className="workspace-share-button" onClick={() => setWorkspaceShareOpen(true)}><Share2 />Share workspace</button> : null}</div>
+        {workspaceShareOpen && cloudApi && selectedWorkspace ? <WorkspaceShareDialog api={cloudApi} workspace={selectedWorkspace} currentUserEmail={account?.email} onClose={() => setWorkspaceShareOpen(false)} /> : null}
         <FolderBreadcrumb workspaceName={selectedWorkspace?.name ?? 'My workspace'} prefix={currentPrefix} onNavigate={setCurrentPrefix} />
         <div className="filters">{([['all', 'All'], ['paper', 'Papers'], ['spreadsheet', 'Spreadsheets'], ['diagram', 'Diagrams'], ['webapp', 'Web Apps']] as const).map(([value, label]) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div>
         <FlockdocTable items={visibleItems} prefixes={visiblePrefixes} allPrefixes={knownPrefixes} onOpenFolder={setCurrentPrefix} onMove={moveFlockdoc} onDelete={deleteFlockdoc} onRemove={removeFlockdoc} onRestore={restoreFlockdoc} view={workspaceView} />

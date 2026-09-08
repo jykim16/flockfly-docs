@@ -1,4 +1,4 @@
-import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocComment, FlockdocInvitation, FlockdocLinkRole, FlockdocMember, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType, FlockdocVisibility, FlockdocWorkspace } from '../types';
+import type { Flockdoc, FlockdocAccessGrant, FlockdocAssignableRole, FlockdocComment, FlockdocInvitation, FlockdocLinkRole, FlockdocMember, FlockdocPermissions, FlockdocPrincipalType, FlockdocRole, FlockdocShareLink, FlockdocType, FlockdocVisibility, FlockdocWorkspace, WorkspaceAssignableRole, WorkspaceInvitation, WorkspaceMember } from '../types';
 import type { FlockdocCommittedEvent } from './flockdoc-realtime';
 import type { SpreadsheetOperation } from './spreadsheet-operations';
 import type { PaperYjsOperation } from './paper-collaboration';
@@ -37,7 +37,7 @@ interface BackendCollection {
   name: string;
   personalOwnerUserId: string | null;
   isMember: boolean;
-  permissions: { canPublish?: boolean };
+  permissions: { canPublish?: boolean; canInviteMembers?: boolean; canRemoveMembers?: boolean };
 }
 
 export interface FlockdocState {
@@ -153,9 +153,31 @@ export class FlockdocApi {
         name: collection.personalOwnerUserId ? 'My workspace' : collection.name,
         isDefault: collection.personalOwnerUserId !== null,
         canCreate: collection.permissions.canPublish === true,
+        canShare: collection.permissions.canInviteMembers === true,
+        canManageAccess: collection.permissions.canRemoveMembers === true,
       }))
       .sort((left, right) => Number(right.isDefault) - Number(left.isDefault) || left.name.localeCompare(right.name));
     return { workspaces };
+  }
+
+  listWorkspaceMembers(id: string) {
+    return this.request<{ members: WorkspaceMember[]; invitations: WorkspaceInvitation[] }>(`/v1/collections/${id}/members`);
+  }
+
+  inviteWorkspaceMember(id: string, email: string, role: WorkspaceAssignableRole) {
+    return this.request<{ member?: WorkspaceMember; invitation?: WorkspaceInvitation }>(`/v1/collections/${id}/members`, {
+      method: 'POST', body: JSON.stringify({ email, role }),
+    });
+  }
+
+  changeWorkspaceMemberRole(id: string, email: string, role: WorkspaceAssignableRole) {
+    return this.request<{ member: WorkspaceMember }>(`/v1/collections/${id}/members/${encodeURIComponent(email)}`, {
+      method: 'PATCH', body: JSON.stringify({ role }),
+    });
+  }
+
+  async removeWorkspaceMember(id: string, email: string): Promise<void> {
+    await this.request<void>(`/v1/collections/${id}/members/${encodeURIComponent(email)}`, { method: 'DELETE' });
   }
 
   async create(name: string, type: FlockdocType, prefix = '', collectionId?: string): Promise<{ flockdoc: Flockdoc }> {

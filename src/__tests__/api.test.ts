@@ -66,10 +66,10 @@ describe('Flockdoc API client', () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({ collections: [{
         id: 'coll_personal', kind: 'private', name: "Pat's sessions", personalOwnerUserId: 'user_1',
-        isMember: true, permissions: { canPublish: true, canEdit: true, canDelete: true },
+        isMember: true, permissions: { canPublish: true, canInviteMembers: true, canRemoveMembers: true },
       }, {
         id: 'coll_team', kind: 'private', name: 'Design team', personalOwnerUserId: null,
-        isMember: true, permissions: { canPublish: false, canEdit: false, canDelete: false },
+        isMember: true, permissions: { canPublish: false, canInviteMembers: false, canRemoveMembers: false },
       }] }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ flockdocs: [] }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ flockdocs: [] }), { status: 200 }))
@@ -80,8 +80,8 @@ describe('Flockdoc API client', () => {
     const api = new FlockdocApi('token');
 
     await expect(api.listWorkspaces()).resolves.toEqual({ workspaces: [
-      expect.objectContaining({ id: 'coll_personal', name: 'My workspace', isDefault: true }),
-      expect.objectContaining({ id: 'coll_team', name: 'Design team', isDefault: false }),
+      expect.objectContaining({ id: 'coll_personal', name: 'My workspace', isDefault: true, canShare: true, canManageAccess: true }),
+      expect.objectContaining({ id: 'coll_team', name: 'Design team', isDefault: false, canShare: false, canManageAccess: false }),
     ] });
     await api.list('coll_team');
     await api.list('coll_team', 'trash');
@@ -96,6 +96,28 @@ describe('Flockdoc API client', () => {
       ['/v1/flockdocs', 'POST', { name: 'Plan', type: 'paper', prefix: '', collectionId: 'coll_team' }],
       ['/v1/flockdocs/flockdoc_1/restore', 'POST', null],
       ['/v1/flockdocs/flockdoc_1/workspace', 'DELETE', null],
+    ]);
+  });
+
+  it('uses collection membership endpoints for workspace sharing', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ members: [], invitations: [] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ invitation: { id: 'cinv_1', email: 'new@example.com', role: 'viewer' } }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ member: { email: 'member@example.com', role: 'manager' } }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const api = new FlockdocApi('token');
+
+    await api.listWorkspaceMembers('coll_team');
+    await api.inviteWorkspaceMember('coll_team', 'new@example.com', 'viewer');
+    await api.changeWorkspaceMemberRole('coll_team', 'member@example.com', 'manager');
+    await api.removeWorkspaceMember('coll_team', 'member@example.com');
+
+    expect(fetchMock.mock.calls.map(([url, init]) => [url, init?.method ?? 'GET', init?.body ? JSON.parse(init.body) : null])).toEqual([
+      ['/v1/collections/coll_team/members', 'GET', null],
+      ['/v1/collections/coll_team/members', 'POST', { email: 'new@example.com', role: 'viewer' }],
+      ['/v1/collections/coll_team/members/member%40example.com', 'PATCH', { role: 'manager' }],
+      ['/v1/collections/coll_team/members/member%40example.com', 'DELETE', null],
     ]);
   });
 
